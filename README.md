@@ -3,6 +3,10 @@
 An interactive leaderboard for the competency-question evaluation results
 reported with [OntoCheck](https://github.com/cwru-sdle/OntoCheck).
 
+## Website
+
+**[Open the OntoCheck Benchmark Leaderboard](https://lamng3.github.io/ontocheck_benchmark_leaderboard/)**
+
 The site presents:
 
 - comparative coverage for MDS-Onto, PMDCo, AM-Ontology, EMMO, and CHAMEO;
