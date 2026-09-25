@@ -11,7 +11,9 @@ The site presents:
 
 - comparative coverage for MDS-Onto, PMDCo, AM-Ontology, EMMO, and CHAMEO;
 - category-level competency-question coverage;
-- task-based recall and precision for six applied scientific domains.
+- task-based recall and precision for six applied scientific domains;
+- a searchable explorer containing all 176 published competency questions and
+  their SPARQL queries.
 
 ## Data source
 

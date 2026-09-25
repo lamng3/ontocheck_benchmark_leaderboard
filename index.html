@@ -29,6 +29,7 @@
       <nav aria-label="Primary navigation">
         <a href="#leaderboard">Leaderboard</a>
         <a href="#domains">Domain results</a>
+        <a href="#questions">Questions</a>
         <a href="#methodology">Methodology</a>
       </nav>
       <a
@@ -145,6 +146,54 @@
           </p>
         </div>
         <div id="domain-grid" class="domain-grid"></div>
+      </section>
+
+      <section class="section question-section" id="questions">
+        <div class="section-heading">
+          <div>
+            <p class="kicker">Supplementary question sets</p>
+            <h2>Competency questions</h2>
+          </div>
+          <p>
+            Explore the questions used in the evaluations and inspect their
+            executable SPARQL queries.
+          </p>
+        </div>
+
+        <div class="question-explorer">
+          <div class="question-toolbar">
+            <label class="search-field">
+              <span class="visually-hidden">Search competency questions</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" />
+              </svg>
+              <input
+                id="question-search"
+                type="search"
+                placeholder="Search questions or SPARQL…"
+                autocomplete="off"
+              />
+            </label>
+            <label class="domain-select-label">
+              <span>Question set</span>
+              <select id="question-domain">
+                <option value="all">All question sets</option>
+              </select>
+            </label>
+          </div>
+          <div class="question-meta">
+            <p id="question-count" aria-live="polite">Loading question sets…</p>
+            <p>Open a question to view its SPARQL</p>
+          </div>
+          <div id="question-list" class="question-list">
+            <div class="question-loading" aria-hidden="true">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+          <button id="load-more-questions" class="load-more" type="button" hidden>
+            Show more questions
+          </button>
+        </div>
       </section>
 
       <section class="section methodology" id="methodology">

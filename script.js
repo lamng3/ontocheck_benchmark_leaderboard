@@ -97,11 +97,60 @@ const domains = [
   },
 ];
 
+const questionSources = [
+  {
+    domain: "General materials science",
+    code: "General",
+    file: "MaterialsScience_General.json",
+    type: "json",
+  },
+  { domain: "Capacitors", code: "CAP", file: "Capacitors.json", type: "json" },
+  { domain: "EBSD", code: "EBSD", file: "EBSD.json", type: "json" },
+  { domain: "GeoOutage", code: "GEO", file: "GeoOutage.json", type: "json" },
+  {
+    domain: "Geospatial",
+    code: "GSP",
+    file: "Geospatial.json",
+    type: "json",
+  },
+  { domain: "XRD", code: "XRD", file: "XRD.json", type: "json" },
+  {
+    domain: "Materials Processing",
+    code: "MAT",
+    file: "MatProc.md",
+    type: "markdown",
+  },
+  {
+    domain: "Cross-domain Case Study 1",
+    code: "CS1",
+    file: "CaseStudy1.json",
+    type: "json",
+  },
+  {
+    domain: "Cross-domain Case Study 2",
+    code: "CS2",
+    file: "CaseStudy2.json",
+    type: "json",
+  },
+];
+
+const questionBaseUrl =
+  "https://raw.githubusercontent.com/cwru-sdle/OntoCheck/main/SupplementaryMaterials/SPARQL_Queries/";
+
 const ontologyTable = document.querySelector("#ontology-table");
 const sortSelect = document.querySelector("#sort-ontologies");
 const filterContainer = document.querySelector("#ontology-filters");
 const categoryChart = document.querySelector("#category-chart");
 const domainGrid = document.querySelector("#domain-grid");
+const questionSearch = document.querySelector("#question-search");
+const questionDomain = document.querySelector("#question-domain");
+const questionCount = document.querySelector("#question-count");
+const questionList = document.querySelector("#question-list");
+const loadMoreQuestions = document.querySelector("#load-more-questions");
+
+let competencyQuestions = [];
+let visibleQuestions = [];
+let questionLimit = 20;
 
 function scoreClass(score) {
   if (score >= 95) return "top";
@@ -211,6 +260,143 @@ function renderDomains() {
     .join("");
 }
 
+function escapeHtml(value) {
+  return String(value).replace(
+    /[&<>"']/g,
+    (character) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;",
+      })[character],
+  );
+}
+
+function parseMarkdownQuestions(markdown, source) {
+  const pattern =
+    /\*\*CQ(\d+)\.\s+(.+?)\*\*\s*```sparql\s*([\s\S]*?)```/g;
+
+  return [...markdown.matchAll(pattern)].map((match) => ({
+    domain: source.domain,
+    code: source.code,
+    number: Number(match[1]),
+    question: match[2].trim(),
+    query: match[3].trim(),
+  }));
+}
+
+async function fetchQuestionSource(source) {
+  const response = await fetch(`${questionBaseUrl}${source.file}`);
+  if (!response.ok) {
+    throw new Error(`Could not load ${source.file} (${response.status})`);
+  }
+
+  if (source.type === "markdown") {
+    return parseMarkdownQuestions(await response.text(), source);
+  }
+
+  const rows = await response.json();
+  return rows.map((row, index) => ({
+    domain: source.domain,
+    code: source.code,
+    number: index + 1,
+    question: row.question,
+    query: row.sparql_query || "",
+  }));
+}
+
+function populateQuestionDomains() {
+  questionDomain.insertAdjacentHTML(
+    "beforeend",
+    questionSources
+      .map(
+        (source) =>
+          `<option value="${escapeHtml(source.domain)}">${escapeHtml(source.domain)}</option>`,
+      )
+      .join(""),
+  );
+}
+
+function filterQuestions() {
+  const searchTerm = questionSearch.value.trim().toLowerCase();
+  const selectedDomain = questionDomain.value;
+
+  visibleQuestions = competencyQuestions.filter((item) => {
+    const matchesDomain =
+      selectedDomain === "all" || item.domain === selectedDomain;
+    const matchesSearch =
+      !searchTerm ||
+      item.question.toLowerCase().includes(searchTerm) ||
+      item.query.toLowerCase().includes(searchTerm);
+    return matchesDomain && matchesSearch;
+  });
+}
+
+function renderQuestions() {
+  filterQuestions();
+  const displayed = visibleQuestions.slice(0, questionLimit);
+
+  questionCount.textContent = `${visibleQuestions.length} question${
+    visibleQuestions.length === 1 ? "" : "s"
+  } found`;
+
+  if (!displayed.length) {
+    questionList.innerHTML =
+      '<p class="empty-state">No competency questions match those filters.</p>';
+    loadMoreQuestions.hidden = true;
+    return;
+  }
+
+  questionList.innerHTML = displayed
+    .map(
+      (item, index) => `
+        <details class="question-item">
+          <summary>
+            <span class="question-tag">
+              ${escapeHtml(item.code)} · CQ${String(item.number).padStart(2, "0")}
+            </span>
+            <span class="question-text">${escapeHtml(item.question)}</span>
+          </summary>
+          <div class="query-panel">
+            <header>
+              <span>SPARQL query</span>
+              <button class="copy-query" type="button" data-index="${index}">
+                Copy
+              </button>
+            </header>
+            <pre><code>${escapeHtml(item.query)}</code></pre>
+          </div>
+        </details>
+      `,
+    )
+    .join("");
+
+  loadMoreQuestions.hidden = displayed.length >= visibleQuestions.length;
+  loadMoreQuestions.textContent = `Show more (${visibleQuestions.length - displayed.length} remaining)`;
+}
+
+async function loadCompetencyQuestions() {
+  populateQuestionDomains();
+
+  try {
+    const questionSets = await Promise.all(
+      questionSources.map(fetchQuestionSource),
+    );
+    competencyQuestions = questionSets.flat();
+    renderQuestions();
+  } catch (error) {
+    questionCount.textContent = "Question sets unavailable";
+    questionList.innerHTML = `
+      <p class="empty-state">
+        The competency questions could not be loaded. Please try again later.
+      </p>
+    `;
+    console.error(error);
+  }
+}
+
 sortSelect.addEventListener("change", (event) => {
   renderLeaderboard(event.target.value);
 });
@@ -227,7 +413,39 @@ filterContainer.addEventListener("click", (event) => {
   renderCategoryChart(Number(button.dataset.index));
 });
 
+questionSearch.addEventListener("input", () => {
+  questionLimit = 20;
+  renderQuestions();
+});
+
+questionDomain.addEventListener("change", () => {
+  questionLimit = 20;
+  renderQuestions();
+});
+
+loadMoreQuestions.addEventListener("click", () => {
+  questionLimit += 20;
+  renderQuestions();
+});
+
+questionList.addEventListener("click", async (event) => {
+  const button = event.target.closest(".copy-query");
+  if (!button) return;
+
+  const item = visibleQuestions[Number(button.dataset.index)];
+  try {
+    await navigator.clipboard.writeText(item.query);
+    button.textContent = "Copied";
+    window.setTimeout(() => {
+      button.textContent = "Copy";
+    }, 1400);
+  } catch {
+    button.textContent = "Select query to copy";
+  }
+});
+
 renderLeaderboard();
 renderFilters();
 renderCategoryChart();
 renderDomains();
+loadCompetencyQuestions();
