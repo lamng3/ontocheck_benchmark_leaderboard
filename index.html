@@ -14,8 +14,8 @@
       href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260925-2" />
-    <script src="script.js?v=20260925-2" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260925-3" />
+    <script src="script.js?v=20260925-3" defer></script>
   </head>
   <body>
     <div class="ambient ambient-one"></div>
@@ -196,9 +196,24 @@
               <span></span><span></span><span></span>
             </div>
           </div>
-          <button id="load-more-questions" class="load-more" type="button" hidden>
-            Show more questions
-          </button>
+          <div class="question-actions">
+            <button
+              id="show-less-questions"
+              class="question-action secondary-action"
+              type="button"
+              hidden
+            >
+              Show less
+            </button>
+            <button
+              id="load-more-questions"
+              class="question-action"
+              type="button"
+              hidden
+            >
+              Show more questions
+            </button>
+          </div>
         </div>
       </section>
 
@@ -214,18 +229,46 @@
           </p>
         </div>
         <div class="formula-grid">
-          <article>
-            <span class="formula-number">01</span>
+          <article class="metric-card recall-card">
+            <div class="metric-card-top">
+              <span class="formula-number">01</span>
+              <span class="metric-kind">Coverage signal</span>
+            </div>
             <h3>Recall <small>Relevance</small></h3>
-            <code>|T<sub>a</sub> ∩ T<sub>o</sub>| / |T<sub>a</sub>|</code>
+            <div class="formula-expression" aria-label="Intersection of task and ontology terms divided by task terms">
+              <span class="fraction">
+                <span>|T<sub>a</sub> ∩ T<sub>o</sub>|</span>
+                <span>|T<sub>a</sub>|</span>
+              </span>
+            </div>
             <p>How much of the task-required vocabulary the ontology defines.</p>
+            <div class="metric-insight">
+              <span>Higher means</span>
+              <strong>Broader task coverage</strong>
+            </div>
           </article>
-          <article>
-            <span class="formula-number">02</span>
+          <article class="metric-card precision-card">
+            <div class="metric-card-top">
+              <span class="formula-number">02</span>
+              <span class="metric-kind">Focus signal</span>
+            </div>
             <h3>Precision <small>Accuracy</small></h3>
-            <code>|T<sub>a</sub> ∩ T<sub>o</sub>| / |T<sub>o</sub>|</code>
+            <div class="formula-expression" aria-label="Intersection of task and ontology terms divided by ontology terms">
+              <span class="fraction">
+                <span>|T<sub>a</sub> ∩ T<sub>o</sub>|</span>
+                <span>|T<sub>o</sub>|</span>
+              </span>
+            </div>
             <p>How much of the ontology vocabulary is exercised by the task.</p>
+            <div class="metric-insight">
+              <span>Higher means</span>
+              <strong>More focused vocabulary</strong>
+            </div>
           </article>
+          <div class="term-legend">
+            <span><i>T<sub>a</sub></i> Task-required terms</span>
+            <span><i>T<sub>o</sub></i> Ontology-defined terms</span>
+          </div>
         </div>
       </section>
     </main>

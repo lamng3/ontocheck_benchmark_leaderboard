@@ -147,6 +147,7 @@ const questionDomain = document.querySelector("#question-domain");
 const questionCount = document.querySelector("#question-count");
 const questionList = document.querySelector("#question-list");
 const loadMoreQuestions = document.querySelector("#load-more-questions");
+const showLessQuestions = document.querySelector("#show-less-questions");
 
 let competencyQuestions = [];
 let visibleQuestions = [];
@@ -346,6 +347,7 @@ function renderQuestions() {
     questionList.innerHTML =
       '<p class="empty-state">No competency questions match those filters.</p>';
     loadMoreQuestions.hidden = true;
+    showLessQuestions.hidden = true;
     return;
   }
 
@@ -374,6 +376,7 @@ function renderQuestions() {
     .join("");
 
   loadMoreQuestions.hidden = displayed.length >= visibleQuestions.length;
+  showLessQuestions.hidden = questionLimit <= 20;
   loadMoreQuestions.textContent = `Show more (${visibleQuestions.length - displayed.length} remaining)`;
 }
 
@@ -426,6 +429,14 @@ questionDomain.addEventListener("change", () => {
 loadMoreQuestions.addEventListener("click", () => {
   questionLimit += 20;
   renderQuestions();
+});
+
+showLessQuestions.addEventListener("click", () => {
+  questionLimit = 20;
+  renderQuestions();
+  document
+    .querySelector(".question-explorer")
+    .scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
 questionList.addEventListener("click", async (event) => {
