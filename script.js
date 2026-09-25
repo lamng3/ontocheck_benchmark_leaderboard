@@ -151,7 +151,8 @@ const showLessQuestions = document.querySelector("#show-less-questions");
 
 let competencyQuestions = [];
 let visibleQuestions = [];
-let questionLimit = 20;
+const questionPageSize = 10;
+let questionLimit = questionPageSize;
 
 function scoreClass(score) {
   if (score >= 95) return "top";
@@ -376,7 +377,7 @@ function renderQuestions() {
     .join("");
 
   loadMoreQuestions.hidden = displayed.length >= visibleQuestions.length;
-  showLessQuestions.hidden = questionLimit <= 20;
+  showLessQuestions.hidden = questionLimit <= questionPageSize;
   loadMoreQuestions.textContent = `Show more (${visibleQuestions.length - displayed.length} remaining)`;
 }
 
@@ -417,22 +418,22 @@ filterContainer.addEventListener("click", (event) => {
 });
 
 questionSearch.addEventListener("input", () => {
-  questionLimit = 20;
+  questionLimit = questionPageSize;
   renderQuestions();
 });
 
 questionDomain.addEventListener("change", () => {
-  questionLimit = 20;
+  questionLimit = questionPageSize;
   renderQuestions();
 });
 
 loadMoreQuestions.addEventListener("click", () => {
-  questionLimit += 20;
+  questionLimit += questionPageSize;
   renderQuestions();
 });
 
 showLessQuestions.addEventListener("click", () => {
-  questionLimit = 20;
+  questionLimit = questionPageSize;
   renderQuestions();
   document
     .querySelector(".question-explorer")

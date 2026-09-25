@@ -719,10 +719,10 @@ tbody tr:last-child td {
 
 .question-item summary {
   position: relative;
-  padding: 22px 44px 22px 0;
+  padding: 17px 40px 17px 0;
   display: grid;
-  grid-template-columns: 115px 1fr;
-  gap: 18px;
+  grid-template-columns: 105px 1fr;
+  gap: 14px;
   align-items: baseline;
   list-style: none;
   cursor: pointer;
@@ -735,7 +735,7 @@ tbody tr:last-child td {
 .question-item summary::after {
   content: "+";
   position: absolute;
-  top: 19px;
+  top: 14px;
   right: 6px;
   color: var(--green);
   font-family: "DM Mono", monospace;
@@ -749,7 +749,7 @@ tbody tr:last-child td {
 
 .question-tag {
   width: fit-content;
-  padding: 4px 8px;
+  padding: 3px 7px;
   border-radius: 99px;
   color: var(--green);
   background: rgba(24, 99, 77, 0.09);
@@ -760,13 +760,13 @@ tbody tr:last-child td {
 }
 
 .question-text {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 650;
   letter-spacing: -0.01em;
 }
 
 .query-panel {
-  margin: -4px 0 20px 133px;
+  margin: -2px 0 16px 119px;
   overflow: hidden;
   border-radius: 10px;
   background: var(--ink);
