@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Interactive leaderboard for the OntoCheck competency-question benchmarks."
+    />
+    <title>OntoCheck Benchmark Leaderboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+
+    <header class="site-header">
+      <a class="brand" href="#" aria-label="OntoCheck leaderboard home">
+        <span class="brand-mark" aria-hidden="true">O</span>
+        <span>OntoCheck <strong>Benchmarks</strong></span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="#leaderboard">Leaderboard</a>
+        <a href="#domains">Domain results</a>
+        <a href="#methodology">Methodology</a>
+      </nav>
+      <a
+        class="github-link"
+        href="https://github.com/lamng3/ontocheck_benchmark_leaderboard"
+      >
+        View repository
+        <span aria-hidden="true">↗</span>
+      </a>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="eyebrow"><span></span> Competency-question evaluation</div>
+        <h1>How well do materials<br /><em>ontologies answer?</em></h1>
+        <p class="hero-copy">
+          A transparent, reproducible view of vocabulary coverage across
+          materials-science ontologies and six applied scientific domains.
+        </p>
+        <div class="hero-actions">
+          <a class="button primary" href="#leaderboard">Explore rankings</a>
+          <a
+            class="button secondary"
+            href="https://github.com/cwru-sdle/OntoCheck/blob/main/SupplementaryMaterials/2605-KunduMehdiTran-OntoCheck-SupplementaryMaterial.pdf"
+          >
+            Read source data
+          </a>
+        </div>
+        <div class="summary-grid" aria-label="Benchmark summary">
+          <article>
+            <span class="summary-value">05</span>
+            <span class="summary-label">Ontologies compared</span>
+          </article>
+          <article>
+            <span class="summary-value">50</span>
+            <span class="summary-label">General competency questions</span>
+          </article>
+          <article>
+            <span class="summary-value">06</span>
+            <span class="summary-label">Applied domains</span>
+          </article>
+          <article>
+            <span class="summary-value">96.7%</span>
+            <span class="summary-label">Top overall coverage</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="leaderboard">
+        <div class="section-heading">
+          <div>
+            <p class="kicker">Table SF · Overall results</p>
+            <h2>Ontology leaderboard</h2>
+          </div>
+          <p>
+            Ranked by aggregate coverage across 50 questions spanning seven
+            materials-science categories.
+          </p>
+        </div>
+
+        <div class="leaderboard-card">
+          <div class="table-toolbar">
+            <div class="legend">
+              <span><i class="legend-dot top"></i> ≥ 95%</span>
+              <span><i class="legend-dot mid"></i> 80–94.9%</span>
+              <span><i class="legend-dot low"></i> &lt; 80%</span>
+            </div>
+            <label>
+              Sort by
+              <select id="sort-ontologies">
+                <option value="coverage">Coverage</option>
+                <option value="terms">Ontology terms</option>
+                <option value="name">Name</option>
+              </select>
+            </label>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Rank</th>
+                  <th scope="col">Ontology</th>
+                  <th scope="col">Terms</th>
+                  <th scope="col">Coverage</th>
+                  <th scope="col" class="bar-column">Relative score</th>
+                </tr>
+              </thead>
+              <tbody id="ontology-table"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="category-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="kicker">Table SE · Category detail</p>
+              <h3>Coverage by capability</h3>
+            </div>
+            <div id="ontology-filters" class="filter-pills" aria-label="Filter ontology"></div>
+          </div>
+          <div id="category-chart" class="category-chart"></div>
+        </div>
+      </section>
+
+      <section class="section domain-section" id="domains">
+        <div class="section-heading">
+          <div>
+            <p class="kicker">Table SC · Applied assessments</p>
+            <h2>Domain performance</h2>
+          </div>
+          <p>
+            Task vocabulary found in each domain ontology. Recall captures
+            coverage; precision captures vocabulary utilization density.
+          </p>
+        </div>
+        <div id="domain-grid" class="domain-grid"></div>
+      </section>
+
+      <section class="section methodology" id="methodology">
+        <div class="method-copy">
+          <p class="kicker">How scores work</p>
+          <h2>Small equations.<br />Useful signals.</h2>
+          <p>
+            OntoCheck extracts the domain terms required by competency
+            questions and compares them with terms defined by an ontology.
+            Both metrics are needed: coverage without focus and focus without
+            coverage tell different stories.
+          </p>
+        </div>
+        <div class="formula-grid">
+          <article>
+            <span class="formula-number">01</span>
+            <h3>Recall <small>Relevance</small></h3>
+            <code>|T<sub>a</sub> ∩ T<sub>o</sub>| / |T<sub>a</sub>|</code>
+            <p>How much of the task-required vocabulary the ontology defines.</p>
+          </article>
+          <article>
+            <span class="formula-number">02</span>
+            <h3>Precision <small>Accuracy</small></h3>
+            <code>|T<sub>a</sub> ∩ T<sub>o</sub>| / |T<sub>o</sub>|</code>
+            <p>How much of the ontology vocabulary is exercised by the task.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div>
+        <span class="brand-mark small" aria-hidden="true">O</span>
+        <p>
+          Data transcribed from the
+          <a
+            href="https://github.com/cwru-sdle/OntoCheck/blob/main/SupplementaryMaterials/2605-KunduMehdiTran-OntoCheck-SupplementaryMaterial.pdf"
+            >OntoCheck supplementary material</a
+          >.
+        </p>
+      </div>
+      <p>Last updated <time datetime="2026-09-25">September 2026</time></p>
+    </footer>
+  </body>
+</html>
