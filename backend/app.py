@@ -24,7 +24,7 @@ from backend.evaluators.ontocheck_runner import score_queries, to_turtle
 from backend.jobs import start_evaluation
 from backend.memory.retrieval import select_context
 from backend.memory.store import list_questions, upsert_question
-from backend.nl2sparql import translate
+from nl2sparql import Context, Example, generate
 
 ROOT = Path(__file__).resolve().parents[1]
 SESSION_COOKIE = "ontocheck_session"
@@ -73,6 +73,7 @@ class EvaluationRequest(BaseModel):
 class TranslateRequest(BaseModel):
     ontology_id: str
     nl_text: str
+    context: str = ""
 
 
 class QuestionRequest(BaseModel):
@@ -205,8 +206,17 @@ def translate_question(request: Request, body: TranslateRequest):
     if not body.nl_text.strip():
         raise HTTPException(status_code=400, detail="Enter a question to translate.")
     ontology = _owned_ontology(request.state.session_id, body.ontology_id)
+    examples = [
+        Example(nl=item["nl_text"], sparql=item["sparql"])
+        for item in list_questions(request.state.session_id)[:8]
+        if (item.get("sparql") or "").strip()
+    ]
     try:
-        return translate(ontology["path"], body.nl_text)
+        return generate(
+            body.nl_text,
+            ontology["path"],
+            context=Context(text=body.context, examples=examples),
+        )
     except LookupError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except Exception as exc:

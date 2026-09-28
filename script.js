@@ -475,6 +475,7 @@ const runList = document.querySelector("#run-list");
 const runCount = document.querySelector("#run-count");
 const startButton = document.querySelector("#start-evaluation");
 const nlQuestion = document.querySelector("#nl-question");
+const questionContext = document.querySelector("#question-context");
 const sparqlQuestion = document.querySelector("#sparql-question");
 const questionStatus = document.querySelector("#question-status");
 const queryResult = document.querySelector("#query-result");
@@ -1028,6 +1029,7 @@ document.querySelector("#translate-question").addEventListener("click", async ()
       body: JSON.stringify({
         ontology_id: questionOntology.value,
         nl_text: nlQuestion.value,
+        context: questionContext.value,
       }),
     });
     sparqlQuestion.value = data.sparql;

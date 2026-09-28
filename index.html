@@ -14,8 +14,8 @@
       href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260927-4" />
-    <script src="script.js?v=20260927-4" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260927-5" />
+    <script src="script.js?v=20260927-5" defer></script>
   </head>
   <body>
     <div class="ambient ambient-one"></div>
@@ -408,10 +408,10 @@
             <h2>Ask in natural language</h2>
           </div>
           <p>
-            Translate a competency question into SPARQL with a local Ollama
-            model, then score that query against the selected ontology.
-            Context evaluation reuses saved questions when a new ontology is
-            uploaded.
+            Translate a competency question into SPARQL with
+            <a href="https://github.com/lamng3/nl2sparql">nl2sparql</a>,
+            then score that query against the selected ontology. Optional
+            context and saved questions are sent with the translation.
           </p>
         </div>
 
@@ -427,6 +427,14 @@
                 id="nl-question"
                 rows="3"
                 placeholder="Which metals are subclasses of material?"
+              ></textarea>
+            </label>
+            <label class="field field-span">
+              Context
+              <textarea
+                id="question-context"
+                rows="3"
+                placeholder="Optional notes. Saved questions are included automatically."
               ></textarea>
             </label>
             <label class="field field-span">
