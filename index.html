@@ -14,8 +14,8 @@
       href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260927-5" />
-    <script src="script.js?v=20260927-5" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260927-6" />
+    <script src="script.js?v=20260927-6" defer></script>
   </head>
   <body>
     <div class="ambient ambient-one"></div>
@@ -79,17 +79,8 @@
         <div class="eyebrow"><span></span> Competency-question evaluation</div>
         <h1>How well do materials<br /><em>ontologies answer?</em></h1>
         <p class="hero-copy">
-          Compare published coverage, or upload an ontology and run FOOPS,
-          OOPS, OQuaRE, and OntoCheck against competency questions.
+          Published coverage for MDS-Onto, PMDCo, AM-Ontology, EMMO, and CHAMEO.
         </p>
-        <div class="hero-actions">
-          <button class="button primary" type="button" data-tab-target="benchmark">
-            Explore rankings
-          </button>
-          <button class="button secondary" type="button" data-tab-target="evaluate">
-            Run an evaluation
-          </button>
-        </div>
         <div class="summary-grid" aria-label="Benchmark summary">
           <article>
             <span class="summary-value">05</span>
@@ -172,10 +163,7 @@
             <p class="kicker">Table SC · Applied assessments</p>
             <h2>Domain performance</h2>
           </div>
-          <p>
-            Task vocabulary found in each domain ontology. Recall captures
-            coverage; precision captures vocabulary utilization density.
-          </p>
+          <p>Recall and precision across six applied domains.</p>
         </div>
         <div id="domain-grid" class="domain-grid"></div>
       </section>
@@ -245,61 +233,6 @@
             >
               Show more questions
             </button>
-          </div>
-        </div>
-      </section>
-
-      <section class="section methodology" id="methodology">
-        <div class="method-copy">
-          <p class="kicker">How scores work</p>
-          <h2>Small equations.<br />Useful signals.</h2>
-          <p>
-            OntoCheck extracts the domain terms required by competency
-            questions and compares them with terms defined by an ontology.
-            Both metrics are needed: coverage without focus and focus without
-            coverage tell different stories.
-          </p>
-        </div>
-        <div class="formula-grid">
-          <article class="metric-card recall-card">
-            <div class="metric-card-top">
-              <span class="formula-number">01</span>
-              <span class="metric-kind">Coverage signal</span>
-            </div>
-            <h3>Recall <small>Relevance</small></h3>
-            <div class="formula-expression" aria-label="Intersection of task and ontology terms divided by task terms">
-              <span class="fraction">
-                <span>|T<sub>a</sub> ∩ T<sub>o</sub>|</span>
-                <span>|T<sub>a</sub>|</span>
-              </span>
-            </div>
-            <p>How much of the task-required vocabulary the ontology defines.</p>
-            <div class="metric-insight">
-              <span>Higher means</span>
-              <strong>Broader task coverage</strong>
-            </div>
-          </article>
-          <article class="metric-card precision-card">
-            <div class="metric-card-top">
-              <span class="formula-number">02</span>
-              <span class="metric-kind">Focus signal</span>
-            </div>
-            <h3>Precision <small>Accuracy</small></h3>
-            <div class="formula-expression" aria-label="Intersection of task and ontology terms divided by ontology terms">
-              <span class="fraction">
-                <span>|T<sub>a</sub> ∩ T<sub>o</sub>|</span>
-                <span>|T<sub>o</sub>|</span>
-              </span>
-            </div>
-            <p>How much of the ontology vocabulary is exercised by the task.</p>
-            <div class="metric-insight">
-              <span>Higher means</span>
-              <strong>More focused vocabulary</strong>
-            </div>
-          </article>
-          <div class="term-legend">
-            <span><i>T<sub>a</sub></i> Task-required terms</span>
-            <span><i>T<sub>o</sub></i> Ontology-defined terms</span>
           </div>
         </div>
       </section>

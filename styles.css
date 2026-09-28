@@ -131,7 +131,7 @@ main {
 }
 
 .hero {
-  padding: 112px 0 80px;
+  padding: 72px 0 12px;
 }
 
 .eyebrow,
@@ -180,14 +180,9 @@ h1 em {
 
 .hero-copy {
   max-width: 630px;
+  margin-bottom: 36px;
   color: var(--muted);
   font-size: 18px;
-}
-
-.hero-actions {
-  display: flex;
-  gap: 12px;
-  margin: 35px 0 90px;
 }
 
 .button {
@@ -890,178 +885,6 @@ tbody tr:last-child td {
   border: 0;
 }
 
-.methodology {
-  width: calc(100% + 80px);
-  margin-left: -40px;
-  padding: 75px 40px;
-  display: grid;
-  grid-template-columns: 0.9fr 1.3fr;
-  gap: 80px;
-  border-radius: 30px;
-  color: #edf1e6;
-  background: var(--ink);
-}
-
-.method-copy h2 {
-  margin-bottom: 22px;
-}
-
-.method-copy > p:last-child {
-  color: #aeb9b3;
-}
-
-.methodology .kicker {
-  color: var(--lime);
-}
-
-.formula-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.metric-card {
-  position: relative;
-  padding: 28px 28px 24px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 18px;
-  background:
-    radial-gradient(circle at 90% 0%, rgba(223, 255, 154, 0.08), transparent 42%),
-    rgba(255, 255, 255, 0.04);
-  overflow: hidden;
-}
-
-.metric-card::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto auto 0;
-  width: 100%;
-  height: 3px;
-  background: linear-gradient(90deg, var(--lime), transparent 75%);
-}
-
-.precision-card::before {
-  background: linear-gradient(90deg, #89d8c1, transparent 75%);
-}
-
-.metric-card-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.formula-number {
-  color: var(--lime);
-  font-family: "DM Mono", monospace;
-  font-size: 11px;
-}
-
-.metric-kind {
-  padding: 4px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 99px;
-  color: #aeb9b3;
-  font-family: "DM Mono", monospace;
-  font-size: 8px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.metric-card h3 {
-  margin: 36px 0 20px;
-  font-size: 27px;
-  letter-spacing: -0.04em;
-}
-
-.metric-card h3 small {
-  display: block;
-  margin-top: 2px;
-  color: #92a098;
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.formula-expression {
-  min-height: 88px;
-  padding: 14px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  color: var(--lime);
-  background: rgba(0, 0, 0, 0.2);
-  font-family: "DM Mono", monospace;
-  font-size: 15px;
-}
-
-.precision-card .formula-expression {
-  color: #9ce6d2;
-}
-
-.fraction {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: stretch;
-  text-align: center;
-}
-
-.fraction > span:first-child {
-  padding: 0 8px 5px;
-  border-bottom: 1px solid currentColor;
-}
-
-.fraction > span:last-child {
-  padding-top: 5px;
-}
-
-.metric-card > p {
-  margin: 18px 0 0;
-  color: #aeb9b3;
-  font-size: 12px;
-}
-
-.metric-insight {
-  margin-top: 22px;
-  padding-top: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 15px;
-  border-top: 1px solid rgba(255, 255, 255, 0.09);
-}
-
-.metric-insight span {
-  color: #77877f;
-  font-size: 9px;
-  text-transform: uppercase;
-}
-
-.metric-insight strong {
-  color: #e8eee7;
-  font-size: 10px;
-  font-weight: 600;
-  text-align: right;
-}
-
-.term-legend {
-  grid-column: 1 / -1;
-  padding: 3px 5px 0;
-  display: flex;
-  justify-content: flex-end;
-  gap: 20px;
-  color: #7f8e87;
-  font-family: "DM Mono", monospace;
-  font-size: 9px;
-}
-
-.term-legend i {
-  margin-right: 4px;
-  color: var(--lime);
-  font-style: normal;
-}
-
 footer {
   width: min(1180px, calc(100% - 40px));
   margin: 55px auto 0;
@@ -1126,11 +949,6 @@ footer a {
   .query-panel {
     margin-left: 118px;
   }
-
-  .methodology {
-    grid-template-columns: 1fr;
-    gap: 30px;
-  }
 }
 
 @media (max-width: 600px) {
@@ -1158,12 +976,6 @@ footer a {
 
   h1 {
     font-size: 50px;
-  }
-
-  .hero-actions {
-    align-items: stretch;
-    flex-direction: column;
-    margin-bottom: 60px;
   }
 
   .button {
@@ -1211,8 +1023,7 @@ footer a {
     overflow-x: auto;
   }
 
-  .domain-grid,
-  .formula-grid {
+  .domain-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1240,16 +1051,6 @@ footer a {
 
   .query-panel {
     margin-left: 0;
-  }
-
-  .methodology {
-    width: calc(100% + 28px);
-    margin-left: -14px;
-    padding: 45px 20px;
-  }
-
-  .metric-card h3 {
-    margin-top: 35px;
   }
 
   footer {
