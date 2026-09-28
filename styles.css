@@ -1579,6 +1579,65 @@ button.button {
   padding-left: 14px;
 }
 
+.saved-runs {
+  margin-top: 18px;
+}
+
+.saved-runs .panel-heading {
+  padding: 22px 22px 0;
+}
+
+.saved-runs .panel-heading p:last-child {
+  margin: 0;
+  color: var(--muted);
+  font-family: "DM Mono", monospace;
+  font-size: 11px;
+}
+
+.run-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.saved-run {
+  display: grid;
+  grid-template-columns: minmax(140px, 1.1fr) auto minmax(180px, 1.4fr) auto;
+  gap: 16px;
+  align-items: center;
+  width: 100%;
+  padding: 16px 22px;
+  border: 0;
+  border-top: 1px solid var(--line);
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.saved-run:hover {
+  background: rgba(223, 255, 154, 0.18);
+}
+
+.saved-run-name {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.saved-run-meta,
+.saved-run time {
+  color: var(--muted);
+  font-family: "DM Mono", monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.saved-run-score {
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 @media (max-width: 850px) {
   nav.tab-nav {
     display: flex;
@@ -1603,6 +1662,11 @@ button.button {
   .oquare-chart {
     grid-template-columns: repeat(7, 72px);
     overflow-x: auto;
+  }
+
+  .saved-run {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
 }
 

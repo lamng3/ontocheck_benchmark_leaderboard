@@ -14,8 +14,8 @@
       href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260927-2" />
-    <script src="script.js?v=20260927-2" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260927-3" />
+    <script src="script.js?v=20260927-3" defer></script>
   </head>
   <body>
     <div class="ambient ambient-one"></div>
@@ -378,6 +378,20 @@
             <p id="eval-status" role="status">Upload an ontology to begin.</p>
           </div>
         </form>
+        <div class="question-explorer saved-runs">
+          <div class="panel-heading">
+            <div>
+              <p class="kicker">Stored for this browser</p>
+              <h3>Saved evaluations</h3>
+            </div>
+            <p id="run-count">No saved evaluations yet.</p>
+          </div>
+          <div id="run-list" class="run-list">
+            <p class="empty-state">
+              Finished evaluations stay in the local database and appear here.
+            </p>
+          </div>
+        </div>
         <div id="eval-results" class="result-stack"></div>
       </section>
 

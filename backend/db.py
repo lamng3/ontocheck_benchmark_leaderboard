@@ -189,6 +189,62 @@ def save_result(run_id, payload):
         _connect().commit()
 
 
+def list_runs(session_id):
+    with _lock:
+        rows = _connect().execute(
+            """
+            SELECT
+                runs.id,
+                runs.ontology_id,
+                runs.checks,
+                runs.status,
+                runs.error,
+                runs.created_at,
+                ontologies.name AS ontology_name,
+                evaluation_results.payload
+            FROM evaluation_runs AS runs
+            LEFT JOIN ontologies
+                ON ontologies.id = runs.ontology_id
+            LEFT JOIN evaluation_results
+                ON evaluation_results.run_id = runs.id
+            WHERE runs.session_id = ?
+            ORDER BY runs.created_at DESC
+            """,
+            (session_id,),
+        ).fetchall()
+    listed = []
+    for row in rows:
+        record = _row(row)
+        payload = record.pop("payload")
+        record["checks"] = json.loads(record["checks"])
+        record["summary"] = _summarize_payload(
+            json.loads(payload) if payload else None
+        )
+        listed.append(record)
+    return listed
+
+
+def _summarize_payload(payload):
+    if not payload:
+        return {}
+    ontocheck = payload.get("ontocheck") or {}
+    foops = payload.get("foops") or {}
+    oops = (payload.get("oops") or {}).get("summary") or {}
+    scores = [
+        item.get("score")
+        for item in (payload.get("oquare") or {}).get("characteristics") or []
+        if isinstance(item.get("score"), (int, float))
+    ]
+    return {
+        "recall": ontocheck.get("recall"),
+        "precision": ontocheck.get("precision"),
+        "foops": foops.get("overall"),
+        "oops_critical": oops.get("critical"),
+        "oops_important": oops.get("important"),
+        "oquare": round(sum(scores) / len(scores), 2) if scores else None,
+    }
+
+
 def get_run(session_id, run_id):
     with _lock:
         conn = _connect()

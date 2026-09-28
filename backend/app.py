@@ -18,6 +18,7 @@ from backend.db import (
     get_run,
     init_db,
     list_ontologies,
+    list_runs,
 )
 from backend.evaluators.ontocheck_runner import score_queries, to_turtle
 from backend.jobs import start_evaluation
@@ -173,6 +174,11 @@ def start_run(request: Request, body: EvaluationRequest):
     run["domain_prefixes"] = prefixes
     start_evaluation(request.state.session_id, run)
     return {"id": run["id"], "status": "queued"}
+
+
+@app.get("/api/evaluations")
+def read_runs(request: Request):
+    return {"evaluations": list_runs(request.state.session_id)}
 
 
 @app.get("/api/evaluations/{run_id}")

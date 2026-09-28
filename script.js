@@ -471,6 +471,8 @@ const evalQuestionSet = document.querySelector("#eval-question-set");
 const domainPrefixes = document.querySelector("#domain-prefixes");
 const evalStatus = document.querySelector("#eval-status");
 const evalResults = document.querySelector("#eval-results");
+const runList = document.querySelector("#run-list");
+const runCount = document.querySelector("#run-count");
 const startButton = document.querySelector("#start-evaluation");
 const nlQuestion = document.querySelector("#nl-question");
 const sparqlQuestion = document.querySelector("#sparql-question");
@@ -762,6 +764,76 @@ function renderOquarePanel(panel) {
   `;
 }
 
+function formatWhen(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value || "";
+  return date.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function renderSavedRuns(evaluations) {
+  runCount.textContent = `${evaluations.length} saved evaluation${
+    evaluations.length === 1 ? "" : "s"
+  }`;
+  if (!evaluations.length) {
+    runList.innerHTML =
+      '<p class="empty-state">Finished evaluations stay in the local database and appear here.</p>';
+    return;
+  }
+  runList.innerHTML = evaluations
+    .map((run) => {
+      const summary = run.summary || {};
+      const bits = [];
+      if (summary.recall !== null && summary.recall !== undefined) {
+        bits.push(`${formatPercent(summary.recall)} recall`);
+      }
+      if (summary.foops !== null && summary.foops !== undefined) {
+        bits.push(`FOOPS ${summary.foops}%`);
+      }
+      if (summary.oquare !== null && summary.oquare !== undefined) {
+        bits.push(`OQuaRE ${summary.oquare}`);
+      }
+      if (summary.oops_critical || summary.oops_important) {
+        bits.push(
+          `${summary.oops_critical || 0} critical, ${summary.oops_important || 0} important pitfalls`,
+        );
+      }
+      return `
+        <button class="saved-run" type="button" data-run-id="${escapeHtml(run.id)}">
+          <span class="saved-run-name">${escapeHtml(run.ontology_name || "Ontology")}</span>
+          <span class="saved-run-meta">${escapeHtml((run.checks || []).join(" · "))}</span>
+          <span class="saved-run-score">${escapeHtml(bits.join(" · ") || run.status)}</span>
+          <time datetime="${escapeHtml(run.created_at)}">${escapeHtml(formatWhen(run.created_at))}</time>
+        </button>
+      `;
+    })
+    .join("");
+}
+
+async function refreshRuns() {
+  try {
+    const data = await api("/api/evaluations");
+    renderSavedRuns(data.evaluations || []);
+  } catch {
+    runCount.textContent = "Saved evaluations appear after the backend is running.";
+  }
+}
+
+async function openSavedRun(id) {
+  const data = await api(`/api/evaluations/${id}`);
+  if (data.status !== "complete" || !data.result) {
+    evalStatus.textContent = data.error || "That evaluation has no saved result yet.";
+    return;
+  }
+  renderEvaluation(data.result);
+  evalStatus.textContent = "Opened a saved evaluation.";
+  evalResults.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 function renderEvaluation(result) {
   const panels = [
     result.ontocheck ? renderOntocheckPanel(result.ontocheck) : "",
@@ -784,14 +856,16 @@ function renderEvaluation(result) {
 async function pollEvaluation(id) {
   const data = await api(`/api/evaluations/${id}`);
   if (data.status === "complete") {
-    evalStatus.textContent = "Evaluation complete.";
+    evalStatus.textContent = "Evaluation complete. It is saved for this browser.";
     startButton.disabled = false;
     renderEvaluation(data.result || {});
+    refreshRuns();
     return;
   }
   if (data.status === "failed") {
     evalStatus.textContent = data.error || "Evaluation failed.";
     startButton.disabled = false;
+    refreshRuns();
     return;
   }
   evalStatus.textContent = "Evaluation is running…";
@@ -997,8 +1071,17 @@ document.querySelector("#context-evaluate").addEventListener("click", () => {
 
 memorySearch.addEventListener("input", renderMemory);
 
+runList.addEventListener("click", (event) => {
+  const button = event.target.closest(".saved-run");
+  if (!button) return;
+  openSavedRun(button.dataset.runId).catch((error) => {
+    evalStatus.textContent = error.message;
+  });
+});
+
 populateEvalQuestionSets();
 const initialTab = location.hash.replace("#", "");
 showTab(tabs.includes(initialTab) ? initialTab : "benchmark");
 refreshOntologies();
+refreshRuns();
 refreshMemory();
