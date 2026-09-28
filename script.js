@@ -502,12 +502,32 @@ function showTab(name) {
   }
 }
 
+function explainApiFailure(response, data) {
+  let detail = data && (data.detail || data.message);
+  if (Array.isArray(detail)) {
+    detail = detail
+      .map((item) => (item && item.msg) || JSON.stringify(item))
+      .join("; ");
+  }
+  if (typeof detail === "string" && detail.trim()) return detail;
+  if (!response || response.status === 404) {
+    return "This page is not being served by the evaluation backend. GitHub Pages cannot run evaluations. Start the backend, then open http://127.0.0.1:8000.";
+  }
+  return `The evaluation service returned HTTP ${response.status}.`;
+}
+
 async function api(path, options) {
-  const response = await fetch(path, options);
+  let response;
+  try {
+    response = await fetch(path, options);
+  } catch {
+    throw new Error(
+      "The evaluation backend is not running. Start it, then open http://127.0.0.1:8000.",
+    );
+  }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const detail = data.detail || data.message || "The evaluation service rejected that request.";
-    throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
+    throw new Error(explainApiFailure(response, data));
   }
   return data;
 }
@@ -552,7 +572,7 @@ async function refreshOntologies(preferredId) {
     }
   } catch {
     evalStatus.textContent =
-      "The evaluation service is offline. The published benchmark still works on this tab.";
+      "The evaluation backend is not running. Start it, then open http://127.0.0.1:8000. The GitHub Pages site cannot run evaluations.";
   }
 }
 
