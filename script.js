@@ -1031,7 +1031,8 @@ document.querySelector("#translate-question").addEventListener("click", async ()
       }),
     });
     sparqlQuestion.value = data.sparql;
-    questionStatus.textContent = `Translated with ${data.model}. Evaluate to save it.`;
+    const translator = data.provider ? `${data.provider} / ${data.model}` : data.model;
+    questionStatus.textContent = `Translated with ${translator}. Evaluate to save it.`;
   } catch (error) {
     questionStatus.textContent = error.message;
   }

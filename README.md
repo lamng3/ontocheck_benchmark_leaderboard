@@ -43,9 +43,15 @@ backend with Ctrl+C.
 `requirements.txt` installs OntoCheck from GitHub because the current PyPI
 release does not yet include the FOOPS, OOPS, and OQuaRE metrics.
 
-Natural-language translation reads `ONTOCHECK_LLM_API_KEY`. Optional
-`ONTOCHECK_LLM_BASE_URL` (default `https://api.together.xyz/v1`) and
-`ONTOCHECK_LLM_MODEL`. Without a key, paste SPARQL directly and evaluate it.
+Natural-language translation uses a local [Ollama](https://ollama.com) model.
+Start Ollama, and pull a model if needed (`ollama pull llama3.1`). The
+translator prefers `llama3.1`, then `mistral`, then `phi3`, then whichever
+model is installed. Override it with `ONTOCHECK_OLLAMA_MODEL`. The server
+defaults to `http://127.0.0.1:11434` (`ONTOCHECK_OLLAMA_BASE_URL`).
+
+To use an OpenAI-compatible API instead, set `ONTOCHECK_LLM_PROVIDER=openai`
+and `ONTOCHECK_LLM_API_KEY`. Optional `ONTOCHECK_LLM_BASE_URL` (default
+`https://api.together.xyz/v1`) and `ONTOCHECK_LLM_MODEL`.
 
 ## Deployment
 
