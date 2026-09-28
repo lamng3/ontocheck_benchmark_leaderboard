@@ -22,14 +22,24 @@ All displayed results are transcribed from Tables SC, SE, and SF of the
 
 ## Local development
 
-The website has no build dependencies. Serve the repository with any static
-HTTP server:
+Published rankings in the Benchmark tab are static and can be opened from
+`index.html`. Uploads, FOOPS / OOPS / OQuaRE, OntoCheck, and question memory
+need the Python service. Use Python 3.11 or newer. The PyPI release of
+OntoCheck does not yet include the FOOPS, OOPS, and OQuaRE metrics, so
+`requirements.txt` installs the current GitHub revision.
 
 ```bash
-python3 -m http.server 8000
+python3.13 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn backend.app:app --port 8000
 ```
 
 Then open <http://localhost:8000>.
+
+Natural-language translation reads `ONTOCHECK_LLM_API_KEY`. Optional
+`ONTOCHECK_LLM_BASE_URL` (default `https://api.together.xyz/v1`) and
+`ONTOCHECK_LLM_MODEL`. Without a key, paste SPARQL directly and evaluate it.
 
 ## Deployment
 

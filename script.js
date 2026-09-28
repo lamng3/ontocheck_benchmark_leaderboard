@@ -460,4 +460,525 @@ renderLeaderboard();
 renderFilters();
 renderCategoryChart();
 renderDomains();
-loadCompetencyQuestions();
+const competencyQuestionsReady = loadCompetencyQuestions();
+
+const tabs = ["benchmark", "evaluate", "questions"];
+const evalForm = document.querySelector("#eval-form");
+const ontologyFile = document.querySelector("#ontology-file");
+const evalOntology = document.querySelector("#eval-ontology");
+const questionOntology = document.querySelector("#question-ontology");
+const evalQuestionSet = document.querySelector("#eval-question-set");
+const domainPrefixes = document.querySelector("#domain-prefixes");
+const evalStatus = document.querySelector("#eval-status");
+const evalResults = document.querySelector("#eval-results");
+const startButton = document.querySelector("#start-evaluation");
+const nlQuestion = document.querySelector("#nl-question");
+const sparqlQuestion = document.querySelector("#sparql-question");
+const questionStatus = document.querySelector("#question-status");
+const queryResult = document.querySelector("#query-result");
+const memoryList = document.querySelector("#memory-list");
+const memoryCount = document.querySelector("#memory-count");
+const memorySearch = document.querySelector("#memory-search");
+
+let storedOntologies = [];
+let storedQuestions = [];
+
+function showTab(name) {
+  const tab = tabs.includes(name) ? name : "benchmark";
+  tabs.forEach((item) => {
+    const panel = document.querySelector(`#panel-${item}`);
+    const button = document.querySelector(`#tab-${item}`);
+    const active = item === tab;
+    panel.hidden = !active;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", String(active));
+  });
+  try {
+    if (location.hash !== `#${tab}`) {
+      history.replaceState(null, "", `#${tab}`);
+    }
+  } catch {
+    // Some local file views refuse history updates. The tab still changes.
+  }
+}
+
+async function api(path, options) {
+  const response = await fetch(path, options);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const detail = data.detail || data.message || "The evaluation service rejected that request.";
+    throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
+  }
+  return data;
+}
+
+function fillOntologySelects(preferredId) {
+  const markup = storedOntologies.length
+    ? storedOntologies
+        .map(
+          (ontology) =>
+            `<option value="${escapeHtml(ontology.id)}">${escapeHtml(ontology.name)}</option>`,
+        )
+        .join("")
+    : `<option value="">Upload an ontology first</option>`;
+  [evalOntology, questionOntology].forEach((select) => {
+    const current = preferredId || select.value;
+    select.innerHTML = markup;
+    if (storedOntologies.some((ontology) => ontology.id === current)) {
+      select.value = current;
+    }
+  });
+}
+
+function populateEvalQuestionSets() {
+  evalQuestionSet.insertAdjacentHTML(
+    "beforeend",
+    questionSources
+      .map(
+        (source) =>
+          `<option value="${escapeHtml(source.domain)}">${escapeHtml(source.domain)}</option>`,
+      )
+      .join(""),
+  );
+}
+
+async function refreshOntologies(preferredId) {
+  try {
+    const data = await api("/api/ontologies");
+    storedOntologies = data.ontologies;
+    fillOntologySelects(preferredId);
+    if (!storedOntologies.length) {
+      evalStatus.textContent = "Upload an ontology to begin.";
+    }
+  } catch {
+    evalStatus.textContent =
+      "The evaluation service is offline. The published benchmark still works on this tab.";
+  }
+}
+
+async function refreshMemory() {
+  try {
+    const data = await api("/api/questions");
+    storedQuestions = data.questions;
+    renderMemory();
+  } catch {
+    memoryCount.textContent = "Question memory is unavailable until the service is running.";
+  }
+}
+
+async function uploadOntology(file) {
+  const body = new FormData();
+  body.append("file", file);
+  body.append("name", file.name);
+  evalStatus.textContent = `Uploading ${file.name}…`;
+  const saved = await api("/api/ontologies", { method: "POST", body });
+  await refreshOntologies(saved.id);
+  evalStatus.textContent = `${saved.name} is ready.`;
+  return saved;
+}
+
+function formatPercent(value) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) {
+    return "—";
+  }
+  return `${(Number(value) * 100).toFixed(1)}%`;
+}
+
+function formatPlain(value) {
+  if (value === null || value === undefined || value === "") return "—";
+  const number = Number(value);
+  if (Number.isNaN(number)) return escapeHtml(value);
+  return Number.isInteger(number) ? String(number) : number.toFixed(2);
+}
+
+function scoreWidth(value) {
+  const number = Number(value);
+  if (Number.isNaN(number)) return 0;
+  if (number <= 1) return Math.max(number * 100, 0);
+  if (number <= 5) return (number / 5) * 100;
+  return Math.min(number, 100);
+}
+
+function remoteNote(remote, label) {
+  if (!remote) return "";
+  if (remote.ok) {
+    const overall = remote.summary && remote.summary.overall;
+    const extra =
+      overall === null || overall === undefined ? "" : ` Overall score ${overall}.`;
+    return `<p class="remote-note">Public ${escapeHtml(label)} service responded.${escapeHtml(extra)}</p>`;
+  }
+  return `<p class="remote-note">${escapeHtml(remote.detail || `Public ${label} service did not respond.`)} Local OntoCheck tests are shown below.</p>`;
+}
+
+function renderOntocheckPanel(panel) {
+  const metrics = (panel.metrics || [])
+    .map(
+      (metric) => `
+        <div class="metric-row">
+          <span>${escapeHtml(metric.name)}</span>
+          <div class="score-track" aria-hidden="true"><span style="width: ${scoreWidth(metric.score)}%"></span></div>
+          <strong>${formatPlain(metric.score)}</strong>
+        </div>
+      `,
+    )
+    .join("");
+  const missing = (panel.missing || [])
+    .slice(0, 12)
+    .map((term) => `<span>${escapeHtml(term)}</span>`)
+    .join("");
+  return `
+    <article class="result-panel wide">
+      <header>
+        <div>
+          <p class="kicker">OntoCheck</p>
+          <h3>Query coverage</h3>
+        </div>
+      </header>
+      <div class="domain-metrics">
+        <div>
+          <strong>${formatPercent(panel.recall)}</strong>
+          <span>Recall</span>
+        </div>
+        <div>
+          <strong>${formatPercent(panel.precision)}</strong>
+          <span>Precision</span>
+        </div>
+      </div>
+      <p class="match-line">
+        ${panel.intersection ?? "—"} of ${panel.task_terms ?? "—"} task terms found
+        among ${panel.ontology_terms ?? "—"} ontology terms
+        ${panel.query_count ? `· ${panel.query_count} queries` : ""}
+      </p>
+      ${missing ? `<div class="term-chips">${missing}</div>` : ""}
+      ${metrics ? `<div class="metric-list">${metrics}</div>` : ""}
+    </article>
+  `;
+}
+
+function renderFoopsPanel(panel) {
+  const principles = (panel.principles || [])
+    .map(
+      (item) => `
+        <div class="metric-row">
+          <span>${escapeHtml(item.id)}</span>
+          <div class="score-track" aria-hidden="true"><span style="width: ${item.score ?? 0}%"></span></div>
+          <strong>${item.score === null || item.score === undefined ? "—" : `${item.score}%`}</strong>
+        </div>
+      `,
+    )
+    .join("");
+  return `
+    <article class="result-panel">
+      <header>
+        <div>
+          <p class="kicker">FOOPS</p>
+          <h3>FAIR tests</h3>
+        </div>
+        <span class="coverage-badge ${scoreClass(panel.overall || 0)}">${panel.overall === null || panel.overall === undefined ? "—" : `${panel.overall}%`}</span>
+      </header>
+      ${remoteNote(panel.remote, "FOOPS")}
+      <p class="match-line">${panel.passed || 0} passed · ${panel.failed || 0} failed · ${panel.skipped || 0} skipped offline</p>
+      <div class="metric-list">${principles || '<p class="empty-state">No local FOOPS tests ran.</p>'}</div>
+    </article>
+  `;
+}
+
+function renderOopsPanel(panel) {
+  const summary = panel.summary || {};
+  const pitfalls = (panel.pitfalls || [])
+    .slice(0, 12)
+    .map(
+      (item) => `
+        <li>
+          <span class="question-tag">${escapeHtml(item.source_id || item.severity || "pitfall")}</span>
+          <span>${escapeHtml(item.message || item.name || "Pitfall detected")}</span>
+        </li>
+      `,
+    )
+    .join("");
+  return `
+    <article class="result-panel">
+      <header>
+        <div>
+          <p class="kicker">OOPS</p>
+          <h3>Pitfalls</h3>
+        </div>
+      </header>
+      ${remoteNote(panel.remote, "OOPS")}
+      <div class="severity-row">
+        <span><i class="legend-dot low"></i> ${summary.critical || 0} critical</span>
+        <span><i class="legend-dot mid"></i> ${summary.important || 0} important</span>
+        <span><i class="legend-dot top"></i> ${summary.minor || 0} minor</span>
+      </div>
+      ${pitfalls ? `<ul class="pitfall-list">${pitfalls}</ul>` : '<p class="match-line">No failing local pitfalls.</p>'}
+    </article>
+  `;
+}
+
+function renderOquarePanel(panel) {
+  const characteristics = panel.characteristics || [];
+  const bars = characteristics
+    .map(
+      (item) => `
+        <div class="category-item">
+          <span class="category-score">${Number(item.score).toFixed(1)}</span>
+          <div class="category-bar" style="height: ${Math.max(item.score * 28, 8)}px" title="${escapeHtml(item.name)}: ${item.score} / 5"></div>
+          <span class="category-label">${escapeHtml(item.name)}</span>
+        </div>
+      `,
+    )
+    .join("");
+  return `
+    <article class="result-panel wide">
+      <header>
+        <div>
+          <p class="kicker">OQuaRE</p>
+          <h3>Characteristic scores</h3>
+        </div>
+      </header>
+      <p class="match-line">Scores use OntoCheck's 1–5 static scale. 5 exceeds the published threshold.</p>
+      <div class="category-chart oquare-chart">${bars || '<p class="empty-state">No OQuaRE scores were produced.</p>'}</div>
+    </article>
+  `;
+}
+
+function renderEvaluation(result) {
+  const panels = [
+    result.ontocheck ? renderOntocheckPanel(result.ontocheck) : "",
+    result.foops ? renderFoopsPanel(result.foops) : "",
+    result.oops ? renderOopsPanel(result.oops) : "",
+    result.oquare ? renderOquarePanel(result.oquare) : "",
+  ].join("");
+  const name = result.ontology ? result.ontology.name : "Ontology";
+  evalResults.innerHTML = `
+    <div class="section-heading result-heading">
+      <div>
+        <p class="kicker">Results</p>
+        <h3>${escapeHtml(name)}</h3>
+      </div>
+    </div>
+    <div class="result-grid">${panels}</div>
+  `;
+}
+
+async function pollEvaluation(id) {
+  const data = await api(`/api/evaluations/${id}`);
+  if (data.status === "complete") {
+    evalStatus.textContent = "Evaluation complete.";
+    startButton.disabled = false;
+    renderEvaluation(data.result || {});
+    return;
+  }
+  if (data.status === "failed") {
+    evalStatus.textContent = data.error || "Evaluation failed.";
+    startButton.disabled = false;
+    return;
+  }
+  evalStatus.textContent = "Evaluation is running…";
+  window.setTimeout(() => {
+    pollEvaluation(id).catch((error) => {
+      evalStatus.textContent = error.message;
+      startButton.disabled = false;
+    });
+  }, 1200);
+}
+
+function renderQueryReport(report) {
+  const aggregate = report.aggregate || {};
+  const rows = (report.queries || [])
+    .map(
+      (query) => `
+        <article class="query-score">
+          <p>${escapeHtml(query.nl_text || "SPARQL query")}</p>
+          <div>
+            <span class="coverage-badge ${scoreClass((query.recall || 0) * 100)}">${formatPercent(query.recall)} recall</span>
+            <span class="coverage-badge ${scoreClass((query.precision || 0) * 100)}">${formatPercent(query.precision)} precision</span>
+            <span class="term-count">${query.bindings && query.bindings.ok ? `${query.bindings.count} bindings` : "query did not execute"}</span>
+          </div>
+          ${query.error ? `<p class="remote-note">${escapeHtml(query.error)}</p>` : ""}
+        </article>
+      `,
+    )
+    .join("");
+  queryResult.innerHTML = `
+    <article class="result-panel wide">
+      <header>
+        <div>
+          <p class="kicker">Query aggregate</p>
+          <h3>${formatPercent(aggregate.recall)} recall · ${formatPercent(aggregate.precision)} precision</h3>
+        </div>
+      </header>
+      <p class="match-line">
+        Combined over ${aggregate.query_count || (report.queries || []).length} queries.
+        ${aggregate.intersection ?? "—"} shared terms.
+      </p>
+      <div class="query-score-list">${rows}</div>
+    </article>
+  `;
+}
+
+function renderMemory() {
+  const term = memorySearch.value.trim().toLowerCase();
+  const visible = storedQuestions.filter(
+    (question) =>
+      !term ||
+      question.nl_text.toLowerCase().includes(term) ||
+      question.sparql.toLowerCase().includes(term),
+  );
+  memoryCount.textContent = `${visible.length} saved question${visible.length === 1 ? "" : "s"}`;
+  if (!visible.length) {
+    memoryList.innerHTML =
+      '<p class="empty-state">No saved questions match that search.</p>';
+    return;
+  }
+  memoryList.innerHTML = visible
+    .map(
+      (question) => `
+        <details class="question-item">
+          <summary>
+            <span class="question-tag">${formatPercent(question.recall)}</span>
+            <span class="question-text">${escapeHtml(question.nl_text)}</span>
+          </summary>
+          <div class="query-panel">
+            <header><span>SPARQL query</span></header>
+            <pre><code>${escapeHtml(question.sparql)}</code></pre>
+          </div>
+        </details>
+      `,
+    )
+    .join("");
+}
+
+document.querySelectorAll("[data-tab], [data-tab-target]").forEach((control) => {
+  control.addEventListener("click", (event) => {
+    const tab = control.dataset.tab || control.dataset.tabTarget;
+    if (!tab) return;
+    event.preventDefault();
+    showTab(tab);
+  });
+});
+
+ontologyFile.addEventListener("change", async () => {
+  const file = ontologyFile.files && ontologyFile.files[0];
+  if (!file) return;
+  try {
+    await uploadOntology(file);
+  } catch (error) {
+    evalStatus.textContent = error.message;
+  }
+});
+
+evalForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const checks = [...evalForm.querySelectorAll("input[name='check']:checked")].map(
+    (input) => input.value,
+  );
+  if (!checks.length) {
+    evalStatus.textContent = "Select at least one of FOOPS, OOPS, or OQuaRE.";
+    return;
+  }
+  if (!evalOntology.value) {
+    evalStatus.textContent = "Upload an ontology before starting an evaluation.";
+    return;
+  }
+  startButton.disabled = true;
+  evalStatus.textContent = "Starting evaluation…";
+  evalResults.innerHTML = "";
+  try {
+    await competencyQuestionsReady;
+    const selectedSet = evalQuestionSet.value;
+    const questions =
+      selectedSet === "none"
+        ? []
+        : competencyQuestions
+            .filter((item) => item.domain === selectedSet)
+            .map((item) => ({
+              question: item.question,
+              sparql_query: item.query,
+            }));
+    if (selectedSet !== "none" && !questions.length) {
+      evalStatus.textContent =
+        "That question set is not loaded yet. The run will continue without it.";
+    }
+    const run = await api("/api/evaluations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ontology_id: evalOntology.value,
+        checks,
+        questions,
+        domain_prefixes: domainPrefixes.value.trim(),
+      }),
+    });
+    await pollEvaluation(run.id);
+  } catch (error) {
+    evalStatus.textContent = error.message;
+    startButton.disabled = false;
+  }
+});
+
+document.querySelector("#translate-question").addEventListener("click", async () => {
+  if (!questionOntology.value) {
+    questionStatus.textContent = "Upload an ontology on the Evaluate tab first.";
+    return;
+  }
+  if (!nlQuestion.value.trim()) {
+    questionStatus.textContent = "Enter a natural-language question.";
+    return;
+  }
+  questionStatus.textContent = "Translating…";
+  try {
+    const data = await api("/api/questions/translate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ontology_id: questionOntology.value,
+        nl_text: nlQuestion.value,
+      }),
+    });
+    sparqlQuestion.value = data.sparql;
+    questionStatus.textContent = `Translated with ${data.model}. Evaluate to save it.`;
+  } catch (error) {
+    questionStatus.textContent = error.message;
+  }
+});
+
+async function runQuestion(path) {
+  if (!questionOntology.value) {
+    questionStatus.textContent = "Choose an uploaded ontology.";
+    return;
+  }
+  questionStatus.textContent = "Scoring queries…";
+  const report = await api(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      ontology_id: questionOntology.value,
+      nl_text: nlQuestion.value,
+      sparql: sparqlQuestion.value,
+    }),
+  });
+  renderQueryReport(report);
+  await refreshMemory();
+  questionStatus.textContent = "Saved to question memory.";
+}
+
+document.querySelector("#evaluate-question").addEventListener("click", () => {
+  runQuestion("/api/questions/evaluate").catch((error) => {
+    questionStatus.textContent = error.message;
+  });
+});
+
+document.querySelector("#context-evaluate").addEventListener("click", () => {
+  runQuestion("/api/questions/context-evaluate").catch((error) => {
+    questionStatus.textContent = error.message;
+  });
+});
+
+memorySearch.addEventListener("input", renderMemory);
+
+populateEvalQuestionSets();
+const initialTab = location.hash.replace("#", "");
+showTab(tabs.includes(initialTab) ? initialTab : "benchmark");
+refreshOntologies();
+refreshMemory();
