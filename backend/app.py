@@ -102,6 +102,11 @@ def script():
     return FileResponse(ROOT / "script.js", media_type="text/javascript")
 
 
+@app.get("/benchmark-frameworks.json")
+def benchmark_frameworks():
+    return FileResponse(ROOT / "benchmark-frameworks.json", media_type="application/json")
+
+
 @app.get("/api/ontologies")
 def read_ontologies(request: Request):
     return {"ontologies": list_ontologies(request.state.session_id)}

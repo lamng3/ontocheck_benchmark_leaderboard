@@ -262,6 +262,59 @@ function renderDomains() {
     .join("");
 }
 
+const domainFrameworkFilters = document.querySelector("#domain-framework-filters");
+const domainFrameworkStatus = document.querySelector("#domain-framework-status");
+const domainFrameworkResults = document.querySelector("#domain-framework-results");
+let frameworkBenchmarks = { domains: [] };
+
+function renderFrameworkFilters() {
+  domainFrameworkFilters.innerHTML = domains
+    .map(
+      (domain, index) => `
+        <button type="button" class="${index === 0 ? "active" : ""}" data-domain="${escapeHtml(domain.name)}">
+          ${escapeHtml(domain.name)}
+        </button>
+      `,
+    )
+    .join("");
+}
+
+function showFrameworkDomain(name) {
+  const saved = (frameworkBenchmarks.domains || []).find((item) => item.name === name);
+  if (!saved || saved.error || (!saved.foops && !saved.oops)) {
+    domainFrameworkStatus.textContent = "This run is missing.";
+    domainFrameworkResults.innerHTML = "";
+    return;
+  }
+  domainFrameworkStatus.textContent = "Local OntoCheck tests.";
+  domainFrameworkResults.innerHTML = [
+    saved.foops ? renderFoopsPanel(saved.foops) : "",
+    saved.oops ? renderOopsPanel(saved.oops) : "",
+  ].join("");
+}
+
+async function loadFrameworkBenchmarks() {
+  renderFrameworkFilters();
+  try {
+    const response = await fetch("benchmark-frameworks.json");
+    if (!response.ok) throw new Error("missing");
+    frameworkBenchmarks = await response.json();
+  } catch {
+    frameworkBenchmarks = { domains: [] };
+  }
+  const active = domainFrameworkFilters.querySelector("button.active");
+  showFrameworkDomain(active ? active.dataset.domain : domains[0].name);
+}
+
+domainFrameworkFilters.addEventListener("click", (event) => {
+  const button = event.target.closest("button");
+  if (!button) return;
+  domainFrameworkFilters.querySelectorAll("button").forEach((item) => {
+    item.classList.toggle("active", item === button);
+  });
+  showFrameworkDomain(button.dataset.domain);
+});
+
 function escapeHtml(value) {
   return String(value).replace(
     /[&<>"']/g,
@@ -460,6 +513,7 @@ renderLeaderboard();
 renderFilters();
 renderCategoryChart();
 renderDomains();
+loadFrameworkBenchmarks();
 const competencyQuestionsReady = loadCompetencyQuestions();
 
 const tabs = ["benchmark", "evaluate", "questions"];

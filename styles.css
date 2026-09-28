@@ -558,6 +558,14 @@ tbody tr:last-child td {
   box-shadow: var(--shadow);
 }
 
+.domain-frameworks {
+  margin-top: 22px;
+}
+
+.domain-frameworks .match-line {
+  margin: 0 22px 8px;
+}
+
 .domain-card header {
   display: flex;
   align-items: flex-start;
