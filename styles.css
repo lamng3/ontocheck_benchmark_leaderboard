@@ -1308,6 +1308,49 @@ button.button {
   font-weight: 500;
 }
 
+.metric-row[data-principle],
+.metric-row[data-metric] {
+  cursor: help;
+}
+
+.metric-row[data-principle] > span,
+.metric-row[data-metric] > span {
+  text-decoration: underline dotted rgba(23, 35, 31, 0.35);
+  text-underline-offset: 3px;
+}
+
+.metric-tip {
+  position: fixed;
+  z-index: 40;
+  width: min(340px, calc(100vw - 24px));
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fffdf8;
+  box-shadow: var(--shadow);
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.45;
+  pointer-events: none;
+}
+
+.metric-tip strong {
+  display: block;
+  margin-bottom: 4px;
+  font-family: Manrope, sans-serif;
+  font-size: 13px;
+  letter-spacing: -0.02em;
+}
+
+.metric-tip p {
+  margin: 0 0 6px;
+}
+
+.metric-tip p:last-child {
+  margin: 0;
+  color: var(--muted);
+}
+
 .severity-row {
   display: flex;
   flex-wrap: wrap;

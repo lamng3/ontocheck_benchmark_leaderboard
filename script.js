@@ -687,17 +687,149 @@ function remoteNote(remote, label) {
   return `<p class="remote-note">${escapeHtml(remote.detail || `Public ${label} service did not respond.`)} Local OntoCheck tests are shown below.</p>`;
 }
 
+const FAIR_PRINCIPLES = {
+  A1: {
+    title: "Retrievable by identifier",
+    about:
+      "(Meta)data are retrievable by their identifier using a standardised communications protocol.",
+    tests:
+      "CN1 checks content negotiation: the ontology URI is requested as RDF and as HTML.",
+  },
+  "A1.1": {
+    title: "Open protocol",
+    about:
+      "The protocol used to retrieve the ontology is open, free, and universally implementable.",
+    tests: "HTTP1 passes when the ontology identifier uses HTTP or HTTPS.",
+  },
+  A2: {
+    title: "Metadata remain available",
+    about:
+      "Metadata stay accessible even when the ontology itself is no longer available.",
+    tests:
+      "FIND_3_BIS passes when that metadata is recorded in a public registry. It needs network access.",
+  },
+  F1: {
+    title: "Globally unique, persistent identifier",
+    about:
+      "(Meta)data are assigned a globally unique and persistent identifier.",
+    tests:
+      "PURL1 checks a persistent URL. URI1 checks that the URI resolves. URI2 checks that the ontology identifiers agree. VER1 checks that a version IRI is declared, and VER2 checks that it resolves.",
+  },
+  F2: {
+    title: "Rich metadata",
+    about: "The ontology is described with rich metadata.",
+    tests:
+      "OM1 passes when the minimum metadata is present, including a title and a description.",
+  },
+  F3: {
+    title: "Metadata point at the identifier",
+    about:
+      "Metadata clearly include the identifier of the ontology they describe.",
+    tests: "FIND1 passes when the ontology declares a prefix for its own namespace.",
+  },
+  F4: {
+    title: "Registered in a searchable resource",
+    about: "(Meta)data are registered or indexed in a searchable resource.",
+    tests:
+      "FIND2 checks that the prefix is registered. FIND3 checks that the ontology is listed in a community registry. Both need network access.",
+  },
+  I1: {
+    title: "Formal shared language",
+    about:
+      "(Meta)data use a formal, accessible, shared language for knowledge representation.",
+    tests: "RDF1 passes when the ontology is available as RDF.",
+  },
+  I2: {
+    title: "FAIR vocabularies",
+    about: "(Meta)data use vocabularies that follow FAIR principles.",
+    tests:
+      "VOC1 checks reuse of a metadata vocabulary. VOC2 checks reuse of terms from another vocabulary.",
+  },
+  R1: {
+    title: "Rich, relevant description",
+    about:
+      "(Meta)data are richly described with accurate and relevant attributes.",
+    tests:
+      "DOC1 checks HTML documentation. OM2 and OM3 check recommended and detailed metadata. VOC3 checks that every term has a label, and VOC4 checks that every term has a definition.",
+  },
+  "R1.1": {
+    title: "Clear license",
+    about: "(Meta)data are released with a clear and accessible usage license.",
+    tests:
+      "OM4.1 checks that a license is declared. OM4.2 checks that the license URI resolves, which needs network access.",
+  },
+  "R1.2": {
+    title: "Detailed provenance",
+    about: "(Meta)data are associated with detailed provenance.",
+    tests:
+      "OM5.1 checks basic provenance, such as a creator. OM5.2 checks detailed provenance.",
+  },
+};
+
+const CORE_METRICS = {
+  altLabelCheck: {
+    about: "Share of named classes that have at least one skos:altLabel.",
+    calc: "Score = classes with an alternative label / named classes.",
+  },
+  isolatedElements: {
+    about: "Share of named classes that have no link to another class.",
+    calc: "Score = isolated classes / named classes.",
+  },
+  classConnections: {
+    about:
+      "Connected subgraphs among named classes linked by subClassOf, equivalentClass, or disjointWith.",
+    calc: "Score = the number of those connected subgraphs.",
+  },
+  definitionCheck: {
+    about: "Share of named classes that have at least one skos:definition.",
+    calc: "Score = classes with a definition / named classes.",
+  },
+  duplicateLabels: {
+    about: "Classes that share the same rdfs:label.",
+    calc: "Score = the number of labels used by more than one class.",
+  },
+  missingDomainRange: {
+    about:
+      "Object and datatype properties that omit rdfs:domain or rdfs:range.",
+    calc: "The score counts properties missing a domain and properties missing a range.",
+  },
+  leafNodeCheck: {
+    about:
+      "Leaf classes: declared classes that are never used as a superclass.",
+    calc: "This check lists those classes and does not return a coverage score, so the bar stays empty.",
+  },
+  semanticConnection: {
+    about:
+      "Root classes that are grounded in a higher-level ontology such as CCO or BFO.",
+    calc: "Score = grounded root classes / root classes.",
+  },
+  classCapitalCheck: {
+    about: "Named classes whose local name starts with a capital letter.",
+    calc: "Score = complying classes / named classes.",
+  },
+  classSpaceCheck: {
+    about: "Class names that contain a space, which makes Turtle unparseable.",
+    calc: "This check lists those names and does not return a coverage score, so the bar stays empty.",
+  },
+  checkLabel: {
+    about: "Share of named classes that have at least one rdfs:label.",
+    calc: "Score = labelled classes / named classes.",
+  },
+};
+
 function renderOntocheckPanel(panel) {
   const metrics = (panel.metrics || [])
-    .map(
-      (metric) => `
-        <div class="metric-row">
+    .map((metric) => {
+      const help = CORE_METRICS[metric.name];
+      const attrs = help ? ` tabindex="0" data-metric="${escapeHtml(metric.name)}"` : "";
+      return `
+        <div class="metric-row"${attrs}>
           <span>${escapeHtml(metric.name)}</span>
           <div class="score-track" aria-hidden="true"><span style="width: ${scoreWidth(metric.score)}%"></span></div>
           <strong>${formatPlain(metric.score)}</strong>
         </div>
-      `,
-    )
+      `;
+    })
     .join("");
   const missing = (panel.missing || [])
     .slice(0, 12)
@@ -736,7 +868,7 @@ function renderFoopsPanel(panel) {
   const principles = (panel.principles || [])
     .map(
       (item) => `
-        <div class="metric-row">
+        <div class="metric-row" tabindex="0" data-principle="${escapeHtml(item.id)}" data-passed="${item.passed || 0}" data-failed="${item.failed || 0}" data-skipped="${item.skipped || 0}" data-score="${item.score === null || item.score === undefined ? "" : item.score}">
           <span>${escapeHtml(item.id)}</span>
           <div class="score-track" aria-hidden="true"><span style="width: ${item.score ?? 0}%"></span></div>
           <strong>${item.score === null || item.score === undefined ? "—" : `${item.score}%`}</strong>
@@ -1125,6 +1257,92 @@ document.querySelector("#context-evaluate").addEventListener("click", () => {
     questionStatus.textContent = error.message;
   });
 });
+
+function principleTip(row) {
+  const info = FAIR_PRINCIPLES[row.dataset.principle];
+  const passed = Number(row.dataset.passed || 0);
+  const failed = Number(row.dataset.failed || 0);
+  const skipped = Number(row.dataset.skipped || 0);
+  const decided = passed + failed;
+  const score = row.dataset.score;
+  const title = info
+    ? `${row.dataset.principle} · ${info.title}`
+    : row.dataset.principle;
+  const about = info ? info.about : "FAIR principle used by the FOOPS tests on this row.";
+  const tests = info ? info.tests : "";
+  const calc = decided
+    ? `Score = 100 × ${passed} passed / ${decided} decided tests${score === "" ? "" : ` = ${score}%`}. ${skipped} skipped ${skipped === 1 ? "test is" : "tests are"} left out.`
+    : `No test for this principle could be decided (${skipped} skipped), so the score is a dash.`;
+  return `
+    <strong>${escapeHtml(title)}</strong>
+    <p>${escapeHtml(about)}</p>
+    ${tests ? `<p>${escapeHtml(tests)}</p>` : ""}
+    <p>${escapeHtml(calc)}</p>
+  `;
+}
+
+function metricTip(row) {
+  const info = CORE_METRICS[row.dataset.metric];
+  if (!info) return "";
+  const score = row.querySelector("strong");
+  return `
+    <strong>${escapeHtml(row.dataset.metric)}</strong>
+    <p>${escapeHtml(info.about)}</p>
+    <p>${escapeHtml(info.calc)} Shown score: ${escapeHtml(score ? score.textContent : "—")}.</p>
+  `;
+}
+
+const metricTipEl = document.createElement("div");
+metricTipEl.className = "metric-tip";
+metricTipEl.hidden = true;
+metricTipEl.setAttribute("role", "tooltip");
+document.body.appendChild(metricTipEl);
+
+function showMetricTip(row) {
+  const html = row.dataset.principle ? principleTip(row) : metricTip(row);
+  if (!html) return;
+  metricTipEl.innerHTML = html;
+  metricTipEl.hidden = false;
+  const rect = row.getBoundingClientRect();
+  const width = Math.min(340, window.innerWidth - 24);
+  metricTipEl.style.width = `${width}px`;
+  let left = rect.left;
+  if (left + width > window.innerWidth - 12) left = window.innerWidth - width - 12;
+  left = Math.max(12, left);
+  let top = rect.bottom + 8;
+  const height = metricTipEl.offsetHeight;
+  if (top + height > window.innerHeight - 12) top = Math.max(12, rect.top - height - 8);
+  metricTipEl.style.left = `${left}px`;
+  metricTipEl.style.top = `${top}px`;
+}
+
+function hideMetricTip() {
+  metricTipEl.hidden = true;
+}
+
+document.addEventListener("mouseover", (event) => {
+  const row = event.target.closest(".metric-row[data-principle], .metric-row[data-metric]");
+  if (!row) return;
+  showMetricTip(row);
+});
+
+document.addEventListener("mouseout", (event) => {
+  const row = event.target.closest(".metric-row[data-principle], .metric-row[data-metric]");
+  if (!row || row.contains(event.relatedTarget)) return;
+  hideMetricTip();
+});
+
+document.addEventListener("focusin", (event) => {
+  const row = event.target.closest(".metric-row[data-principle], .metric-row[data-metric]");
+  if (row) showMetricTip(row);
+});
+
+document.addEventListener("focusout", (event) => {
+  const row = event.target.closest(".metric-row[data-principle], .metric-row[data-metric]");
+  if (row) hideMetricTip();
+});
+
+window.addEventListener("scroll", hideMetricTip, true);
 
 memorySearch.addEventListener("input", renderMemory);
 
