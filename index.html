@@ -183,6 +183,47 @@
         </div>
       </section>
 
+      <section class="section assessment-section" id="assessment">
+        <div class="section-heading">
+          <div>
+            <p class="kicker">OntoCheck · Original and context-weighted</p>
+            <h2>Ontology assessment</h2>
+          </div>
+          <p>
+            Every OOPS, FOOPS, and OQuaRE metric for each domain, as computed
+            and weighted by the terms its competency questions depend on, next
+            to OntoCheck's own and query-fitness metrics.
+          </p>
+        </div>
+
+        <div class="leaderboard-card assessment-card">
+          <div class="table-toolbar assessment-toolbar">
+            <div
+              id="assessment-tables"
+              class="filter-pills assessment-pills"
+              role="tablist"
+              aria-label="Choose a table"
+            ></div>
+            <label id="assessment-view-label">
+              Show
+              <select id="assessment-view">
+                <option value="both">Original and weighted</option>
+                <option value="original">Original</option>
+                <option value="weighted">Weighted</option>
+              </select>
+            </label>
+          </div>
+          <p id="assessment-note" class="match-line assessment-note"></p>
+          <div class="table-wrap">
+            <table class="assessment-table">
+              <thead id="assessment-head"></thead>
+              <tbody id="assessment-body"></tbody>
+            </table>
+          </div>
+          <p id="assessment-meta" class="match-line assessment-meta"></p>
+        </div>
+      </section>
+
       <section class="section question-section" id="competency-questions">
         <div class="section-heading">
           <div>
