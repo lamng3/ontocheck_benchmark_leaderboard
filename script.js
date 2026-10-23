@@ -315,31 +315,23 @@ domainFrameworkFilters.addEventListener("click", (event) => {
   showFrameworkDomain(button.dataset.domain);
 });
 
+const severityOrder = { critical: 0, important: 1, minor: 2 };
+const severityDot = { critical: "low", important: "mid", minor: "top" };
+const assessmentRank = document.querySelector("#assessment-rank");
 const assessmentTables = document.querySelector("#assessment-tables");
-const assessmentView = document.querySelector("#assessment-view");
-const assessmentViewLabel = document.querySelector("#assessment-view-label");
-const assessmentNote = document.querySelector("#assessment-note");
+const assessmentDomains = document.querySelector("#assessment-domains");
 const assessmentHead = document.querySelector("#assessment-head");
 const assessmentBody = document.querySelector("#assessment-body");
-const assessmentMeta = document.querySelector("#assessment-meta");
 const assessmentKinds = [
-  { key: "oops", label: "OOPS", weighted: true },
-  { key: "foops", label: "FOOPS", weighted: true },
-  { key: "oquare", label: "OQuaRE", weighted: true },
-  { key: "ontocheck", label: "OntoCheck", weighted: false },
+  { key: "oops", label: "OOPS" },
+  { key: "foops", label: "FOOPS" },
+  { key: "oquare", label: "OQuaRE" },
+  { key: "ontocheck", label: "OntoCheck" },
 ];
-const assessmentNotes = {
-  oops:
-    "Each cell shows the original value and, below it in green, the weighted value. Original: the pitfall count, or pass/fail. Weighted: the share of affected terms, weighted by how much each matters to the domain's questions. Lower is better.",
-  foops:
-    "Each cell shows the original value and, below it in green, the weighted value. Original: the FAIR test score. Weighted: the same, with each term weighted by the domain's questions. Tests on the ontology document itself are the same for every question (grey).",
-  oquare:
-    "Each cell shows the original value and, below it in green, the weighted value. Original: the raw metric, with its 1–5 grade. Weighted: the mean over classes, weighted by the domain's questions.",
-  ontocheck:
-    "OntoCheck's own metrics, task-based recall and precision, and the query-fitness metrics. Counterfactual importance needs a benchmark suite with expected answers.",
-};
 let assessment = { domains: [] };
 let assessmentKind = "oops";
+let assessmentDomain = null;
+let assessmentSort = "conceptualFitness";
 
 function formatAssessmentValue(value) {
   if (value === null || value === undefined) return "—";
@@ -352,120 +344,153 @@ function formatAssessmentValue(value) {
   return String(value);
 }
 
-function assessmentCell(row, view) {
-  if (!row) return '<td class="assessment-missing">—</td>';
-  if (row.status && row.status !== "Success") {
-    return `<td class="assessment-missing" title="${escapeHtml(row.status)}">—</td>`;
-  }
-  if (assessmentKind === "ontocheck") {
-    return `<td class="metric-number">${escapeHtml(formatAssessmentValue(row.value))}</td>`;
-  }
-  const state = row.passed === true ? "top" : row.passed === false ? "low" : "";
-  const contextState =
-    row.passed_in_context === true ? "top" : row.passed_in_context === false ? "low" : state;
-  const grade = assessmentKind === "oquare" && row.grade ? ` <small>grade ${row.grade}/5</small>` : "";
-  const weightedGrade =
-    assessmentKind === "oquare" && row.weighted_grade ? ` <small>grade ${row.weighted_grade}/5</small>` : "";
-  const sameEverywhere = row.weighting === "not applicable";
-  const weightedTitle = sameEverywhere
-    ? "Concerns the ontology document, so it is the same for every question"
-    : row.weighting === "not decomposable"
-      ? "This metric cannot be split over classes, so it is not weighted"
-      : "Weighted by the domain's competency questions";
-  const original = `<span class="assessment-value">${state ? `<i class="legend-dot ${state}"></i>` : ""}${escapeHtml(formatAssessmentValue(row.original))}${grade}</span>`;
-  const noContext = row.weighted === null || row.weighted === undefined;
-  const title = noContext
-    ? "None of the terms this metric examines matter to the domain's questions"
-    : weightedTitle;
-  const weighted = `<span class="assessment-value weighted${sameEverywhere ? " same" : ""}" title="${escapeHtml(title)}">${contextState && !noContext ? `<i class="legend-dot ${contextState}"></i>` : ""}${escapeHtml(formatAssessmentValue(row.weighted))}${weightedGrade}</span>`;
-  if (view === "original") return `<td>${original}</td>`;
-  if (view === "weighted") return `<td>${weighted}</td>`;
-  return `<td>${original}${weighted}</td>`;
+function assessmentPercent(value) {
+  return value === null || value === undefined ? "—" : `${Math.round(value * 100)}%`;
 }
 
-function assessmentSummary(domain, view) {
-  const table = domain.tables && domain.tables[assessmentKind];
-  const summary = table && table.summary;
-  if (!summary) return "—";
-  if (assessmentKind === "oquare") {
-    const original = `mean grade ${formatAssessmentValue(summary.mean_grade)}`;
-    const weighted = `mean grade ${formatAssessmentValue(summary.mean_weighted_grade)}`;
-    return view === "original" ? original : view === "weighted" ? weighted : `${original}<br /><small>weighted: ${weighted}</small>`;
-  }
-  const original = `${summary.passed}/${summary.run} passed · penalty ${formatAssessmentValue(summary.weighted_penalty)}`;
-  const weighted =
-    summary.failed_in_context === null || summary.failed_in_context === undefined
-      ? "—"
-      : `${summary.failed_in_context} failing in context · penalty ${formatAssessmentValue(summary.weighted_penalty_in_context)}`;
-  return view === "original" ? original : view === "weighted" ? weighted : `${original}<br /><small>weighted: ${weighted}</small>`;
+function ontocheckValue(domain, id) {
+  const row = ((domain.tables.ontocheck || {}).rows || []).find((item) => item.id === id);
+  return row && row.status === "Success" ? row.value : null;
 }
 
-function renderAssessment() {
-  const domainsWithTables = (assessment.domains || []).filter((domain) => domain.tables);
-  const kind = assessmentKinds.find((item) => item.key === assessmentKind);
-  assessmentViewLabel.hidden = !kind.weighted;
-  assessmentNote.textContent = assessmentNotes[assessmentKind];
-  if (!domainsWithTables.length) {
-    assessmentHead.innerHTML = "";
-    assessmentBody.innerHTML = '<tr><td class="assessment-missing">No assessment results have been published yet.</td></tr>';
-    assessmentMeta.textContent = "";
+function passShare(summary, weighted) {
+  if (!summary || !summary.run) return null;
+  if (!weighted) return summary.passed / summary.run;
+  if (summary.failed_in_context === null || summary.failed_in_context === undefined) return null;
+  return (summary.run - summary.failed_in_context) / summary.run;
+}
+
+function rankScores(domain) {
+  const t = domain.tables;
+  return {
+    oops: [passShare(t.oops.summary, false), passShare(t.oops.summary, true)],
+    foops: [passShare(t.foops.summary, false), passShare(t.foops.summary, true)],
+    oquare: [t.oquare.summary.mean_grade, t.oquare.summary.mean_weighted_grade],
+    recall: [ontocheckValue(domain, "recall")],
+    conceptualFitness: [ontocheckValue(domain, "conceptualFitness")],
+    structuralFitness: [ontocheckValue(domain, "structuralFitness")],
+  };
+}
+
+function rankCell(label, values, format) {
+  const [original, weighted] = values;
+  const second =
+    values.length > 1 ? `<span class="assessment-value weighted">${escapeHtml(format(weighted))}</span>` : "";
+  return `<td data-label="${escapeHtml(label)}"><span class="assessment-value">${escapeHtml(format(original))}</span>${second}</td>`;
+}
+
+function renderAssessmentRank() {
+  const scored = (assessment.domains || []).filter((domain) => domain.tables);
+  if (!scored.length) {
+    assessmentRank.innerHTML = '<tr><td colspan="8" class="assessment-missing">—</td></tr>';
     return;
   }
-  const view = kind.weighted ? assessmentView.value : "original";
-  const metrics = [];
-  const seen = new Set();
-  domainsWithTables.forEach((domain) => {
-    ((domain.tables[assessmentKind] || {}).rows || []).forEach((row) => {
-      if (!seen.has(row.id)) {
-        seen.add(row.id);
-        metrics.push(row);
-      }
-    });
+  const rows = scored.map((domain) => ({ domain, scores: rankScores(domain) }));
+  const key = (row) => {
+    const values = row.scores[assessmentSort];
+    const value = values.length > 1 && values[1] !== null ? values[1] : values[0];
+    return value === null || value === undefined ? -Infinity : value;
+  };
+  rows.sort((a, b) => key(b) - key(a));
+  document.querySelectorAll(".assessment-rank th button").forEach((button) => {
+    const active = button.dataset.sort === assessmentSort;
+    button.classList.toggle("active", active);
+    button.closest("th").setAttribute("aria-sort", active ? "descending" : "none");
   });
-  assessmentHead.innerHTML = `
+  const grade = (value) => (value === null || value === undefined ? "—" : value.toFixed(2));
+  const score = (value) => (value === null || value === undefined ? "—" : value.toFixed(3));
+  assessmentRank.innerHTML = rows
+    .map(
+      ({ domain, scores }, index) => `
+        <tr>
+          <td class="rank ${index === 0 ? "first" : ""}" data-label="Rank">${String(index + 1).padStart(2, "0")}</td>
+          <td class="ontology-name" data-label="Domain">${escapeHtml(domain.name)}</td>
+          ${rankCell("OOPS", scores.oops, assessmentPercent)}
+          ${rankCell("FOOPS", scores.foops, assessmentPercent)}
+          ${rankCell("OQuaRE", scores.oquare, grade)}
+          ${rankCell("Recall", scores.recall, score)}
+          ${rankCell("Conceptual fitness", scores.conceptualFitness, score)}
+          ${rankCell("Structural fitness", scores.structuralFitness, score)}
+        </tr>
+      `,
+    )
+    .join("");
+}
+
+function assessmentValueCell(row, field) {
+  if (!row || (row.status && row.status !== "Success")) {
+    return `<td class="assessment-missing"${row ? ` title="${escapeHtml(row.status)}"` : ""}>—</td>`;
+  }
+  const weighted = field === "weighted";
+  const value = weighted ? row.weighted : row.original;
+  const passed = weighted ? row.passed_in_context ?? row.passed : row.passed;
+  const empty = value === null || value === undefined;
+  const dot = passed === true ? "top" : passed === false ? "low" : "";
+  const grade = assessmentKind === "oquare" ? (weighted ? row.weighted_grade : row.grade) : null;
+  const same = weighted && row.weighting === "not applicable";
+  return `
+    <td>
+      <span class="assessment-value${weighted ? " weighted" : ""}${same ? " same" : ""}">
+        ${dot && !empty ? `<i class="legend-dot ${dot}"></i>` : ""}${escapeHtml(formatAssessmentValue(value))}${grade ? ` <small>${grade}/5</small>` : ""}
+      </span>
+    </td>
+  `;
+}
+
+function renderAssessmentDetail() {
+  const domain = (assessment.domains || []).find((item) => item.name === assessmentDomain);
+  if (!domain || !domain.tables) {
+    assessmentHead.innerHTML = "";
+    assessmentBody.innerHTML = '<tr><td class="assessment-missing">—</td></tr>';
+    return;
+  }
+  const rows = (domain.tables[assessmentKind] || {}).rows || [];
+  if (assessmentKind === "ontocheck") {
+    assessmentHead.innerHTML = '<tr><th scope="col">Metric</th><th scope="col">Value</th></tr>';
+    assessmentBody.innerHTML = rows
+      .map((row) => {
+        const ok = row.status === "Success";
+        return `
+          <tr>
+            <th scope="row" class="assessment-metric">${escapeHtml(row.name)}</th>
+            <td class="${ok ? "" : "assessment-missing"}"${ok ? "" : ` title="${escapeHtml(row.status)}"`}>
+              <span class="assessment-value">${escapeHtml(ok ? formatAssessmentValue(row.value) : "—")}</span>
+            </td>
+          </tr>
+        `;
+      })
+      .join("");
+    return;
+  }
+  assessmentHead.innerHTML =
+    '<tr><th scope="col">Metric</th><th scope="col">Original</th><th scope="col">Weighted</th></tr>';
+  const metricRow = (row) => `
     <tr>
-      <th scope="col">Metric</th>
-      ${domainsWithTables.map((domain) => `<th scope="col">${escapeHtml(domain.name)}</th>`).join("")}
+      <th scope="row" class="assessment-metric" title="${escapeHtml(row.description || "")}">
+        <span class="question-tag">${escapeHtml(row.source_id)}</span><span>${escapeHtml(row.name)}</span>
+      </th>
+      ${assessmentValueCell(row, "original")}
+      ${assessmentValueCell(row, "weighted")}
     </tr>
   `;
-  const summaryRow = kind.weighted
-    ? `<tr class="assessment-summary"><th scope="row">Summary</th>${domainsWithTables
-        .map((domain) => `<td>${assessmentSummary(domain, view)}</td>`)
-        .join("")}</tr>`
-    : "";
-  const metricRows = metrics
-    .map((metric) => {
-      const cells = domainsWithTables
-        .map((domain) => {
-          const row = ((domain.tables[assessmentKind] || {}).rows || []).find((item) => item.id === metric.id);
-          return assessmentCell(row, view);
-        })
-        .join("");
-      const code = metric.source_id ? `<span class="question-tag">${escapeHtml(metric.source_id)}</span>` : "";
+  if (assessmentKind !== "oops") {
+    assessmentBody.innerHTML = rows.map(metricRow).join("");
+    return;
+  }
+  assessmentBody.innerHTML = ["critical", "important", "minor"]
+    .map((severity) => {
+      const group = rows.filter((row) => row.severity === severity);
+      if (!group.length) return "";
+      const label = severity[0].toUpperCase() + severity.slice(1);
       return `
-        <tr>
-          <th scope="row" class="assessment-metric" title="${escapeHtml(metric.description || metric.name)}">
-            ${code}<span>${escapeHtml(metric.name)}</span>
-          </th>
-          ${cells}
-        </tr>
+        <tr class="assessment-group"><th scope="rowgroup" colspan="3">${label}</th></tr>
+        ${group.map(metricRow).join("")}
       `;
     })
     .join("");
-  assessmentBody.innerHTML = summaryRow + metricRows;
-  const skipped = (assessment.domains || []).filter((domain) => domain.error);
-  const when = assessment.generated_at ? new Date(assessment.generated_at).toLocaleDateString() : "";
-  assessmentMeta.textContent = [
-    when ? `Generated ${when}` : "",
-    assessment.ontocheck_version ? `OntoCheck ${assessment.ontocheck_version}` : "",
-    assessment.settings && assessment.settings.allow_network === false ? "network tests skipped" : "",
-    skipped.length ? `not scored: ${skipped.map((domain) => domain.name).join(", ")}` : "",
-  ]
-    .filter(Boolean)
-    .join(" · ");
 }
 
-async function loadAssessment() {
+function renderAssessmentPills() {
   assessmentTables.innerHTML = assessmentKinds
     .map(
       (kind) => `
@@ -475,6 +500,19 @@ async function loadAssessment() {
       `,
     )
     .join("");
+  assessmentDomains.innerHTML = (assessment.domains || [])
+    .filter((domain) => domain.tables)
+    .map(
+      (domain) => `
+        <button type="button" class="${domain.name === assessmentDomain ? "active" : ""}" data-domain="${escapeHtml(domain.name)}">
+          ${escapeHtml(domain.name)}
+        </button>
+      `,
+    )
+    .join("");
+}
+
+async function loadAssessment() {
   try {
     const response = await fetch("ontocheck-results.json");
     if (!response.ok) throw new Error("missing");
@@ -482,21 +520,35 @@ async function loadAssessment() {
   } catch {
     assessment = { domains: [] };
   }
-  renderAssessment();
+  const first = (assessment.domains || []).find((domain) => domain.tables);
+  assessmentDomain = first ? first.name : null;
+  renderAssessmentPills();
+  renderAssessmentRank();
+  renderAssessmentDetail();
 }
 
 assessmentTables.addEventListener("click", (event) => {
   const button = event.target.closest("button");
   if (!button) return;
   assessmentKind = button.dataset.kind;
-  assessmentTables.querySelectorAll("button").forEach((item) => {
-    item.classList.toggle("active", item === button);
-    item.setAttribute("aria-selected", String(item === button));
-  });
-  renderAssessment();
+  renderAssessmentPills();
+  renderAssessmentDetail();
 });
 
-assessmentView.addEventListener("change", renderAssessment);
+assessmentDomains.addEventListener("click", (event) => {
+  const button = event.target.closest("button");
+  if (!button) return;
+  assessmentDomain = button.dataset.domain;
+  renderAssessmentPills();
+  renderAssessmentDetail();
+});
+
+document.querySelector(".assessment-rank thead").addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-sort]");
+  if (!button) return;
+  assessmentSort = button.dataset.sort;
+  renderAssessmentRank();
+});
 
 function escapeHtml(value) {
   return String(value).replace(
@@ -1079,10 +1131,13 @@ function renderFoopsPanel(panel) {
 function renderOopsPanel(panel) {
   const summary = panel.summary || {};
   const pitfalls = (panel.pitfalls || [])
+    .slice()
+    .sort((a, b) => (severityOrder[a.severity] ?? 3) - (severityOrder[b.severity] ?? 3))
     .slice(0, 12)
     .map(
       (item) => `
-        <li>
+        <li title="${escapeHtml(item.severity || "")}">
+          <i class="legend-dot ${severityDot[item.severity] || ""}" aria-label="${escapeHtml(item.severity || "")}"></i>
           <span class="question-tag">${escapeHtml(item.source_id || item.severity || "pitfall")}</span>
           <span>${escapeHtml(item.message || item.name || "Pitfall detected")}</span>
         </li>

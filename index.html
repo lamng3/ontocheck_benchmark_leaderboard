@@ -186,41 +186,39 @@
       <section class="section assessment-section" id="assessment">
         <div class="section-heading">
           <div>
-            <p class="kicker">OntoCheck · Original and context-weighted</p>
             <h2>Ontology assessment</h2>
           </div>
-          <p>
-            Every OOPS, FOOPS, and OQuaRE metric for each domain, as computed
-            and weighted by the terms its competency questions depend on, next
-            to OntoCheck's own and query-fitness metrics.
-          </p>
         </div>
 
-        <div class="leaderboard-card assessment-card">
-          <div class="table-toolbar assessment-toolbar">
-            <div
-              id="assessment-tables"
-              class="filter-pills assessment-pills"
-              role="tablist"
-              aria-label="Choose a table"
-            ></div>
-            <label id="assessment-view-label">
-              Show
-              <select id="assessment-view">
-                <option value="both">Original and weighted</option>
-                <option value="original">Original</option>
-                <option value="weighted">Weighted</option>
-              </select>
-            </label>
-          </div>
-          <p id="assessment-note" class="match-line assessment-note"></p>
+        <div class="leaderboard-card">
           <div class="table-wrap">
-            <table class="assessment-table">
-              <thead id="assessment-head"></thead>
-              <tbody id="assessment-body"></tbody>
+            <table class="assessment-rank">
+              <thead>
+                <tr>
+                  <th scope="col">Rank</th>
+                  <th scope="col">Domain</th>
+                  <th scope="col"><button type="button" data-sort="oops">OOPS</button></th>
+                  <th scope="col"><button type="button" data-sort="foops">FOOPS</button></th>
+                  <th scope="col"><button type="button" data-sort="oquare">OQuaRE</button></th>
+                  <th scope="col"><button type="button" data-sort="recall">Recall</button></th>
+                  <th scope="col"><button type="button" data-sort="conceptualFitness">Conceptual fitness</button></th>
+                  <th scope="col"><button type="button" data-sort="structuralFitness">Structural fitness</button></th>
+                </tr>
+              </thead>
+              <tbody id="assessment-rank"></tbody>
             </table>
           </div>
-          <p id="assessment-meta" class="match-line assessment-meta"></p>
+        </div>
+
+        <div class="category-panel assessment-detail">
+          <div class="panel-heading">
+            <div id="assessment-tables" class="filter-pills assessment-pills" role="tablist" aria-label="Choose a table"></div>
+            <div id="assessment-domains" class="filter-pills" aria-label="Choose a domain"></div>
+          </div>
+          <table class="assessment-table">
+            <thead id="assessment-head"></thead>
+            <tbody id="assessment-body"></tbody>
+          </table>
         </div>
       </section>
 
