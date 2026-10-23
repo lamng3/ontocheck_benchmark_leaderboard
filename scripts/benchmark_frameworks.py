@@ -2,6 +2,10 @@
 
 The Turtle files live in the OntoCheck supplement. Public FOOPS and OOPS
 are not called. GitHub Pages reads the JSON this script writes.
+
+Every test runs, including those that dereference the ontology IRI and
+check prefix registries, so this needs internet access. Pass --offline to
+skip those tests.
 """
 
 import json
@@ -39,6 +43,7 @@ DOMAINS = (
 
 
 def main():
+    allow_network = "--offline" not in sys.argv[1:]
     source = _ontology_dir()
     domains = []
     with tempfile.TemporaryDirectory() as tmp:
@@ -56,7 +61,9 @@ def main():
                 )
                 continue
             print(f"Scoring {name}…", flush=True)
-            domains.append(_score(name, paths, work / name.replace(" ", "-")))
+            domains.append(
+                _score(name, paths, work / name.replace(" ", "-"), allow_network)
+            )
     payload = {"domains": domains}
     destination = ROOT / "benchmark-frameworks.json"
     destination.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
@@ -74,14 +81,14 @@ def _ontology_dir():
     return path
 
 
-def _score(name, paths, output_dir):
+def _score(name, paths, output_dir, allow_network=True):
     output_dir.mkdir(parents=True, exist_ok=True)
     try:
         result = run_assessment(
             ttl_files=[str(path) for path in paths],
             metrics=None,
             frameworks=["FOOPS!", "OOPS!"],
-            allow_network=False,
+            allow_network=allow_network,
             has_abox=any(_has_abox(path) for path in paths),
             output_log_file=str(output_dir / "assessment.log"),
             output_csv_file=str(output_dir / "scores.csv"),
