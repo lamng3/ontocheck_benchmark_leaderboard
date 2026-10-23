@@ -1,9 +1,9 @@
 {
   "schema": "ontocheck-leaderboard/1",
-  "generated_at": "2026-10-22T19:53:49+00:00",
+  "generated_at": "2026-10-23T19:50:29+00:00",
   "ontocheck_version": "0.1.3",
   "settings": {
-    "allow_network": false
+    "allow_network": true
   },
   "domains": [
     {
@@ -603,14 +603,14 @@
               "description": "Ontology URI serves both RDF code and HTML documentation.",
               "severity": "critical",
               "fair_principle": "",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "OOPS! P37: Skipped (requires network access)"
+              "message": "Not served at https://cwrusdle.bitbucket.io/mds/: code (RDF), documentation (HTML)"
             },
             {
               "id": "oopsP38OntologyDeclaration",
@@ -678,13 +678,13 @@
             }
           ],
           "summary": {
-            "run": 39,
+            "run": 40,
             "passed": 27,
-            "failed": 12,
-            "skipped": 2,
-            "weighted_penalty": 36.0,
-            "failed_in_context": 7,
-            "weighted_penalty_in_context": 19.0
+            "failed": 13,
+            "skipped": 1,
+            "weighted_penalty": 41.0,
+            "failed_in_context": 8,
+            "weighted_penalty_in_context": 24.0
           }
         },
         "foops": {
@@ -696,14 +696,14 @@
               "description": "Ontology URI serves HTML and an RDF serialisation.",
               "severity": "important",
               "fair_principle": "A1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! CN1-T: Skipped (requires network access)"
+              "message": "No ontology URI declared; nothing to dereference"
             },
             {
               "id": "foopsDOC1HtmlDocumentation",
@@ -712,14 +712,14 @@
               "description": "Ontology URI serves HTML documentation.",
               "severity": "important",
               "fair_principle": "R1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! DOC1-T: Skipped (requires network access)"
+              "message": "No ontology URI declared; nothing to dereference"
             },
             {
               "id": "foopsFIND1PrefixDeclared",
@@ -744,14 +744,14 @@
               "description": "Declared prefix is registered in prefix.cc or LOV.",
               "severity": "minor",
               "fair_principle": "F4",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! FIND2-T: Skipped (requires network access)"
+              "message": "No prefix declared (see FIND1-T), so no registry lookup was possible"
             },
             {
               "id": "foopsFIND3BISMetadataPersistence",
@@ -760,14 +760,14 @@
               "description": "Metadata held by LOV or a declared data catalogue.",
               "severity": "minor",
               "fair_principle": "A2",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! FIND_3_BIS-T: Skipped (requires network access)"
+              "message": "Not found in LOV and no schema:includedInDataCatalog declared"
             },
             {
               "id": "foopsFIND3CommunityRegistry",
@@ -776,14 +776,14 @@
               "description": "Ontology listed in LOV or declares schema:includedInDataCatalog.",
               "severity": "minor",
               "fair_principle": "F4",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! FIND3-T: Skipped (requires network access)"
+              "message": "Not found in LOV and no schema:includedInDataCatalog declared"
             },
             {
               "id": "foopsHTTP1OpenProtocol",
@@ -872,14 +872,14 @@
               "description": "Declared license URI dereferences.",
               "severity": "minor",
               "fair_principle": "R1.1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! OM4.2-T: Skipped (requires network access)"
+              "message": "No license declared (see OM4.1-T)"
             },
             {
               "id": "foopsOM51BasicProvenance",
@@ -952,14 +952,14 @@
               "description": "Ontology URI dereferences to RDF.",
               "severity": "important",
               "fair_principle": "F1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! URI1-T: Skipped (requires network access)"
+              "message": "No ontology URI declared; nothing to dereference"
             },
             {
               "id": "foopsURI2ConsistentIds",
@@ -968,14 +968,14 @@
               "description": "Published document's ontology IRI equals the URI it is served from.",
               "severity": "minor",
               "fair_principle": "F1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! URI2-T: Skipped (requires network access)"
+              "message": "No ontology URI declared; nothing to dereference"
             },
             {
               "id": "foopsVER1VersionIriDeclared",
@@ -1000,14 +1000,14 @@
               "description": "The declared owl:versionIRI dereferences successfully.",
               "severity": "important",
               "fair_principle": "F1",
-              "status": "Skipped (requires network access)",
+              "status": "Skipped (no version IRI declared; see VER1-T)",
               "original": null,
               "passed": null,
               "unweighted": null,
               "weighted": null,
               "weighting": "not run",
               "passed_in_context": null,
-              "message": "FOOPS! VER2-T: Skipped (requires network access)"
+              "message": "No version IRI declared, so resolution was not attempted"
             },
             {
               "id": "foopsVOC1MetadataVocabReuse",
@@ -1075,13 +1075,13 @@
             }
           ],
           "summary": {
-            "run": 15,
+            "run": 23,
             "passed": 2,
-            "failed": 13,
-            "skipped": 9,
-            "weighted_penalty": 31.0,
-            "failed_in_context": 13,
-            "weighted_penalty_in_context": 31.0
+            "failed": 21,
+            "skipped": 1,
+            "weighted_penalty": 45.0,
+            "failed_in_context": 21,
+            "weighted_penalty_in_context": 45.0
           }
         },
         "oquare": {
@@ -1172,7 +1172,7 @@
               "weighted": 1,
               "weighting": "weighted",
               "passed_in_context": null,
-              "message": "DITOnto = 1 (deepest class: https://cwrusdle.bitbucket.io/mds/MaterialName)",
+              "message": "DITOnto = 1 (deepest class: https://cwrusdle.bitbucket.io/mds/BuildJobName)",
               "grade": 1,
               "weighted_grade": 1
             },
@@ -1431,24 +1431,24 @@
               "id": "externalLinks",
               "name": "External link validity",
               "kind": "native",
-              "value": null,
-              "status": "Skipped (requires network access)",
+              "value": 0.1748,
+              "status": "Success",
               "detail": {}
             },
             {
               "id": "rdfDump",
               "name": "RDF dump availability",
               "kind": "native",
-              "value": null,
-              "status": "Skipped (requires network access)",
+              "value": 0,
+              "status": "Success",
               "detail": {}
             },
             {
               "id": "sparqlEndpoint",
               "name": "SPARQL endpoint availability",
               "kind": "native",
-              "value": null,
-              "status": "Skipped (requires network access)",
+              "value": 0,
+              "status": "Success",
               "detail": {}
             },
             {
@@ -2160,14 +2160,14 @@
               "description": "Ontology URI serves both RDF code and HTML documentation.",
               "severity": "critical",
               "fair_principle": "",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "OOPS! P37: Skipped (requires network access)"
+              "message": "Not served at https://cwrusdle.bitbucket.io/mds/EC-Equipment/Ontology: code (RDF), documentation (HTML)"
             },
             {
               "id": "oopsP38OntologyDeclaration",
@@ -2235,13 +2235,13 @@
             }
           ],
           "summary": {
-            "run": 39,
+            "run": 40,
             "passed": 31,
-            "failed": 8,
-            "skipped": 2,
-            "weighted_penalty": 22.0,
-            "failed_in_context": 7,
-            "weighted_penalty_in_context": 19.0
+            "failed": 9,
+            "skipped": 1,
+            "weighted_penalty": 27.0,
+            "failed_in_context": 8,
+            "weighted_penalty_in_context": 24.0
           }
         },
         "foops": {
@@ -2253,14 +2253,14 @@
               "description": "Ontology URI serves HTML and an RDF serialisation.",
               "severity": "important",
               "fair_principle": "A1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! CN1-T: Skipped (requires network access)"
+              "message": "Missing: HTML, RDF"
             },
             {
               "id": "foopsDOC1HtmlDocumentation",
@@ -2269,14 +2269,14 @@
               "description": "Ontology URI serves HTML documentation.",
               "severity": "important",
               "fair_principle": "R1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! DOC1-T: Skipped (requires network access)"
+              "message": "No HTML documentation at https://cwrusdle.bitbucket.io/mds/EC-Equipment/Ontology (404)"
             },
             {
               "id": "foopsFIND1PrefixDeclared",
@@ -2301,14 +2301,14 @@
               "description": "Declared prefix is registered in prefix.cc or LOV.",
               "severity": "minor",
               "fair_principle": "F4",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! FIND2-T: Skipped (requires network access)"
+              "message": "No prefix declared (see FIND1-T), so no registry lookup was possible"
             },
             {
               "id": "foopsFIND3BISMetadataPersistence",
@@ -2317,14 +2317,14 @@
               "description": "Metadata held by LOV or a declared data catalogue.",
               "severity": "minor",
               "fair_principle": "A2",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! FIND_3_BIS-T: Skipped (requires network access)"
+              "message": "Not found in LOV and no schema:includedInDataCatalog declared"
             },
             {
               "id": "foopsFIND3CommunityRegistry",
@@ -2333,14 +2333,14 @@
               "description": "Ontology listed in LOV or declares schema:includedInDataCatalog.",
               "severity": "minor",
               "fair_principle": "F4",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! FIND3-T: Skipped (requires network access)"
+              "message": "Not found in LOV and no schema:includedInDataCatalog declared"
             },
             {
               "id": "foopsHTTP1OpenProtocol",
@@ -2429,14 +2429,14 @@
               "description": "Declared license URI dereferences.",
               "severity": "minor",
               "fair_principle": "R1.1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! OM4.2-T: Skipped (requires network access)"
+              "message": "No license declared (see OM4.1-T)"
             },
             {
               "id": "foopsOM51BasicProvenance",
@@ -2509,14 +2509,14 @@
               "description": "Ontology URI dereferences to RDF.",
               "severity": "important",
               "fair_principle": "F1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! URI1-T: Skipped (requires network access)"
+              "message": "Ontology URI does not resolve to RDF (404)"
             },
             {
               "id": "foopsURI2ConsistentIds",
@@ -2525,14 +2525,14 @@
               "description": "Published document's ontology IRI equals the URI it is served from.",
               "severity": "minor",
               "fair_principle": "F1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! URI2-T: Skipped (requires network access)"
+              "message": "No ontology document could be retrieved from the URI"
             },
             {
               "id": "foopsVER1VersionIriDeclared",
@@ -2557,14 +2557,14 @@
               "description": "The declared owl:versionIRI dereferences successfully.",
               "severity": "important",
               "fair_principle": "F1",
-              "status": "Skipped (requires network access)",
+              "status": "Skipped (no version IRI declared; see VER1-T)",
               "original": null,
               "passed": null,
               "unweighted": null,
               "weighted": null,
               "weighting": "not run",
               "passed_in_context": null,
-              "message": "FOOPS! VER2-T: Skipped (requires network access)"
+              "message": "No version IRI declared, so resolution was not attempted"
             },
             {
               "id": "foopsVOC1MetadataVocabReuse",
@@ -2632,13 +2632,13 @@
             }
           ],
           "summary": {
-            "run": 15,
+            "run": 23,
             "passed": 5,
-            "failed": 10,
-            "skipped": 9,
-            "weighted_penalty": 24.0,
-            "failed_in_context": 10,
-            "weighted_penalty_in_context": 24.0
+            "failed": 18,
+            "skipped": 1,
+            "weighted_penalty": 38.0,
+            "failed_in_context": 18,
+            "weighted_penalty_in_context": 38.0
           }
         },
         "oquare": {
@@ -2988,24 +2988,24 @@
               "id": "externalLinks",
               "name": "External link validity",
               "kind": "native",
-              "value": null,
-              "status": "Skipped (requires network access)",
+              "value": 0.0,
+              "status": "Success",
               "detail": {}
             },
             {
               "id": "rdfDump",
               "name": "RDF dump availability",
               "kind": "native",
-              "value": null,
-              "status": "Skipped (requires network access)",
+              "value": 0,
+              "status": "Success",
               "detail": {}
             },
             {
               "id": "sparqlEndpoint",
               "name": "SPARQL endpoint availability",
               "kind": "native",
-              "value": null,
-              "status": "Skipped (requires network access)",
+              "value": 0,
+              "status": "Success",
               "detail": {}
             },
             {
@@ -3715,14 +3715,14 @@
               "description": "Ontology URI serves both RDF code and HTML documentation.",
               "severity": "critical",
               "fair_principle": "",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "OOPS! P37: Skipped (requires network access)"
+              "message": "Not served at https://purl.archive.org/geooutageonto/#Ontology: code (RDF)"
             },
             {
               "id": "oopsP38OntologyDeclaration",
@@ -3790,13 +3790,13 @@
             }
           ],
           "summary": {
-            "run": 39,
+            "run": 40,
             "passed": 33,
-            "failed": 6,
-            "skipped": 2,
-            "weighted_penalty": 14.0,
-            "failed_in_context": 4,
-            "weighted_penalty_in_context": 10.0
+            "failed": 7,
+            "skipped": 1,
+            "weighted_penalty": 19.0,
+            "failed_in_context": 5,
+            "weighted_penalty_in_context": 15.0
           }
         },
         "foops": {
@@ -3808,14 +3808,14 @@
               "description": "Ontology URI serves HTML and an RDF serialisation.",
               "severity": "important",
               "fair_principle": "A1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! CN1-T: Skipped (requires network access)"
+              "message": "Missing: RDF"
             },
             {
               "id": "foopsDOC1HtmlDocumentation",
@@ -3824,14 +3824,14 @@
               "description": "Ontology URI serves HTML documentation.",
               "severity": "important",
               "fair_principle": "R1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": true,
+              "passed": true,
+              "unweighted": true,
+              "weighted": true,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! DOC1-T: Skipped (requires network access)"
+              "message": "HTML documentation is served"
             },
             {
               "id": "foopsFIND1PrefixDeclared",
@@ -3856,14 +3856,14 @@
               "description": "Declared prefix is registered in prefix.cc or LOV.",
               "severity": "minor",
               "fair_principle": "F4",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! FIND2-T: Skipped (requires network access)"
+              "message": "No prefix declared (see FIND1-T), so no registry lookup was possible"
             },
             {
               "id": "foopsFIND3BISMetadataPersistence",
@@ -3872,14 +3872,14 @@
               "description": "Metadata held by LOV or a declared data catalogue.",
               "severity": "minor",
               "fair_principle": "A2",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! FIND_3_BIS-T: Skipped (requires network access)"
+              "message": "Not found in LOV and no schema:includedInDataCatalog declared"
             },
             {
               "id": "foopsFIND3CommunityRegistry",
@@ -3888,14 +3888,14 @@
               "description": "Ontology listed in LOV or declares schema:includedInDataCatalog.",
               "severity": "minor",
               "fair_principle": "F4",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! FIND3-T: Skipped (requires network access)"
+              "message": "Not found in LOV and no schema:includedInDataCatalog declared"
             },
             {
               "id": "foopsHTTP1OpenProtocol",
@@ -3984,14 +3984,14 @@
               "description": "Declared license URI dereferences.",
               "severity": "minor",
               "fair_principle": "R1.1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! OM4.2-T: Skipped (requires network access)"
+              "message": "No license declared (see OM4.1-T)"
             },
             {
               "id": "foopsOM51BasicProvenance",
@@ -4064,14 +4064,14 @@
               "description": "Ontology URI dereferences to RDF.",
               "severity": "important",
               "fair_principle": "F1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! URI1-T: Skipped (requires network access)"
+              "message": "Ontology URI does not resolve to RDF (200)"
             },
             {
               "id": "foopsURI2ConsistentIds",
@@ -4080,14 +4080,14 @@
               "description": "Published document's ontology IRI equals the URI it is served from.",
               "severity": "minor",
               "fair_principle": "F1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! URI2-T: Skipped (requires network access)"
+              "message": "No ontology document could be retrieved from the URI"
             },
             {
               "id": "foopsVER1VersionIriDeclared",
@@ -4112,14 +4112,14 @@
               "description": "The declared owl:versionIRI dereferences successfully.",
               "severity": "important",
               "fair_principle": "F1",
-              "status": "Skipped (requires network access)",
+              "status": "Skipped (no version IRI declared; see VER1-T)",
               "original": null,
               "passed": null,
               "unweighted": null,
               "weighted": null,
               "weighting": "not run",
               "passed_in_context": null,
-              "message": "FOOPS! VER2-T: Skipped (requires network access)"
+              "message": "No version IRI declared, so resolution was not attempted"
             },
             {
               "id": "foopsVOC1MetadataVocabReuse",
@@ -4187,13 +4187,13 @@
             }
           ],
           "summary": {
-            "run": 15,
-            "passed": 8,
-            "failed": 7,
-            "skipped": 9,
-            "weighted_penalty": 15.0,
-            "failed_in_context": 7,
-            "weighted_penalty_in_context": 15.0
+            "run": 23,
+            "passed": 9,
+            "failed": 14,
+            "skipped": 1,
+            "weighted_penalty": 26.0,
+            "failed_in_context": 14,
+            "weighted_penalty_in_context": 26.0
           }
         },
         "oquare": {
@@ -4543,24 +4543,24 @@
               "id": "externalLinks",
               "name": "External link validity",
               "kind": "native",
-              "value": null,
-              "status": "Skipped (requires network access)",
+              "value": 0.0392,
+              "status": "Success",
               "detail": {}
             },
             {
               "id": "rdfDump",
               "name": "RDF dump availability",
               "kind": "native",
-              "value": null,
-              "status": "Skipped (requires network access)",
+              "value": 0,
+              "status": "Success",
               "detail": {}
             },
             {
               "id": "sparqlEndpoint",
               "name": "SPARQL endpoint availability",
               "kind": "native",
-              "value": null,
-              "status": "Skipped (requires network access)",
+              "value": 0,
+              "status": "Success",
               "detail": {}
             },
             {
@@ -5272,14 +5272,14 @@
               "description": "Ontology URI serves both RDF code and HTML documentation.",
               "severity": "critical",
               "fair_principle": "",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "OOPS! P37: Skipped (requires network access)"
+              "message": "Not served at https://cwrusdle.bitbucket.io/mds/: code (RDF), documentation (HTML)"
             },
             {
               "id": "oopsP38OntologyDeclaration",
@@ -5347,13 +5347,13 @@
             }
           ],
           "summary": {
-            "run": 39,
+            "run": 40,
             "passed": 24,
-            "failed": 15,
-            "skipped": 2,
-            "weighted_penalty": 45.0,
-            "failed_in_context": 10,
-            "weighted_penalty_in_context": 28.0
+            "failed": 16,
+            "skipped": 1,
+            "weighted_penalty": 50.0,
+            "failed_in_context": 11,
+            "weighted_penalty_in_context": 33.0
           }
         },
         "foops": {
@@ -5365,14 +5365,14 @@
               "description": "Ontology URI serves HTML and an RDF serialisation.",
               "severity": "important",
               "fair_principle": "A1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! CN1-T: Skipped (requires network access)"
+              "message": "No ontology URI declared; nothing to dereference"
             },
             {
               "id": "foopsDOC1HtmlDocumentation",
@@ -5381,14 +5381,14 @@
               "description": "Ontology URI serves HTML documentation.",
               "severity": "important",
               "fair_principle": "R1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! DOC1-T: Skipped (requires network access)"
+              "message": "No ontology URI declared; nothing to dereference"
             },
             {
               "id": "foopsFIND1PrefixDeclared",
@@ -5413,14 +5413,14 @@
               "description": "Declared prefix is registered in prefix.cc or LOV.",
               "severity": "minor",
               "fair_principle": "F4",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! FIND2-T: Skipped (requires network access)"
+              "message": "No prefix declared (see FIND1-T), so no registry lookup was possible"
             },
             {
               "id": "foopsFIND3BISMetadataPersistence",
@@ -5429,14 +5429,14 @@
               "description": "Metadata held by LOV or a declared data catalogue.",
               "severity": "minor",
               "fair_principle": "A2",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! FIND_3_BIS-T: Skipped (requires network access)"
+              "message": "Not found in LOV and no schema:includedInDataCatalog declared"
             },
             {
               "id": "foopsFIND3CommunityRegistry",
@@ -5445,14 +5445,14 @@
               "description": "Ontology listed in LOV or declares schema:includedInDataCatalog.",
               "severity": "minor",
               "fair_principle": "F4",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! FIND3-T: Skipped (requires network access)"
+              "message": "Not found in LOV and no schema:includedInDataCatalog declared"
             },
             {
               "id": "foopsHTTP1OpenProtocol",
@@ -5541,14 +5541,14 @@
               "description": "Declared license URI dereferences.",
               "severity": "minor",
               "fair_principle": "R1.1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! OM4.2-T: Skipped (requires network access)"
+              "message": "No license declared (see OM4.1-T)"
             },
             {
               "id": "foopsOM51BasicProvenance",
@@ -5621,14 +5621,14 @@
               "description": "Ontology URI dereferences to RDF.",
               "severity": "important",
               "fair_principle": "F1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! URI1-T: Skipped (requires network access)"
+              "message": "No ontology URI declared; nothing to dereference"
             },
             {
               "id": "foopsURI2ConsistentIds",
@@ -5637,14 +5637,14 @@
               "description": "Published document's ontology IRI equals the URI it is served from.",
               "severity": "minor",
               "fair_principle": "F1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! URI2-T: Skipped (requires network access)"
+              "message": "No ontology URI declared; nothing to dereference"
             },
             {
               "id": "foopsVER1VersionIriDeclared",
@@ -5669,14 +5669,14 @@
               "description": "The declared owl:versionIRI dereferences successfully.",
               "severity": "important",
               "fair_principle": "F1",
-              "status": "Skipped (requires network access)",
+              "status": "Skipped (no version IRI declared; see VER1-T)",
               "original": null,
               "passed": null,
               "unweighted": null,
               "weighted": null,
               "weighting": "not run",
               "passed_in_context": null,
-              "message": "FOOPS! VER2-T: Skipped (requires network access)"
+              "message": "No version IRI declared, so resolution was not attempted"
             },
             {
               "id": "foopsVOC1MetadataVocabReuse",
@@ -5744,13 +5744,13 @@
             }
           ],
           "summary": {
-            "run": 15,
+            "run": 23,
             "passed": 2,
-            "failed": 13,
-            "skipped": 9,
-            "weighted_penalty": 31.0,
-            "failed_in_context": 13,
-            "weighted_penalty_in_context": 31.0
+            "failed": 21,
+            "skipped": 1,
+            "weighted_penalty": 45.0,
+            "failed_in_context": 21,
+            "weighted_penalty_in_context": 45.0
           }
         },
         "oquare": {
@@ -5841,7 +5841,7 @@
               "weighted": 2,
               "weighting": "weighted",
               "passed_in_context": null,
-              "message": "DITOnto = 2 (deepest class: https://cwrusdle.bitbucket.io/mds/Elevation)",
+              "message": "DITOnto = 2 (deepest class: https://cwrusdle.bitbucket.io/mds/GeospatialRaster)",
               "grade": 1,
               "weighted_grade": 1
             },
@@ -6100,24 +6100,24 @@
               "id": "externalLinks",
               "name": "External link validity",
               "kind": "native",
-              "value": null,
-              "status": "Skipped (requires network access)",
+              "value": 0.3282,
+              "status": "Success",
               "detail": {}
             },
             {
               "id": "rdfDump",
               "name": "RDF dump availability",
               "kind": "native",
-              "value": null,
-              "status": "Skipped (requires network access)",
+              "value": 0,
+              "status": "Success",
               "detail": {}
             },
             {
               "id": "sparqlEndpoint",
               "name": "SPARQL endpoint availability",
               "kind": "native",
-              "value": null,
-              "status": "Skipped (requires network access)",
+              "value": 0,
+              "status": "Success",
               "detail": {}
             },
             {
@@ -6827,14 +6827,14 @@
               "description": "Ontology URI serves both RDF code and HTML documentation.",
               "severity": "critical",
               "fair_principle": "",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "OOPS! P37: Skipped (requires network access)"
+              "message": "Not served at https://cwrusdle.bitbucket.io/mds/MatProcModule: code (RDF), documentation (HTML)"
             },
             {
               "id": "oopsP38OntologyDeclaration",
@@ -6902,13 +6902,13 @@
             }
           ],
           "summary": {
-            "run": 39,
+            "run": 40,
             "passed": 36,
-            "failed": 3,
-            "skipped": 2,
-            "weighted_penalty": 11.0,
-            "failed_in_context": 3,
-            "weighted_penalty_in_context": 11.0
+            "failed": 4,
+            "skipped": 1,
+            "weighted_penalty": 16.0,
+            "failed_in_context": 4,
+            "weighted_penalty_in_context": 16.0
           }
         },
         "foops": {
@@ -6920,14 +6920,14 @@
               "description": "Ontology URI serves HTML and an RDF serialisation.",
               "severity": "important",
               "fair_principle": "A1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! CN1-T: Skipped (requires network access)"
+              "message": "Missing: HTML, RDF"
             },
             {
               "id": "foopsDOC1HtmlDocumentation",
@@ -6936,14 +6936,14 @@
               "description": "Ontology URI serves HTML documentation.",
               "severity": "important",
               "fair_principle": "R1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! DOC1-T: Skipped (requires network access)"
+              "message": "No HTML documentation at https://cwrusdle.bitbucket.io/mds/MatProcModule (404)"
             },
             {
               "id": "foopsFIND1PrefixDeclared",
@@ -6968,14 +6968,14 @@
               "description": "Declared prefix is registered in prefix.cc or LOV.",
               "severity": "minor",
               "fair_principle": "F4",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! FIND2-T: Skipped (requires network access)"
+              "message": "No prefix declared (see FIND1-T), so no registry lookup was possible"
             },
             {
               "id": "foopsFIND3BISMetadataPersistence",
@@ -6984,14 +6984,14 @@
               "description": "Metadata held by LOV or a declared data catalogue.",
               "severity": "minor",
               "fair_principle": "A2",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! FIND_3_BIS-T: Skipped (requires network access)"
+              "message": "Not found in LOV and no schema:includedInDataCatalog declared"
             },
             {
               "id": "foopsFIND3CommunityRegistry",
@@ -7000,14 +7000,14 @@
               "description": "Ontology listed in LOV or declares schema:includedInDataCatalog.",
               "severity": "minor",
               "fair_principle": "F4",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! FIND3-T: Skipped (requires network access)"
+              "message": "Not found in LOV and no schema:includedInDataCatalog declared"
             },
             {
               "id": "foopsHTTP1OpenProtocol",
@@ -7096,14 +7096,14 @@
               "description": "Declared license URI dereferences.",
               "severity": "minor",
               "fair_principle": "R1.1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": true,
+              "passed": true,
+              "unweighted": true,
+              "weighted": true,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! OM4.2-T: Skipped (requires network access)"
+              "message": "License resolves"
             },
             {
               "id": "foopsOM51BasicProvenance",
@@ -7176,14 +7176,14 @@
               "description": "Ontology URI dereferences to RDF.",
               "severity": "important",
               "fair_principle": "F1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! URI1-T: Skipped (requires network access)"
+              "message": "Ontology URI does not resolve to RDF (404)"
             },
             {
               "id": "foopsURI2ConsistentIds",
@@ -7192,14 +7192,14 @@
               "description": "Published document's ontology IRI equals the URI it is served from.",
               "severity": "minor",
               "fair_principle": "F1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! URI2-T: Skipped (requires network access)"
+              "message": "No ontology document could be retrieved from the URI"
             },
             {
               "id": "foopsVER1VersionIriDeclared",
@@ -7224,14 +7224,14 @@
               "description": "The declared owl:versionIRI dereferences successfully.",
               "severity": "important",
               "fair_principle": "F1",
-              "status": "Skipped (requires network access)",
+              "status": "Skipped (no version IRI declared; see VER1-T)",
               "original": null,
               "passed": null,
               "unweighted": null,
               "weighted": null,
               "weighting": "not run",
               "passed_in_context": null,
-              "message": "FOOPS! VER2-T: Skipped (requires network access)"
+              "message": "No version IRI declared, so resolution was not attempted"
             },
             {
               "id": "foopsVOC1MetadataVocabReuse",
@@ -7299,13 +7299,13 @@
             }
           ],
           "summary": {
-            "run": 15,
-            "passed": 6,
-            "failed": 9,
-            "skipped": 9,
-            "weighted_penalty": 21.0,
-            "failed_in_context": 7,
-            "weighted_penalty_in_context": 15.0
+            "run": 23,
+            "passed": 7,
+            "failed": 16,
+            "skipped": 1,
+            "weighted_penalty": 34.0,
+            "failed_in_context": 14,
+            "weighted_penalty_in_context": 28.0
           }
         },
         "oquare": {
@@ -7396,7 +7396,7 @@
               "weighted": 3,
               "weighting": "weighted",
               "passed_in_context": null,
-              "message": "DITOnto = 3 (deepest class: https://cwrusdle.bitbucket.io/mds/ExtrusionTemperature)",
+              "message": "DITOnto = 3 (deepest class: https://cwrusdle.bitbucket.io/mds/PressurelessSintering)",
               "grade": 3,
               "weighted_grade": 3
             },
@@ -7655,24 +7655,24 @@
               "id": "externalLinks",
               "name": "External link validity",
               "kind": "native",
-              "value": null,
-              "status": "Skipped (requires network access)",
+              "value": 0.0,
+              "status": "Success",
               "detail": {}
             },
             {
               "id": "rdfDump",
               "name": "RDF dump availability",
               "kind": "native",
-              "value": null,
-              "status": "Skipped (requires network access)",
+              "value": 0,
+              "status": "Success",
               "detail": {}
             },
             {
               "id": "sparqlEndpoint",
               "name": "SPARQL endpoint availability",
               "kind": "native",
-              "value": null,
-              "status": "Skipped (requires network access)",
+              "value": 0,
+              "status": "Success",
               "detail": {}
             },
             {
@@ -8422,14 +8422,14 @@
               "description": "Ontology URI serves both RDF code and HTML documentation.",
               "severity": "critical",
               "fair_principle": "",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "OOPS! P37: Skipped (requires network access)"
+              "message": "Not served at https://cwrusdle.bitbucket.io/files/MDS_Onto/index-en.html: code (RDF)"
             },
             {
               "id": "oopsP38OntologyDeclaration",
@@ -8497,13 +8497,13 @@
             }
           ],
           "summary": {
-            "run": 40,
+            "run": 41,
             "passed": 30,
-            "failed": 10,
-            "skipped": 1,
-            "weighted_penalty": 24.0,
-            "failed_in_context": 9,
-            "weighted_penalty_in_context": 23.0
+            "failed": 11,
+            "skipped": 0,
+            "weighted_penalty": 29.0,
+            "failed_in_context": 10,
+            "weighted_penalty_in_context": 28.0
           }
         },
         "foops": {
@@ -8515,14 +8515,14 @@
               "description": "Ontology URI serves HTML and an RDF serialisation.",
               "severity": "important",
               "fair_principle": "A1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! CN1-T: Skipped (requires network access)"
+              "message": "Missing: RDF"
             },
             {
               "id": "foopsDOC1HtmlDocumentation",
@@ -8531,14 +8531,14 @@
               "description": "Ontology URI serves HTML documentation.",
               "severity": "important",
               "fair_principle": "R1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": true,
+              "passed": true,
+              "unweighted": true,
+              "weighted": true,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! DOC1-T: Skipped (requires network access)"
+              "message": "HTML documentation is served"
             },
             {
               "id": "foopsFIND1PrefixDeclared",
@@ -8563,14 +8563,14 @@
               "description": "Declared prefix is registered in prefix.cc or LOV.",
               "severity": "minor",
               "fair_principle": "F4",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! FIND2-T: Skipped (requires network access)"
+              "message": "No prefix declared (see FIND1-T), so no registry lookup was possible"
             },
             {
               "id": "foopsFIND3BISMetadataPersistence",
@@ -8579,14 +8579,14 @@
               "description": "Metadata held by LOV or a declared data catalogue.",
               "severity": "minor",
               "fair_principle": "A2",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! FIND_3_BIS-T: Skipped (requires network access)"
+              "message": "Not found in LOV and no schema:includedInDataCatalog declared"
             },
             {
               "id": "foopsFIND3CommunityRegistry",
@@ -8595,14 +8595,14 @@
               "description": "Ontology listed in LOV or declares schema:includedInDataCatalog.",
               "severity": "minor",
               "fair_principle": "F4",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! FIND3-T: Skipped (requires network access)"
+              "message": "Not found in LOV and no schema:includedInDataCatalog declared"
             },
             {
               "id": "foopsHTTP1OpenProtocol",
@@ -8691,14 +8691,14 @@
               "description": "Declared license URI dereferences.",
               "severity": "minor",
               "fair_principle": "R1.1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": true,
+              "passed": true,
+              "unweighted": true,
+              "weighted": true,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! OM4.2-T: Skipped (requires network access)"
+              "message": "License resolves"
             },
             {
               "id": "foopsOM51BasicProvenance",
@@ -8771,14 +8771,14 @@
               "description": "Ontology URI dereferences to RDF.",
               "severity": "important",
               "fair_principle": "F1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! URI1-T: Skipped (requires network access)"
+              "message": "Ontology URI does not resolve to RDF (200)"
             },
             {
               "id": "foopsURI2ConsistentIds",
@@ -8787,14 +8787,14 @@
               "description": "Published document's ontology IRI equals the URI it is served from.",
               "severity": "minor",
               "fair_principle": "F1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! URI2-T: Skipped (requires network access)"
+              "message": "No ontology document could be retrieved from the URI"
             },
             {
               "id": "foopsVER1VersionIriDeclared",
@@ -8819,14 +8819,14 @@
               "description": "The declared owl:versionIRI dereferences successfully.",
               "severity": "important",
               "fair_principle": "F1",
-              "status": "Skipped (requires network access)",
-              "original": null,
-              "passed": null,
-              "unweighted": null,
-              "weighted": null,
-              "weighting": "not run",
+              "status": "Success",
+              "original": false,
+              "passed": false,
+              "unweighted": false,
+              "weighted": false,
+              "weighting": "not applicable",
               "passed_in_context": null,
-              "message": "FOOPS! VER2-T: Skipped (requires network access)"
+              "message": "Version IRI does not resolve (404)"
             },
             {
               "id": "foopsVOC1MetadataVocabReuse",
@@ -8894,13 +8894,13 @@
             }
           ],
           "summary": {
-            "run": 15,
-            "passed": 7,
-            "failed": 8,
-            "skipped": 9,
-            "weighted_penalty": 18.0,
-            "failed_in_context": 8,
-            "weighted_penalty_in_context": 18.0
+            "run": 24,
+            "passed": 9,
+            "failed": 15,
+            "skipped": 0,
+            "weighted_penalty": 31.0,
+            "failed_in_context": 15,
+            "weighted_penalty_in_context": 31.0
           }
         },
         "oquare": {
@@ -8991,7 +8991,7 @@
               "weighted": 3,
               "weighting": "weighted",
               "passed_in_context": null,
-              "message": "DITOnto = 3 (deepest class: https://cwrusdle.bitbucket.io/files/MDS_Onto/index-en.html#ElectronBeamMelting)",
+              "message": "DITOnto = 3 (deepest class: https://cwrusdle.bitbucket.io/files/MDS_Onto/index-en.html#ColonyMorphology)",
               "grade": 3,
               "weighted_grade": 3
             },
@@ -9250,24 +9250,24 @@
               "id": "externalLinks",
               "name": "External link validity",
               "kind": "native",
-              "value": null,
-              "status": "Skipped (requires network access)",
+              "value": 0.0139,
+              "status": "Success",
               "detail": {}
             },
             {
               "id": "rdfDump",
               "name": "RDF dump availability",
               "kind": "native",
-              "value": null,
-              "status": "Skipped (requires network access)",
+              "value": 0,
+              "status": "Success",
               "detail": {}
             },
             {
               "id": "sparqlEndpoint",
               "name": "SPARQL endpoint availability",
               "kind": "native",
-              "value": null,
-              "status": "Skipped (requires network access)",
+              "value": 0,
+              "status": "Success",
               "detail": {}
             },
             {

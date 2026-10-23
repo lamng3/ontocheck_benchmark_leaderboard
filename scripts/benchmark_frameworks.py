@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from ontocheck import run_assessment
+from rdflib import Graph
 
 from backend.evaluators.ontocheck_runner import _has_abox, _quiet_logging, _split_assessment
 from backend.evaluators.report import build_report
@@ -81,15 +82,32 @@ def _ontology_dir():
     return path
 
 
+def _merge(paths, output_dir):
+    """One Turtle file for a domain, so a multi-file domain is scored once."""
+
+    if len(paths) == 1:
+        return paths[0]
+    graph = Graph()
+    for path in paths:
+        part = Graph().parse(str(path), format="turtle")
+        for prefix, namespace in part.namespaces():
+            graph.bind(prefix, namespace, override=False)
+        graph += part
+    merged = output_dir / "merged.ttl"
+    graph.serialize(str(merged), format="turtle")
+    return merged
+
+
 def _score(name, paths, output_dir, allow_network=True):
     output_dir.mkdir(parents=True, exist_ok=True)
     try:
+        merged = _merge(paths, output_dir)
         result = run_assessment(
-            ttl_files=[str(path) for path in paths],
+            ttl_files=[str(merged)],
             metrics=None,
             frameworks=["FOOPS!", "OOPS!"],
             allow_network=allow_network,
-            has_abox=any(_has_abox(path) for path in paths),
+            has_abox=_has_abox(merged),
             output_log_file=str(output_dir / "assessment.log"),
             output_csv_file=str(output_dir / "scores.csv"),
             framework_csv_file=str(output_dir / "framework.csv"),
