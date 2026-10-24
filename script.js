@@ -318,17 +318,53 @@ domainFrameworkFilters.addEventListener("click", (event) => {
 const severityOrder = { critical: 0, important: 1, minor: 2 };
 const severityDot = { critical: "low", important: "mid", minor: "top" };
 const assessmentRank = document.querySelector("#assessment-rank");
+const assessmentLevels = document.querySelector("#assessment-levels");
 const assessmentTables = document.querySelector("#assessment-tables");
 const assessmentDomains = document.querySelector("#assessment-domains");
 const assessmentHead = document.querySelector("#assessment-head");
 const assessmentBody = document.querySelector("#assessment-body");
+const assessmentQueries = document.querySelector("#assessment-queries");
+const assessmentQueriesHead = document.querySelector("#assessment-queries-head");
+const assessmentQueriesBody = document.querySelector("#assessment-queries-body");
+const assessmentLevelList = [
+  { key: "0", label: "Level 0" },
+  { key: "I", label: "Level I" },
+  { key: "II", label: "Level II" },
+  { key: "III", label: "Level III" },
+  { key: "IV", label: "Level IV" },
+];
 const assessmentKinds = [
   { key: "oops", label: "OOPS" },
   { key: "foops", label: "FOOPS" },
   { key: "oquare", label: "OQuaRE" },
   { key: "ontocheck", label: "OntoCheck" },
 ];
+// Rows exported before levels were recorded.
+const ontocheckLevels = {
+  recall: "I",
+  precision: "I",
+  conceptualFitness: "I",
+  counterfactualImportance: "I",
+  structuralFitness: "II-A",
+  logicalFitness: "II-B",
+  retrievalFitness: "III",
+  benchmarkScore: "IV",
+  answerAccuracy: "IV",
+  reasoningPath: "IV",
+};
+// Values read from a row's detail, listed after the row itself.
+const ontocheckDerived = {
+  conceptualFitness: [
+    { key: "aligned_score", name: "Conceptual fitness with aligned support" },
+    { key: "ambiguity", name: "Mapping ambiguity" },
+  ],
+  structuralFitness: [
+    { key: "path_coverage", name: "Path coverage" },
+    { key: "path_stretch", name: "Path stretch" },
+  ],
+};
 let assessment = { domains: [] };
+let assessmentLevel = "0";
 let assessmentKind = "oops";
 let assessmentDomain = null;
 let assessmentSort = "conceptualFitness";
@@ -346,6 +382,14 @@ function formatAssessmentValue(value) {
 
 function assessmentPercent(value) {
   return value === null || value === undefined ? "—" : `${Math.round(value * 100)}%`;
+}
+
+function localName(iri) {
+  return String(iri).split(/[#/]/).filter(Boolean).pop() || String(iri);
+}
+
+function rowLevel(row) {
+  return row.level || ontocheckLevels[row.id] || "0";
 }
 
 function ontocheckValue(domain, id) {
@@ -369,7 +413,22 @@ function rankScores(domain) {
     recall: [ontocheckValue(domain, "recall")],
     conceptualFitness: [ontocheckValue(domain, "conceptualFitness")],
     structuralFitness: [ontocheckValue(domain, "structuralFitness")],
+    benchmarkScore: [ontocheckValue(domain, "benchmarkScore")],
   };
+}
+
+function workloadTag(file, count) {
+  if (!file) return "";
+  const n = count ? ` · ${count}` : "";
+  return `<span class="question-tag">${escapeHtml(file)}${n}</span>`;
+}
+
+function questionsTag(domain) {
+  return workloadTag(domain.questions, (domain.queries || []).length);
+}
+
+function benchmarkTag(domain) {
+  return workloadTag(domain.benchmark, (domain.benchmark_cases || []).length);
 }
 
 function rankCell(label, values, format) {
@@ -382,7 +441,7 @@ function rankCell(label, values, format) {
 function renderAssessmentRank() {
   const scored = (assessment.domains || []).filter((domain) => domain.tables);
   if (!scored.length) {
-    assessmentRank.innerHTML = '<tr><td colspan="8" class="assessment-missing">—</td></tr>';
+    assessmentRank.innerHTML = '<tr><td colspan="9" class="assessment-missing">—</td></tr>';
     return;
   }
   const rows = scored.map((domain) => ({ domain, scores: rankScores(domain) }));
@@ -404,13 +463,17 @@ function renderAssessmentRank() {
       ({ domain, scores }, index) => `
         <tr>
           <td class="rank ${index === 0 ? "first" : ""}" data-label="Rank">${String(index + 1).padStart(2, "0")}</td>
-          <td class="ontology-name" data-label="Domain">${escapeHtml(domain.name)}</td>
-          ${rankCell("OOPS", scores.oops, assessmentPercent)}
-          ${rankCell("FOOPS", scores.foops, assessmentPercent)}
-          ${rankCell("OQuaRE", scores.oquare, grade)}
-          ${rankCell("Recall", scores.recall, score)}
-          ${rankCell("Conceptual fitness", scores.conceptualFitness, score)}
-          ${rankCell("Structural fitness", scores.structuralFitness, score)}
+          <td class="ontology-name" data-label="Domain">
+            ${escapeHtml(domain.name)}
+            <span class="assessment-workload">${questionsTag(domain)}${benchmarkTag(domain)}</span>
+          </td>
+          ${rankCell("0 · OOPS", scores.oops, assessmentPercent)}
+          ${rankCell("0 · FOOPS", scores.foops, assessmentPercent)}
+          ${rankCell("0 · OQuaRE", scores.oquare, grade)}
+          ${rankCell("I · Recall", scores.recall, score)}
+          ${rankCell("I · Conceptual fitness", scores.conceptualFitness, score)}
+          ${rankCell("II · Structural fitness", scores.structuralFitness, score)}
+          ${rankCell("IV · Benchmark score", scores.benchmarkScore, score)}
         </tr>
       `,
     )
@@ -437,33 +500,46 @@ function assessmentValueCell(row, field) {
   `;
 }
 
-function renderAssessmentDetail() {
-  const domain = (assessment.domains || []).find((item) => item.name === assessmentDomain);
-  if (!domain || !domain.tables) {
-    assessmentHead.innerHTML = "";
-    assessmentBody.innerHTML = '<tr><td class="assessment-missing">—</td></tr>';
-    return;
-  }
+function plainValueCell(value, status, label, fixed) {
+  const ok = !status || status === "Success";
+  const text = !ok ? "—" : fixed && typeof value === "number" ? value.toFixed(3) : formatAssessmentValue(value);
+  const attrs = (label ? ` data-label="${escapeHtml(label)}"` : "") + (ok ? "" : ` title="${escapeHtml(status)}"`);
+  return `
+    <td class="${ok ? "" : "assessment-missing"}"${attrs}>
+      <span class="assessment-value">${escapeHtml(text)}</span>
+    </td>
+  `;
+}
+
+function fixedCell(value, label) {
+  return plainValueCell(value, null, label, true);
+}
+
+function hideQueries() {
+  assessmentQueries.hidden = true;
+  assessmentQueriesHead.innerHTML = "";
+  assessmentQueriesBody.innerHTML = "";
+}
+
+function renderFrameworkTable(domain) {
   const rows = (domain.tables[assessmentKind] || {}).rows || [];
   if (assessmentKind === "ontocheck") {
     assessmentHead.innerHTML = '<tr><th scope="col">Metric</th><th scope="col">Value</th></tr>';
     assessmentBody.innerHTML = rows
-      .map((row) => {
-        const ok = row.status === "Success";
-        return `
+      .filter((row) => rowLevel(row) === "0")
+      .map(
+        (row) => `
           <tr>
             <th scope="row" class="assessment-metric">${escapeHtml(row.name)}</th>
-            <td class="${ok ? "" : "assessment-missing"}"${ok ? "" : ` title="${escapeHtml(row.status)}"`}>
-              <span class="assessment-value">${escapeHtml(ok ? formatAssessmentValue(row.value) : "—")}</span>
-            </td>
+            ${plainValueCell(row.value, row.status)}
           </tr>
-        `;
-      })
+        `,
+      )
       .join("");
     return;
   }
-  assessmentHead.innerHTML =
-    '<tr><th scope="col">Metric</th><th scope="col">Original</th><th scope="col">Weighted</th></tr>';
+  const by = [domain.questions ? questionsTag(domain) : "", domain.has_abox ? '<span class="question-tag">ABox</span>' : ""].join("");
+  assessmentHead.innerHTML = `<tr><th scope="col">Metric</th><th scope="col">Original</th><th scope="col">Weighted <span class="assessment-workload">${by}</span></th></tr>`;
   const metricRow = (row) => `
     <tr>
       <th scope="row" class="assessment-metric" title="${escapeHtml(row.description || "")}">
@@ -490,16 +566,151 @@ function renderAssessmentDetail() {
     .join("");
 }
 
-function renderAssessmentPills() {
-  assessmentTables.innerHTML = assessmentKinds
+function sourceTag(domain, row) {
+  if (row.kind === "benchmark" || row.id === "counterfactualImportance") return benchmarkTag(domain);
+  if (row.kind === "task" || row.kind === "fitness") return questionsTag(domain);
+  return "";
+}
+
+function renderLevelTable(domain) {
+  const rows = ((domain.tables.ontocheck || {}).rows || []).filter((row) => rowLevel(row).split("-")[0] === assessmentLevel);
+  const groups = assessmentLevel === "II" ? [["II-A", "Structural"], ["II-B", "Logical"]] : [[null, null]];
+  assessmentHead.innerHTML =
+    '<tr><th scope="col">Metric</th><th scope="col">Value</th><th scope="col">Queries</th></tr>';
+  const metricRows = (row) => {
+    const source = row.status === "Success" ? sourceTag(domain, row) : "";
+    const main = `
+      <tr>
+        <th scope="row" class="assessment-metric">${escapeHtml(row.name)}</th>
+        ${plainValueCell(row.value, row.status, null, true)}
+        <td><span class="assessment-workload">${source}</span></td>
+      </tr>
+    `;
+    const extra = (ontocheckDerived[row.id] || [])
+      .filter(() => row.status === "Success")
+      .map(
+        (item) => `
+          <tr>
+            <th scope="row" class="assessment-metric">${escapeHtml(item.name)}</th>
+            ${fixedCell((row.detail || {})[item.key])}
+            <td><span class="assessment-workload">${source}</span></td>
+          </tr>
+        `,
+      )
+      .join("");
+    return main + extra;
+  };
+  assessmentBody.innerHTML = groups
+    .map(([level, label]) => {
+      const group = level ? rows.filter((row) => rowLevel(row) === level) : rows;
+      if (!group.length) return "";
+      const head = label ? `<tr class="assessment-group"><th scope="rowgroup" colspan="3">${label}</th></tr>` : "";
+      return head + group.map(metricRows).join("");
+    })
+    .join("") || '<tr><td colspan="3" class="assessment-missing">—</td></tr>';
+  renderQueryTable(domain);
+}
+
+function queryCell(id, question) {
+  return `
+    <th scope="row" class="assessment-metric assessment-query">
+      <span class="question-tag">${escapeHtml(id)}</span><span>${escapeHtml(question || "")}</span>
+    </th>
+  `;
+}
+
+function nameList(values, label) {
+  if (!values || !values.length) return `<td class="assessment-missing assessment-names" data-label="${label}">—</td>`;
+  return `<td class="assessment-names" data-label="${label}">${values.map((v) => escapeHtml(v.includes(" --") ? v : localName(v))).join("<br>")}</td>`;
+}
+
+function renderQueryTable(domain) {
+  const queries = domain.queries || [];
+  const cases = domain.benchmark_cases || [];
+  if (assessmentLevel === "I" && queries.length) {
+    assessmentQueriesHead.innerHTML =
+      '<tr><th scope="col">Query</th><th scope="col">Conceptual fitness</th><th scope="col">Ambiguity</th><th scope="col">Unsupported</th></tr>';
+    assessmentQueriesBody.innerHTML = queries
+      .map(
+        (q) => `
+          <tr>
+            ${queryCell(q.qid, q.question)}
+            ${fixedCell(q.F_C, "Conceptual fitness")}
+            ${fixedCell(q.A_C, "Ambiguity")}
+            ${nameList(q.unsupported, "Unsupported")}
+          </tr>
+        `,
+      )
+      .join("");
+  } else if (assessmentLevel === "II" && queries.length) {
+    assessmentQueriesHead.innerHTML =
+      '<tr><th scope="col">Query</th><th scope="col">Structural fitness</th><th scope="col">Path coverage</th><th scope="col">Unrealised</th></tr>';
+    assessmentQueriesBody.innerHTML = queries
+      .map(
+        (q) => `
+          <tr>
+            ${queryCell(q.qid, q.question)}
+            ${fixedCell(q.F_S, "Structural fitness")}
+            ${fixedCell(q.path_coverage, "Path coverage")}
+            ${nameList(q.unrealised, "Unrealised")}
+          </tr>
+        `,
+      )
+      .join("");
+  } else if (assessmentLevel === "IV" && cases.length) {
+    assessmentQueriesHead.innerHTML =
+      '<tr><th scope="col">Case</th><th scope="col">Score</th><th scope="col">Answer</th><th scope="col">Path</th></tr>';
+    assessmentQueriesBody.innerHTML = cases
+      .map(
+        (c) => `
+          <tr>
+            ${queryCell(c.id, c.question)}
+            ${fixedCell(c.score, "Score")}
+            ${fixedCell(c.constraint_score === null ? c.answer_score : null, "Answer")}
+            ${fixedCell(c.evidence_score, "Path")}
+          </tr>
+        `,
+      )
+      .join("");
+  } else {
+    hideQueries();
+    return;
+  }
+  assessmentQueries.hidden = false;
+}
+
+function renderAssessmentDetail() {
+  const domain = (assessment.domains || []).find((item) => item.name === assessmentDomain);
+  if (!domain || !domain.tables) {
+    assessmentHead.innerHTML = "";
+    assessmentBody.innerHTML = '<tr><td class="assessment-missing">—</td></tr>';
+    hideQueries();
+    return;
+  }
+  if (assessmentLevel === "0") {
+    renderFrameworkTable(domain);
+    hideQueries();
+    return;
+  }
+  renderLevelTable(domain);
+}
+
+function pillButtons(items, active, attribute) {
+  return items
     .map(
-      (kind) => `
-        <button type="button" role="tab" class="${kind.key === assessmentKind ? "active" : ""}" data-kind="${kind.key}" aria-selected="${kind.key === assessmentKind}">
-          ${escapeHtml(kind.label)}
+      (item) => `
+        <button type="button" role="tab" class="${item.key === active ? "active" : ""}" data-${attribute}="${escapeHtml(item.key)}" aria-selected="${item.key === active}">
+          ${escapeHtml(item.label)}
         </button>
       `,
     )
     .join("");
+}
+
+function renderAssessmentPills() {
+  assessmentLevels.innerHTML = pillButtons(assessmentLevelList, assessmentLevel, "level");
+  assessmentTables.hidden = assessmentLevel !== "0";
+  assessmentTables.innerHTML = pillButtons(assessmentKinds, assessmentKind, "kind");
   assessmentDomains.innerHTML = (assessment.domains || [])
     .filter((domain) => domain.tables)
     .map(
@@ -526,6 +737,14 @@ async function loadAssessment() {
   renderAssessmentRank();
   renderAssessmentDetail();
 }
+
+assessmentLevels.addEventListener("click", (event) => {
+  const button = event.target.closest("button");
+  if (!button) return;
+  assessmentLevel = button.dataset.level;
+  renderAssessmentPills();
+  renderAssessmentDetail();
+});
 
 assessmentTables.addEventListener("click", (event) => {
   const button = event.target.closest("button");

@@ -194,6 +194,13 @@
           <div class="table-wrap">
             <table class="assessment-rank">
               <thead>
+                <tr class="assessment-levels">
+                  <td colspan="2"></td>
+                  <th scope="colgroup" colspan="3">Level 0</th>
+                  <th scope="colgroup" colspan="2">Level I</th>
+                  <th scope="colgroup">Level II</th>
+                  <th scope="colgroup">Level IV</th>
+                </tr>
                 <tr>
                   <th scope="col">Rank</th>
                   <th scope="col">Domain</th>
@@ -203,6 +210,7 @@
                   <th scope="col"><button type="button" data-sort="recall">Recall</button></th>
                   <th scope="col"><button type="button" data-sort="conceptualFitness">Conceptual fitness</button></th>
                   <th scope="col"><button type="button" data-sort="structuralFitness">Structural fitness</button></th>
+                  <th scope="col"><button type="button" data-sort="benchmarkScore">Benchmark score</button></th>
                 </tr>
               </thead>
               <tbody id="assessment-rank"></tbody>
@@ -212,12 +220,19 @@
 
         <div class="category-panel assessment-detail">
           <div class="panel-heading">
-            <div id="assessment-tables" class="filter-pills assessment-pills" role="tablist" aria-label="Choose a table"></div>
+            <div class="assessment-pill-rows">
+              <div id="assessment-levels" class="filter-pills assessment-pills" role="tablist" aria-label="Choose a level"></div>
+              <div id="assessment-tables" class="filter-pills assessment-pills" role="tablist" aria-label="Choose a table"></div>
+            </div>
             <div id="assessment-domains" class="filter-pills" aria-label="Choose a domain"></div>
           </div>
           <table class="assessment-table">
             <thead id="assessment-head"></thead>
             <tbody id="assessment-body"></tbody>
+          </table>
+          <table class="assessment-table assessment-queries" id="assessment-queries" hidden>
+            <thead id="assessment-queries-head"></thead>
+            <tbody id="assessment-queries-body"></tbody>
           </table>
         </div>
       </section>
