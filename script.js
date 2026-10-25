@@ -417,18 +417,21 @@ function rankScores(domain) {
   };
 }
 
-function workloadTag(file, count) {
+const workloadBaseUrl = "https://github.com/cwru-sdle/OntoCheck/blob/main/SupplementaryMaterials/";
+
+function workloadTag(file, count, folder) {
   if (!file) return "";
   const n = count ? ` · ${count}` : "";
-  return `<span class="question-tag">${escapeHtml(file)}${n}</span>`;
+  const href = `${workloadBaseUrl}${folder}/${encodeURIComponent(file)}`;
+  return `<a class="question-tag workload-link" href="${escapeHtml(href)}" target="_blank" rel="noopener">${escapeHtml(file)}${n}</a>`;
 }
 
 function questionsTag(domain) {
-  return workloadTag(domain.questions, (domain.queries || []).length);
+  return workloadTag(domain.questions, (domain.queries || []).length, "SPARQL_Queries");
 }
 
 function benchmarkTag(domain) {
-  return workloadTag(domain.benchmark, (domain.benchmark_cases || []).length);
+  return workloadTag(domain.benchmark, (domain.benchmark_cases || []).length, "Benchmarks");
 }
 
 function rankCell(label, values, format) {

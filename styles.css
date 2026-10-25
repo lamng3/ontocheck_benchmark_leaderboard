@@ -1630,6 +1630,14 @@ button.button {
   display: none;
 }
 
+.workload-link {
+  text-decoration: none;
+}
+
+.workload-link:hover {
+  text-decoration: underline;
+}
+
 .assessment-pill-rows {
   display: flex;
   flex-direction: column;
