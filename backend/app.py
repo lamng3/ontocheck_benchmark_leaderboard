@@ -24,6 +24,7 @@ from backend.db import (
     list_runs,
 )
 from backend.evaluators.ontocheck_runner import score_queries, to_turtle
+from backend.examples import get_example, list_examples
 from backend.jobs import start_evaluation
 from backend.memory.intent import classify
 from backend.memory.retrieval import select_context
@@ -134,6 +135,14 @@ def ontocheck_results():
     return FileResponse(ROOT / "ontocheck-results.json", media_type="application/json")
 
 
+@app.get("/examples/{name}")
+def example_file(name: str):
+    path = ROOT / "examples" / Path(name).name
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="No such example.")
+    return FileResponse(path)
+
+
 @app.get("/pipeline-options.json")
 def pipeline_options():
     return FileResponse(ROOT / "pipeline-options.json", media_type="application/json")
@@ -141,7 +150,7 @@ def pipeline_options():
 
 @app.get("/api/ontologies")
 def read_ontologies(request: Request):
-    return {"ontologies": list_ontologies(request.state.session_id)}
+    return {"ontologies": list_ontologies(request.state.session_id), "examples": list_examples()}
 
 
 @app.post("/api/ontologies")
@@ -216,7 +225,12 @@ def start_run(request: Request, body: EvaluationRequest):
 
 @app.get("/api/evaluations")
 def read_runs(request: Request):
-    return {"evaluations": list_runs(request.state.session_id)}
+    runs = list_runs(request.state.session_id)
+    for run in runs:
+        example = get_example(run["ontology_id"])
+        if example and not run.get("ontology_name"):
+            run["ontology_name"] = example["name"]
+    return {"evaluations": runs}
 
 
 @app.get("/api/evaluations/{run_id}")
@@ -425,7 +439,7 @@ def _valid_checks(checks):
 
 
 def _owned_ontology(session_id, ontology_id):
-    ontology = get_ontology(session_id, ontology_id)
+    ontology = get_example(ontology_id) or get_ontology(session_id, ontology_id)
     if ontology is None:
         raise HTTPException(status_code=404, detail="Choose an uploaded ontology.")
     return ontology

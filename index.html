@@ -21,8 +21,10 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20261027-1" />
-    <script src="script.js?v=20261027-1" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20261027-2" />
+    <script src="browser/firebase-config.js?v=20261027-2" defer></script>
+    <script src="browser/engine.js?v=20261027-2" defer></script>
+    <script src="script.js?v=20261027-2" defer></script>
   </head>
   <body>
     <header class="topbar">
@@ -268,7 +270,7 @@
             </p>
           </div>
         </div>
-        <p class="backend-note" data-backend-note hidden></p>
+        <p class="backend-note" id="evaluate-note" hidden></p>
 
         <div class="split">
           <form class="card form-card" id="eval-form">
@@ -334,7 +336,7 @@
             </p>
           </div>
         </div>
-        <p class="backend-note" data-backend-note hidden></p>
+        <p class="backend-note info" id="ask-note" hidden></p>
 
         <div class="ask-layout">
           <aside class="card pipeline" aria-label="Pipeline settings">
@@ -392,6 +394,30 @@
                 <textarea id="question-context" rows="3" placeholder="Anything the model should know"></textarea>
               </label>
             </section>
+
+            <section class="stage browser-only">
+              <h3><span class="step">5</span> Model</h3>
+              <p class="meta">Used by the LLM agent and by Translate.</p>
+              <label class="param grow">
+                <span>Provider</span>
+                <select id="model-backend">
+                  <option value="ollama">Ollama on this computer</option>
+                  <option value="openai">OpenAI-compatible API</option>
+                </select>
+              </label>
+              <div class="params">
+                <label class="param grow"><span>Address</span><input id="model-url" type="text" autocomplete="off" spellcheck="false" /></label>
+                <label class="param grow"><span>Model</span><input id="model-name" type="text" autocomplete="off" spellcheck="false" /></label>
+              </div>
+              <label class="param grow" id="model-key-field" hidden>
+                <span>API key (stays in this browser)</span>
+                <input id="model-key" type="password" autocomplete="off" />
+              </label>
+              <p class="meta" id="ollama-hint">
+                For Ollama, allow this page first:
+                <code id="ollama-origins">OLLAMA_ORIGINS=… ollama serve</code>
+              </p>
+            </section>
           </aside>
 
           <div class="ask-main">
@@ -400,6 +426,7 @@
                 <span>Question</span>
                 <textarea id="nl-question" rows="3" placeholder="Which metals are subclasses of material?"></textarea>
               </label>
+              <div class="chips example-questions" id="example-questions" hidden></div>
               <div class="composer-row">
                 <span class="intent" id="intent-chip" hidden></span>
                 <div class="composer-actions">
@@ -414,8 +441,8 @@
                 </summary>
                 <textarea id="sparql-question" rows="7" spellcheck="false" placeholder="SELECT ?class WHERE { ?class rdfs:subClassOf ?parent }"></textarea>
                 <div class="composer-actions">
-                  <button class="btn" id="context-evaluate" type="button">Score with saved questions</button>
-                  <button class="btn" id="evaluate-question" type="button">Score query</button>
+                  <button class="btn server-only" id="context-evaluate" type="button">Score with saved questions</button>
+                  <button class="btn" id="evaluate-question" type="button"><span class="server-only">Score query</span><span class="browser-only">Run query</span></button>
                 </div>
               </details>
               <p id="question-status" class="status" role="status"></p>
@@ -431,6 +458,11 @@
             <div>
               <h2>Question log</h2>
               <p class="meta" id="memory-count">No saved questions yet.</p>
+              <p class="meta" id="share-note" hidden>
+                Questions asked on this page are also saved, with their intent and pipeline settings, to a shared
+                log that helps improve the benchmark. Uploaded files and your notes are not. Please don't include
+                personal information.
+              </p>
             </div>
             <button class="btn" id="export-questions" type="button">Export JSON</button>
           </div>

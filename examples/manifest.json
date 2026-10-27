@@ -1,0 +1,69 @@
+{
+  "source": "https://raw.githubusercontent.com/cwru-sdle/OntoCheck/main/SupplementaryMaterials/Ontologies/",
+  "examples": [
+    {
+      "id": "example-ebsd",
+      "name": "EBSD",
+      "file": "examples/ebsd.ttl",
+      "sources": [
+        "EBSD.ttl"
+      ],
+      "triples": 549,
+      "questions": "EBSD"
+    },
+    {
+      "id": "example-capacitors",
+      "name": "Capacitors",
+      "file": "examples/capacitors.ttl",
+      "sources": [
+        "Capacitor-Equipment.ttl",
+        "Capacitor-Sample.ttl",
+        "Capacitor-SampleHolder.ttl"
+      ],
+      "triples": 692,
+      "questions": "Capacitors"
+    },
+    {
+      "id": "example-geooutage",
+      "name": "GeoOutage",
+      "file": "examples/geooutage.ttl",
+      "sources": [
+        "GeoOutage.ttl"
+      ],
+      "triples": 506,
+      "questions": "GeoOutage"
+    },
+    {
+      "id": "example-geospatial",
+      "name": "Geospatial",
+      "file": "examples/geospatial.ttl",
+      "sources": [
+        "Geospatial-Rasters.ttl",
+        "Geospatial-SatelliteSensorBand.ttl",
+        "Geospatial-mdsGeo.ttl"
+      ],
+      "triples": 990,
+      "questions": "Geospatial"
+    },
+    {
+      "id": "example-materials-processing",
+      "name": "Materials Processing",
+      "file": "examples/materials-processing.ttl",
+      "sources": [
+        "MatProc.ttl"
+      ],
+      "triples": 1585,
+      "questions": "Materials Processing"
+    },
+    {
+      "id": "example-xrd",
+      "name": "XRD",
+      "file": "examples/xrd.ttl",
+      "sources": [
+        "XRD.ttl"
+      ],
+      "triples": 5757,
+      "questions": "XRD"
+    }
+  ]
+}

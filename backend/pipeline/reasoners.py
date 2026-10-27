@@ -8,7 +8,6 @@ import os
 from collections import defaultdict
 from itertools import combinations
 
-import httpx
 import networkx as nx
 from rdflib import BNode, URIRef
 from rdflib.namespace import OWL, RDF, RDFS
@@ -151,6 +150,8 @@ def rule_based(graph, terms, hits, **_):
 
 
 def agent(graph, terms, hits, question="", context_text="", model="", **_):
+    import httpx  # Only the agent needs it; the browser build has no sync HTTP.
+
     host = os.environ.get("OLLAMA_HOST", "http://127.0.0.1:11434").rstrip("/")
     model = model or os.environ.get("OLLAMA_MODEL", "llama3.1")
     prompt = (
