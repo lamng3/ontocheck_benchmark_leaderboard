@@ -1,6 +1,7 @@
-// Runs OntoCheck for Evaluate in a worker, so the page stays responsive while
-// it works. The main page sends {id, text, suffix, checks, sparql, prefixes}
-// and gets back status messages, then a result or an error.
+// Runs OntoCheck in a worker, so the page stays responsive while it works.
+// The page sends {id, kind, text, suffix, ...}: an evaluation (checks, sparql,
+// prefixes) or, with kind "score", query scoring (items, prefixes). It gets
+// back status messages, then a result or an error.
 importScripts("https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js");
 
 const NLTK_DATA = "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/";
@@ -72,14 +73,17 @@ onmessage = async ({ data }) => {
       });
     }
     await ready;
-    status("Running OntoCheck…");
-    const result = evaluator.evaluate_text(
-      data.text,
-      data.suffix,
-      JSON.stringify(data.checks),
-      JSON.stringify(data.sparql),
-      JSON.stringify(data.prefixes),
-    );
+    status(data.kind === "score" ? "Scoring the query…" : "Running OntoCheck…");
+    const result =
+      data.kind === "score"
+        ? evaluator.score_text(data.text, data.suffix, JSON.stringify(data.items), JSON.stringify(data.prefixes))
+        : evaluator.evaluate_text(
+            data.text,
+            data.suffix,
+            JSON.stringify(data.checks),
+            JSON.stringify(data.sparql),
+            JSON.stringify(data.prefixes),
+          );
     postMessage({ type: "result", id: data.id, result: JSON.parse(result) });
   } catch (error) {
     postMessage({ type: "error", id: data.id, message: shortError(error) });

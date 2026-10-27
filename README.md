@@ -69,7 +69,7 @@ Every question asked, translated, or run is saved with a rule-based intent (taxo
 | Leaderboard, Domains, Assessment, Questions | Static files | Same |
 | Ask: retrieval, reasoning, context | In the page, under [Pyodide](https://pyodide.org): the same Python modules as the backend | On the backend |
 | Translate and the LLM agent | Your model: Claude or GPT with your own API key, or Ollama on your computer | Ollama, or `ONTOCHECK_LLM_PROVIDER=openai` |
-| Run a SPARQL query | In the page | On the backend, with recall and precision |
+| Score a SPARQL query | In the page: recall, precision, the terms the ontology lacks, and the rows | Same, on the backend |
 | Evaluate | FOOPS, OOPS, OQuaRE, and OntoCheck in the page, in a worker under Pyodide: the backend's own run and report, without the public FOOPS and OOPS web services. Results are saved in the browser | Same, plus the public FOOPS and OOPS services, on files up to 25 MB |
 | Cypher retriever, uploaded retriever scripts | Not available | Opt-in settings |
 | Question log | Your browser, and a shared Firestore log when configured | SQLite under `data/` |

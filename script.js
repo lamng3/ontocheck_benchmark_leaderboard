@@ -2386,7 +2386,9 @@ function renderAsk(result) {
   `;
 }
 
-function renderQueryReport(report) {
+// Recall: share of the query's terms (in the domain's namespaces) that the
+// ontology defines. Precision: share of the ontology's terms the query uses.
+function renderQueryReport(report, extra = "") {
   const aggregate = report.aggregate || {};
   const queryCount = aggregate.query_count || (report.queries || []).length;
   const rows = (report.queries || [])
@@ -2410,12 +2412,22 @@ function renderQueryReport(report) {
         <div>
           <h2>${formatPercent(aggregate.recall)} recall · ${formatPercent(aggregate.precision)} precision</h2>
           <p class="meta">
-            Combined over ${queryCount} ${queryCount === 1 ? "query" : "queries"}.
-            ${aggregate.intersection ?? "—"} shared terms.
+            The ontology defines ${aggregate.intersection ?? "—"} of the ${aggregate.task_terms ?? "—"} terms
+            ${queryCount === 1 ? "this query uses" : `these ${queryCount} queries use`} (recall), out of its
+            ${aggregate.ontology_terms ?? "—"} terms (precision).
           </p>
         </div>
       </div>
+      ${aggregate.error ? `<p class="note warn query-note">${escapeHtml(aggregate.error)}</p>` : ""}
+      ${
+        (aggregate.missing || []).length
+          ? `<div class="query-missing"><span class="meta">Not in the ontology</span><div class="term-chips">${aggregate.missing
+              .map((term) => `<span>${escapeHtml(term)}</span>`)
+              .join("")}</div></div>`
+          : ""
+      }
       ${rows}
+      ${extra}
     </div>
   `;
 }
@@ -2647,10 +2659,13 @@ function readLocalQuestions() {
   }
 }
 
-// Same rule as the backend: one row per SPARQL query, or per text without one.
+// Same rule as the backend: one row per SPARQL query, or per text without
+// one. A question asked without SPARQL joins the row that already has it.
 function rememberLocally(record) {
   const rows = readLocalQuestions();
-  const match = rows.find((row) => (record.sparql && row.sparql === record.sparql) || (!row.sparql && row.nl_text === record.nl_text));
+  const match = record.sparql
+    ? rows.find((row) => row.sparql === record.sparql) || rows.find((row) => !row.sparql && row.nl_text === record.nl_text)
+    : rows.find((row) => row.nl_text === record.nl_text);
   if (match) Object.assign(match, Object.fromEntries(Object.entries(record).filter(([, value]) => value !== undefined && value !== "")));
   else rows.unshift({ id: `local-${Date.now()}`, created_at: new Date().toISOString(), recall: null, precision: null, ...record });
   try {
@@ -2676,7 +2691,8 @@ async function saveQuestion(record) {
       context: Object.fromEntries(Object.entries(context).filter(([key]) => key !== "notes_text")),
     },
   };
-  rememberLocally(full);
+  // Scores stay in this browser; the shared log keeps its fixed shape.
+  rememberLocally({ ...full, recall: record.recall, precision: record.precision });
   refreshMemory();
   return BrowserEngine.logQuestion(full);
 }
@@ -2775,42 +2791,58 @@ async function runQuestion(path) {
 // graph has none, so an empty result does not look like a failure.
 function emptyQueryNote(result) {
   if (result.individuals === 0) {
-    return "No rows. This graph defines classes and properties but no individuals, and this query looks for instance data. Run it on a knowledge graph with data, or ask about the schema (for example subclasses).";
+    return "No rows, as expected: this graph is a schema with no individuals, and the query asks about a specific record. Recall and precision above measure what matters here: whether the ontology has the terms the query needs.";
   }
   return "No rows matched this query in the selected graph.";
 }
 
-async function runQueryInPage() {
+async function scoreQueryInPage() {
   if (!requireGraph()) return;
   if (!sparqlQuestion.value.trim()) {
     questionStatus.textContent = "Write a query, or translate the question first.";
     return;
   }
-  await BrowserEngine.start(engineStatus);
+  const status = (text) => {
+    if (text) questionStatus.textContent = text;
+  };
   const graph = await browserGraph();
-  questionStatus.textContent = "Running the query…";
-  const result = await BrowserEngine.runQuery(graph, sparqlQuestion.value);
-  const head = result.vars.map((name) => `<th class="l">?${escapeHtml(name)}</th>`).join("");
-  const rows = result.rows.map((row) => `<tr>${row.map((value) => `<td class="l">${escapeHtml(value)}</td>`).join("")}</tr>`).join("");
-  queryResult.innerHTML = `
-    <div class="card">
-      <div class="card-head">
-        <div>
-          <h2>${plural(result.count, "row")}</h2>
-          <p class="meta">${result.count > result.rows.length ? `First ${result.rows.length} shown. ` : ""}Recall and precision need the backend.</p>
-        </div>
+  const example = findExample(questionOntology.value);
+  const sparql = sparqlQuestion.value;
+  const question = nlQuestion.value.trim() || "SPARQL query";
+  questionStatus.textContent = "Scoring the query…";
+  // OntoCheck scores in its worker while this page's Python lists the rows.
+  const [report, result] = await Promise.all([
+    BrowserEngine.score(graph, [{ nl_text: question, sparql }], example?.domain_prefixes || [], status),
+    BrowserEngine.start(status).then(() => BrowserEngine.runQuery(graph, sparql)).catch(() => null),
+  ]);
+  let extra = "";
+  if (result) {
+    const head = result.vars.map((name) => `<th class="l">?${escapeHtml(name)}</th>`).join("");
+    const rows = result.rows.map((row) => `<tr>${row.map((value) => `<td class="l">${escapeHtml(value)}</td>`).join("")}</tr>`).join("");
+    extra = `
+      <div class="query-rows">
+        <p class="meta">${plural(result.count, "row")}${result.count > result.rows.length ? `, first ${result.rows.length} shown` : ""}</p>
+        ${rows ? `<div class="table-scroll"><table class="board compact hits"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></div>` : `<p class="note">${escapeHtml(emptyQueryNote(result))}</p>`}
       </div>
-      ${rows ? `<div class="table-scroll"><table class="board compact hits"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></div>` : `<p class="empty">${escapeHtml(emptyQueryNote(result))}</p>`}
-    </div>
-  `;
+    `;
+  }
+  renderQueryReport(report, extra);
   queryResult.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  const aggregate = report.aggregate || {};
   questionStatus.textContent = savedNote(
-    await saveQuestion({ nl_text: nlQuestion.value || "SPARQL query", sparql: sparqlQuestion.value, intent: await BrowserEngine.intent(nlQuestion.value), source: "query" }),
+    await saveQuestion({
+      nl_text: question,
+      sparql,
+      intent: await BrowserEngine.intent(question),
+      source: "query",
+      recall: aggregate.recall ?? null,
+      precision: aggregate.precision ?? null,
+    }),
   );
 }
 
 $("#evaluate-question").addEventListener("click", () => {
-  (backendOnline ? runQuestion("/api/questions/evaluate") : runQueryInPage()).catch((error) => {
+  (backendOnline ? runQuestion("/api/questions/evaluate") : scoreQueryInPage()).catch((error) => {
     questionStatus.textContent = error.message;
   });
 });

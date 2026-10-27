@@ -16,6 +16,7 @@ from backend.evaluators.ontocheck_runner import (
     _run_assessment,
     _split_assessment,
     extract_prefixes,
+    score_queries,
     task_metrics,
 )
 from backend.evaluators.report import build_report
@@ -26,6 +27,15 @@ FORMATS = {".ttl": "turtle", ".owl": "xml", ".rdf": "xml", ".xml": "xml", ".n3":
 
 def evaluate_text(text, suffix, checks, sparql_queries, domain_prefixes):
     """Evaluate an ontology given as file text, stored as Turtle first like an upload."""
+    return evaluate(_store(text, suffix), checks, sparql_queries, domain_prefixes)
+
+
+def score_text(text, suffix, items, domain_prefixes):
+    """Recall, precision, and bindings for each query, as the backend's scoring returns them."""
+    return json.dumps(score_queries(_store(text, suffix), json.loads(items), json.loads(domain_prefixes) or None))
+
+
+def _store(text, suffix):
     from rdflib import Graph
 
     graph = Graph()
@@ -39,7 +49,7 @@ def evaluate_text(text, suffix, checks, sparql_queries, domain_prefixes):
     path = Path("/tmp/graphs") / f"{uuid.uuid4().hex}.ttl"
     path.parent.mkdir(parents=True, exist_ok=True)
     graph.serialize(path, format="turtle")
-    return evaluate(str(path), checks, sparql_queries, domain_prefixes)
+    return str(path)
 
 
 def evaluate(path, checks, sparql_queries, domain_prefixes):

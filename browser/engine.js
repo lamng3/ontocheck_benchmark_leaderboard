@@ -83,8 +83,17 @@
   const runs = new Map(); // id -> {resolve, reject, onStatus}
 
   function evaluate(graph, checks, sparql, prefixes, onStatus = () => {}) {
+    return inWorker({ kind: "evaluate", text: graph.text, suffix: graph.suffix, checks, sparql, prefixes }, onStatus);
+  }
+
+  // Recall, precision, and bindings for queries, scored as the backend does.
+  function score(graph, items, prefixes, onStatus = () => {}) {
+    return inWorker({ kind: "score", text: graph.text, suffix: graph.suffix, items, prefixes }, onStatus);
+  }
+
+  function inWorker(message, onStatus) {
     if (!worker) {
-      worker = new Worker("browser/evaluate-worker.js?v=20261027-5");
+      worker = new Worker("browser/evaluate-worker.js?v=20261027-7");
       worker.onmessage = ({ data }) => {
         if (data.type === "status") {
           runs.forEach((run) => run.onStatus(data.text));
@@ -105,7 +114,7 @@
     const id = ++nextRun;
     return new Promise((resolve, reject) => {
       runs.set(id, { resolve, reject, onStatus });
-      worker.postMessage({ id, base: location.href, text: graph.text, suffix: graph.suffix, checks, sparql, prefixes });
+      worker.postMessage({ id, base: location.href, ...message });
     });
   }
 
@@ -464,6 +473,7 @@
     intent,
     runQuery,
     evaluate,
+    score,
     settings,
     saveSettings,
     apiKey,
