@@ -9,7 +9,10 @@
         "EBSD.ttl"
       ],
       "triples": 549,
-      "questions": "EBSD"
+      "questions": "EBSD",
+      "domain_prefixes": [
+        "mds"
+      ]
     },
     {
       "id": "example-capacitors",
@@ -21,7 +24,10 @@
         "Capacitor-SampleHolder.ttl"
       ],
       "triples": 692,
-      "questions": "Capacitors"
+      "questions": "Capacitors",
+      "domain_prefixes": [
+        "mds"
+      ]
     },
     {
       "id": "example-geooutage",
@@ -31,7 +37,10 @@
         "GeoOutage.ttl"
       ],
       "triples": 506,
-      "questions": "GeoOutage"
+      "questions": "GeoOutage",
+      "domain_prefixes": [
+        "goo"
+      ]
     },
     {
       "id": "example-geospatial",
@@ -43,7 +52,10 @@
         "Geospatial-mdsGeo.ttl"
       ],
       "triples": 990,
-      "questions": "Geospatial"
+      "questions": "Geospatial",
+      "domain_prefixes": [
+        "mds"
+      ]
     },
     {
       "id": "example-materials-processing",
@@ -53,7 +65,10 @@
         "MatProc.ttl"
       ],
       "triples": 1585,
-      "questions": "Materials Processing"
+      "questions": "Materials Processing",
+      "domain_prefixes": [
+        "mds"
+      ]
     },
     {
       "id": "example-xrd",
@@ -63,7 +78,10 @@
         "XRD.ttl"
       ],
       "triples": 5757,
-      "questions": "XRD"
+      "questions": "XRD",
+      "domain_prefixes": [
+        "mds"
+      ]
     }
   ]
 }

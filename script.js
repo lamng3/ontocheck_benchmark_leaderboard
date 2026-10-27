@@ -1791,12 +1791,13 @@ async function checkBackend() {
   const local = "start it locally with <code>uvicorn backend.app:app --port 8000</code> and open " +
     '<a href="http://127.0.0.1:8000/#ask">127.0.0.1:8000</a>';
   $("#evaluate-note").hidden = backendOnline;
-  $("#evaluate-note").classList.toggle("info", Boolean(hostedInfo));
+  $("#evaluate-note").classList.toggle("info", !backendOnline);
   $("#evaluate-note").innerHTML = hostedInfo
     ? `Evaluations run on a shared server: files up to ${hostedInfo.max_upload_mb} MB and one evaluation at a time per visitor. ` +
       "Uploads and results are kept while the server is awake, not permanently. The first request after a quiet spell can take a few seconds."
-    : "No backend is running, so this page shows the published results for the example ontologies. " +
-      `To evaluate your own file, run the backend: ${local}.`;
+    : "Evaluations run in your browser: OntoCheck loads into this page the first time you start one " +
+      "(about 30 MB with WordNet, once), and your file never leaves the page. The public FOOPS and OOPS web services " +
+      `are not called; their checks run locally, as they do offline. Results are saved in this browser. For files over a few MB, run the backend: ${local}.`;
   $("#ask-note").hidden = backendOnline;
   $("#ask-note").innerHTML =
     "Running in your browser. Python loads into this page the first time you ask (about 15 MB, once), " +
@@ -1849,7 +1850,7 @@ function fillOntologySelects(preferredId) {
       select.value = current;
     }
   };
-  fill(evalOntology, storedOntologies);
+  fill(evalOntology, evalBase === null ? pageOntologies : storedOntologies);
   fill(questionOntology, backendOnline ? storedOntologies : pageOntologies);
   renderExampleQuestions();
 }
@@ -1880,15 +1881,15 @@ async function refreshOntologies(preferredId) {
   }
 }
 
-// "ask" uploads go into the page when Ask runs in the browser; "evaluate"
-// uploads go to the backend Evaluate uses.
+// Files go to the backend that runs Ask or Evaluate, or into the page when
+// that tab runs in the browser.
 async function uploadOntology(file, statusEl, purpose = "evaluate") {
-  if (purpose === "ask" && !backendOnline) {
+  if ((purpose === "ask" && !backendOnline) || (purpose === "evaluate" && evalBase === null)) {
     statusEl.textContent = `Reading ${file.name} in the page…`;
     const graph = await BrowserEngine.addUpload(file);
     pageOntologies = [{ id: graph.id, name: graph.name }, ...pageOntologies];
     fillOntologySelects(graph.id);
-    statusEl.textContent = `${graph.name} is ready: ${graph.triples.toLocaleString()} triples.`;
+    statusEl.textContent = `${graph.name} is ready.`;
     return graph;
   }
   const body = new FormData();
@@ -1966,7 +1967,67 @@ function renderSavedRuns() {
   });
 }
 
+// ---------- evaluations in the browser ----------
+
+const LOCAL_RUNS = "ontocheck-runs";
+
+function readLocalRuns() {
+  try {
+    return JSON.parse(localStorage.getItem(LOCAL_RUNS) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+// The same summary the backend lists for a saved run.
+function summarizeResult(result) {
+  const scores = (result.oquare?.characteristics || []).map((item) => item.score).filter((score) => typeof score === "number");
+  return {
+    recall: result.ontocheck?.recall ?? null,
+    precision: result.ontocheck?.precision ?? null,
+    foops: result.foops?.overall ?? null,
+    oops_critical: result.oops?.summary?.critical ?? null,
+    oops_important: result.oops?.summary?.important ?? null,
+    oquare: scores.length ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 100) / 100 : null,
+  };
+}
+
+function saveLocalRun(run) {
+  const record = { id: `local-${Date.now()}`, created_at: new Date().toISOString(), status: "complete", summary: summarizeResult(run.result), ...run };
+  // Results are tens of KB each; keep the newest ten, fewer if storage is full.
+  for (const keep of [10, 3, 1]) {
+    try {
+      localStorage.setItem(LOCAL_RUNS, JSON.stringify([record, ...readLocalRuns()].slice(0, keep)));
+      return;
+    } catch {
+      // Try again with fewer runs.
+    }
+  }
+}
+
+async function evaluateInPage(checks, questions) {
+  const status = (text) => {
+    if (text) evalStatus.textContent = text;
+  };
+  const example = findExample(evalOntology.value);
+  const graph = example ? await BrowserEngine.useExample(example) : BrowserEngine.graphs.get(evalOntology.value);
+  if (!graph) throw new Error("Files read into the page are gone after a reload. Upload it again.");
+  const prefixes = domainPrefixes.value.trim().split(/[\s,]+/).filter(Boolean);
+  const sparql = questions.map((item) => item.sparql_query).filter(Boolean);
+  const result = await BrowserEngine.evaluate(graph, checks, sparql, prefixes, status);
+  result.ontology = { name: graph.name };
+  saveLocalRun({ ontology_name: graph.name, checks, result });
+  renderEvaluation(result);
+  evalStatus.textContent = "Evaluation complete. It is saved in this browser.";
+  refreshRuns();
+}
+
 async function refreshRuns() {
+  if (evalBase === null) {
+    savedRuns = readLocalRuns();
+    renderSavedRuns();
+    return;
+  }
   try {
     const data = await evalApi("/api/evaluations");
     savedRuns = data.evaluations || [];
@@ -1979,6 +2040,14 @@ async function refreshRuns() {
 }
 
 async function openSavedRun(id) {
+  if (id.startsWith("local-")) {
+    const run = readLocalRuns().find((item) => item.id === id);
+    if (!run) return;
+    renderEvaluation(run.result);
+    evalStatus.textContent = "Opened a saved evaluation.";
+    evalResults.scrollIntoView({ behavior: "smooth", block: "start" });
+    return;
+  }
   const data = await evalApi(`/api/evaluations/${id}`);
   if (data.status !== "complete" || !data.result) {
     evalStatus.textContent = data.error || "That evaluation has no saved result yet.";
@@ -2037,31 +2106,6 @@ async function pollEvaluation(id) {
   }, 1200);
 }
 
-// Without a backend, an example shows the results already computed for it:
-// the published recall and precision, and the local FOOPS and OOPS runs.
-function showPublishedEvaluation(id) {
-  const example = findExample(id);
-  if (!example) {
-    evalStatus.textContent = "Evaluating your own file needs the backend. Pick an example to see its published results.";
-    return;
-  }
-  const domain = domains.find((item) => item.name === example.name);
-  const saved = frameworkFor(example.name);
-  renderEvaluation({
-    ontology: { name: `${example.name} · published results` },
-    ontocheck: domain && {
-      recall: domain.recall / 100,
-      precision: domain.precision / 100,
-      intersection: domain.matched,
-      task_terms: domain.taskTerms,
-      ontology_terms: domain.terms,
-    },
-    foops: saved?.foops,
-    oops: saved?.oops,
-  });
-  evalStatus.innerHTML = `Published results for ${escapeHtml(example.name)}. Every metric, original and weighted, is on the <a href="#assessment" data-tab-target="assessment">Assessment</a> tab.`;
-}
-
 ontologyFile.addEventListener("change", async () => {
   const file = ontologyFile.files && ontologyFile.files[0];
   if (!file) return;
@@ -2085,10 +2129,6 @@ evalForm.addEventListener("submit", async (event) => {
     evalStatus.textContent = "Upload an ontology before starting an evaluation.";
     return;
   }
-  if (evalBase === null) {
-    showPublishedEvaluation(evalOntology.value);
-    return;
-  }
   startButton.disabled = true;
   evalStatus.textContent = "Starting evaluation…";
   evalResults.innerHTML = "";
@@ -2107,6 +2147,11 @@ evalForm.addEventListener("submit", async (event) => {
     if (set !== "none" && !questions.length) {
       evalStatus.textContent =
         "That question set is not loaded yet. The run will continue without it.";
+    }
+    if (evalBase === null) {
+      await evaluateInPage(checks, questions);
+      startButton.disabled = false;
+      return;
     }
     const run = await evalPost("/api/evaluations", {
       ontology_id: evalOntology.value,
@@ -2468,6 +2513,24 @@ async function loadGptModels(key) {
   }
 }
 
+// Beside the Ask button: which model the agent and Translate will use, and
+// whether it still needs a key. It jumps to the Model settings.
+function renderModelSummary() {
+  const settings = BrowserEngine.settings();
+  const provider = settings.provider;
+  const model = settings.models[provider] || (provider === "openai" ? "newest GPT mini" : "");
+  const needsKey = provider !== "ollama" && !BrowserEngine.apiKey(provider).key;
+  const summary = $("#model-summary");
+  summary.textContent = `Model: ${model}${needsKey ? " · add key" : ""}`;
+  summary.classList.toggle("needs-key", needsKey);
+}
+
+$("#model-summary").addEventListener("click", () => {
+  $("#model-stage").scrollIntoView({ behavior: "smooth", block: "center" });
+  const field = modelProvider.value === "ollama" ? modelOllama : modelKey;
+  window.setTimeout(() => field.focus(), 300);
+});
+
 function fillModelSettings() {
   $("#ollama-origins").textContent = `OLLAMA_ORIGINS="${location.origin}" ollama serve`;
   $("#share-note").hidden = !window.ONTOCHECK_FIREBASE;
@@ -2478,6 +2541,7 @@ function fillModelSettings() {
   modelOllama.value = settings.models.ollama;
   modelUrl.value = settings.ollamaUrl;
   showProvider(settings.provider);
+  renderModelSummary();
 }
 
 function saveModelSettings() {
@@ -2486,6 +2550,7 @@ function saveModelSettings() {
     models: { anthropic: modelClaude.value, openai: modelGpt.value.trim(), ollama: modelOllama.value.trim() || "llama3.1" },
     ollamaUrl: modelUrl.value.trim() || "http://127.0.0.1:11434",
   });
+  renderModelSummary();
 }
 
 modelProvider.addEventListener("change", () => {
@@ -2538,6 +2603,7 @@ $("#model-test").addEventListener("click", async () => {
   input.addEventListener("change", () => {
     const key = modelKey.value.trim();
     BrowserEngine.saveApiKey(modelProvider.value, key, modelRemember.checked);
+    renderModelSummary();
     if (modelProvider.value === "openai" && key) loadGptModels(key);
   }),
 );
@@ -2898,10 +2964,13 @@ populateEvalQuestionSets();
 showTab(location.hash.replace("#", ""));
 competencyQuestionsReady.then(renderExampleQuestions);
 
-// Picking an example in Evaluate also picks its question set.
+// Picking an example in Evaluate also picks its question set and the prefixes
+// of its own terms, so recall and precision match the published runs.
 evalOntology.addEventListener("change", () => {
   const example = findExample(evalOntology.value);
-  if (example) evalQuestionSet.value = example.questions;
+  if (!example) return;
+  evalQuestionSet.value = example.questions;
+  domainPrefixes.value = (example.domain_prefixes || []).join(" ");
 });
 
 Promise.all([checkBackend(), loadExamples()]).then(([online]) => {
@@ -2918,10 +2987,8 @@ Promise.all([checkBackend(), loadExamples()]).then(([online]) => {
       refreshRuns();
       return;
     }
-    renderSavedRuns();
-    runCount.textContent = "Saved evaluations appear when the backend is running.";
-    startButton.textContent = "Show results";
-    evalStatus.textContent = "Pick an example to see its published results.";
+    evalStatus.textContent = "Pick an example or upload a file, then start. OntoCheck runs in this page.";
+    refreshRuns();
     return;
   }
   refreshOntologies();
