@@ -1697,7 +1697,12 @@ window.addEventListener("hashchange", () => showTab(location.hash.replace("#", "
 
 // ---------- backend ----------
 
+// backendOnline: a local backend served this page, so everything runs on it.
+// evalBase: where Evaluate's requests go: "" for that local backend, the
+// public backend's URL (browser/api-config.js), or null when there is none.
 let backendOnline = false;
+let evalBase = null;
+let hostedInfo = null;
 
 function explainApiFailure(response, data) {
   let detail = data && (data.detail || data.message);
@@ -1713,12 +1718,31 @@ function explainApiFailure(response, data) {
   return `The evaluation service returned HTTP ${response.status}.`;
 }
 
+// The public backend is on another origin, where browsers block third-party
+// cookies, so the session travels in a header instead.
+function sessionId() {
+  try {
+    let id = localStorage.getItem("ontocheck-session");
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem("ontocheck-session", id);
+    }
+    return id;
+  } catch {
+    sessionId.fallback ||= crypto.randomUUID();
+    return sessionId.fallback;
+  }
+}
+
 // Paths are relative to the page, so the backend also works behind a proxy
-// that serves the site under a subpath.
-async function api(path, options) {
+// that serves the site under a subpath. With a base URL, the request goes to
+// the public backend instead.
+async function api(path, options = {}, base = "") {
+  const url = base ? `${base.replace(/\/$/, "")}${path}` : path.replace(/^\//, "");
+  if (base) options = { ...options, headers: { ...options.headers, "X-OntoCheck-Session": sessionId() } };
   let response;
   try {
-    response = await fetch(path.replace(/^\//, ""), options);
+    response = await fetch(url, options);
   } catch {
     throw new Error(
       "The evaluation backend is not running. Start it, then open http://127.0.0.1:8000.",
@@ -1731,27 +1755,48 @@ async function api(path, options) {
   return data;
 }
 
-function postJson(path, body) {
-  return api(path, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+function postJson(path, body, base = "") {
+  return api(
+    path,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
+    base,
+  );
 }
+
+// Evaluate's requests: the local backend, or the public one.
+const evalApi = (path, options) => api(path, options, evalBase || "");
+const evalPost = (path, body) => postJson(path, body, evalBase || "");
 
 async function checkBackend() {
   try {
     await api("/api/health");
     backendOnline = true;
+    evalBase = "";
   } catch {
     backendOnline = false;
+    evalBase = null;
+    if (window.ONTOCHECK_API) {
+      try {
+        hostedInfo = await api("/api/health", {}, window.ONTOCHECK_API);
+        evalBase = window.ONTOCHECK_API;
+      } catch {
+        hostedInfo = null;
+      }
+    }
   }
   const local = "start it locally with <code>uvicorn backend.app:app --port 8000</code> and open " +
     '<a href="http://127.0.0.1:8000/#ask">127.0.0.1:8000</a>';
   $("#evaluate-note").hidden = backendOnline;
-  $("#evaluate-note").innerHTML =
-    "No backend is running, so this page shows the published results for the example ontologies. " +
-    `To evaluate your own file, run the backend: ${local}.`;
+  $("#evaluate-note").classList.toggle("info", Boolean(hostedInfo));
+  $("#evaluate-note").innerHTML = hostedInfo
+    ? `Evaluations run on a shared server: files up to ${hostedInfo.max_upload_mb} MB and one evaluation at a time per visitor. ` +
+      "Uploads and results are kept while the server is awake, not permanently. The first request after a quiet spell can take a few seconds."
+    : "No backend is running, so this page shows the published results for the example ontologies. " +
+      `To evaluate your own file, run the backend: ${local}.`;
   $("#ask-note").hidden = backendOnline;
   $("#ask-note").innerHTML =
     "Running in your browser. Python loads into this page the first time you ask (about 15 MB, once), " +
@@ -1775,7 +1820,8 @@ const runList = $("#run-list");
 const runCount = $("#run-count");
 const startButton = $("#start-evaluation");
 
-let storedOntologies = [];
+let storedOntologies = []; // on the backend Evaluate uses
+let pageOntologies = []; // read into this page for Ask, when Ask runs in the browser
 let exampleOntologies = [];
 
 async function loadExamples() {
@@ -1792,18 +1838,19 @@ function findExample(id) {
 
 function fillOntologySelects(preferredId) {
   const option = (item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.name)}</option>`;
-  const groups = [
-    exampleOntologies.length ? `<optgroup label="Examples">${exampleOntologies.map(option).join("")}</optgroup>` : "",
-    storedOntologies.length ? `<optgroup label="Your uploads">${storedOntologies.map(option).join("")}</optgroup>` : "",
-  ].join("");
-  const known = [...exampleOntologies, ...storedOntologies];
-  [evalOntology, questionOntology].forEach((select) => {
+  const fill = (select, uploads) => {
+    const groups = [
+      exampleOntologies.length ? `<optgroup label="Examples">${exampleOntologies.map(option).join("")}</optgroup>` : "",
+      uploads.length ? `<optgroup label="Your uploads">${uploads.map(option).join("")}</optgroup>` : "",
+    ].join("");
     const current = preferredId || select.value;
     select.innerHTML = groups || `<option value="">Upload an ontology first</option>`;
-    if (known.some((ontology) => ontology.id === current)) {
+    if ([...exampleOntologies, ...uploads].some((ontology) => ontology.id === current)) {
       select.value = current;
     }
-  });
+  };
+  fill(evalOntology, storedOntologies);
+  fill(questionOntology, backendOnline ? storedOntologies : pageOntologies);
   renderExampleQuestions();
 }
 
@@ -1821,10 +1868,10 @@ function populateEvalQuestionSets() {
 
 async function refreshOntologies(preferredId) {
   try {
-    const data = await api("/api/ontologies");
+    const data = await evalApi("/api/ontologies");
     storedOntologies = data.ontologies;
     fillOntologySelects(preferredId);
-    if (!storedOntologies.length) {
+    if (!storedOntologies.length && !exampleOntologies.length) {
       evalStatus.textContent = "Upload an ontology to begin.";
     }
   } catch {
@@ -1833,11 +1880,13 @@ async function refreshOntologies(preferredId) {
   }
 }
 
-async function uploadOntology(file, statusEl) {
-  if (!backendOnline) {
+// "ask" uploads go into the page when Ask runs in the browser; "evaluate"
+// uploads go to the backend Evaluate uses.
+async function uploadOntology(file, statusEl, purpose = "evaluate") {
+  if (purpose === "ask" && !backendOnline) {
     statusEl.textContent = `Reading ${file.name} in the page…`;
     const graph = await BrowserEngine.addUpload(file);
-    storedOntologies = [{ id: graph.id, name: graph.name }, ...storedOntologies];
+    pageOntologies = [{ id: graph.id, name: graph.name }, ...pageOntologies];
     fillOntologySelects(graph.id);
     statusEl.textContent = `${graph.name} is ready: ${graph.triples.toLocaleString()} triples.`;
     return graph;
@@ -1846,7 +1895,7 @@ async function uploadOntology(file, statusEl) {
   body.append("file", file);
   body.append("name", file.name);
   statusEl.textContent = `Uploading ${file.name}…`;
-  const saved = await api("/api/ontologies", { method: "POST", body });
+  const saved = await evalApi("/api/ontologies", { method: "POST", body });
   await refreshOntologies(saved.id);
   statusEl.textContent = `${saved.name} is ready.`;
   return saved;
@@ -1919,7 +1968,7 @@ function renderSavedRuns() {
 
 async function refreshRuns() {
   try {
-    const data = await api("/api/evaluations");
+    const data = await evalApi("/api/evaluations");
     savedRuns = data.evaluations || [];
     renderSavedRuns();
   } catch {
@@ -1930,7 +1979,7 @@ async function refreshRuns() {
 }
 
 async function openSavedRun(id) {
-  const data = await api(`/api/evaluations/${id}`);
+  const data = await evalApi(`/api/evaluations/${id}`);
   if (data.status !== "complete" || !data.result) {
     evalStatus.textContent = data.error || "That evaluation has no saved result yet.";
     return;
@@ -1963,9 +2012,11 @@ function renderEvaluation(result) {
 }
 
 async function pollEvaluation(id) {
-  const data = await api(`/api/evaluations/${id}`);
+  const data = await evalApi(`/api/evaluations/${id}`);
   if (data.status === "complete") {
-    evalStatus.textContent = "Evaluation complete. It is saved for this browser.";
+    evalStatus.textContent = hostedInfo
+      ? "Evaluation complete. It stays in Saved evaluations while the server is awake."
+      : "Evaluation complete. It is saved for this browser.";
     startButton.disabled = false;
     renderEvaluation(data.result || {});
     refreshRuns();
@@ -2034,7 +2085,7 @@ evalForm.addEventListener("submit", async (event) => {
     evalStatus.textContent = "Upload an ontology before starting an evaluation.";
     return;
   }
-  if (!backendOnline) {
+  if (evalBase === null) {
     showPublishedEvaluation(evalOntology.value);
     return;
   }
@@ -2057,7 +2108,7 @@ evalForm.addEventListener("submit", async (event) => {
       evalStatus.textContent =
         "That question set is not loaded yet. The run will continue without it.";
     }
-    const run = await postJson("/api/evaluations", {
+    const run = await evalPost("/api/evaluations", {
       ontology_id: evalOntology.value,
       checks,
       questions,
@@ -2697,7 +2748,7 @@ $("#ask-kg-file").addEventListener("change", async (event) => {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
   try {
-    await uploadOntology(file, questionStatus);
+    await uploadOntology(file, questionStatus, "ask");
   } catch (error) {
     questionStatus.textContent = error.message;
   }
@@ -2859,11 +2910,18 @@ Promise.all([checkBackend(), loadExamples()]).then(([online]) => {
     fillOntologySelects();
     evalOntology.dispatchEvent(new Event("change"));
     fillModelSettings();
+    refreshMemory();
+    if (evalBase !== null) {
+      // Ask runs in the page; Evaluate runs on the public backend.
+      evalStatus.textContent = "Pick an example or upload a file, then start.";
+      refreshOntologies();
+      refreshRuns();
+      return;
+    }
     renderSavedRuns();
     runCount.textContent = "Saved evaluations appear when the backend is running.";
     startButton.textContent = "Show results";
     evalStatus.textContent = "Pick an example to see its published results.";
-    refreshMemory();
     return;
   }
   refreshOntologies();

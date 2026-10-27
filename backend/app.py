@@ -5,9 +5,11 @@ import os
 import re
 import uuid
 from contextlib import asynccontextmanager
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
@@ -37,7 +39,13 @@ ROOT = Path(__file__).resolve().parents[1]
 SESSION_COOKIE = "ontocheck_session"
 ALLOWED_SUFFIXES = {".ttl", ".owl", ".rdf", ".xml", ".n3", ".nt", ".jsonld"}
 CHECK_NAMES = {"foops", "oops", "oquare"}
-MAX_UPLOAD_BYTES = 25 * 1024 * 1024
+# A public deployment (ONTOCHECK_PUBLIC=1) serves Evaluate to anyone: smaller
+# uploads, a cap on evaluations per visitor, and no user code.
+PUBLIC = os.environ.get("ONTOCHECK_PUBLIC") == "1"
+MAX_UPLOAD_BYTES = (5 if PUBLIC else 25) * 1024 * 1024
+RUNS_PER_HOUR = 12
+SESSION_HEADER = "x-ontocheck-session"
+SESSION_PATTERN = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 MAX_SCRIPT_BYTES = 200 * 1024
 
 
@@ -51,17 +59,30 @@ async def lifespan(_app):
 
 app = FastAPI(title="OntoCheck evaluation workbench", lifespan=lifespan)
 
+# The site calls a public deployment from another origin. It sends the session
+# as a header, since browsers block third-party cookies.
+_origins = [o.strip() for o in os.environ.get("ONTOCHECK_CORS_ORIGINS", "").split(",") if o.strip()]
+if _origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=_origins,
+        allow_methods=["GET", "POST"],
+        allow_headers=["content-type", SESSION_HEADER],
+    )
+
 
 @app.middleware("http")
 async def attach_session(request: Request, call_next):
-    session_id = request.cookies.get(SESSION_COOKIE)
+    session_id = request.headers.get(SESSION_HEADER) or request.cookies.get(SESSION_COOKIE)
+    if session_id and not SESSION_PATTERN.match(session_id):
+        session_id = None
     fresh = False
     if not session_id:
         session_id = str(uuid.uuid4())
         fresh = True
     request.state.session_id = session_id
     response = await call_next(request)
-    if fresh:
+    if fresh and SESSION_HEADER not in request.headers:
         response.set_cookie(
             SESSION_COOKIE,
             session_id,
@@ -107,7 +128,7 @@ class IntentRequest(BaseModel):
 
 @app.get("/api/health")
 def health():
-    return {"ok": True}
+    return {"ok": True, "hosted": PUBLIC, "max_upload_mb": MAX_UPLOAD_BYTES // (1024 * 1024)}
 
 
 @app.get("/")
@@ -171,7 +192,7 @@ async def upload_ontology(
         raise HTTPException(status_code=400, detail="The ontology file is empty.")
     if len(raw) > MAX_UPLOAD_BYTES:
         raise HTTPException(
-            status_code=400, detail="Ontology files must be 25 MB or smaller."
+            status_code=400, detail=f"Ontology files must be {MAX_UPLOAD_BYTES // (1024 * 1024)} MB or smaller."
         )
     digest = hashlib.sha256(raw).hexdigest()
     display_name = (name or filename).strip() or filename
@@ -204,6 +225,8 @@ async def upload_ontology(
 def start_run(request: Request, body: EvaluationRequest):
     checks = _valid_checks(body.checks)
     ontology = _owned_ontology(request.state.session_id, body.ontology_id)
+    if PUBLIC:
+        _check_run_quota(request.state.session_id)
     sparqls = []
     for question in body.questions[:200]:
         sparql = (
@@ -261,8 +284,8 @@ def read_intent(body: IntentRequest):
 def read_pipeline(request: Request):
     """Pipeline options, with whether each one can run on this backend."""
     ready = {
-        "neo4j": bool(os.environ.get("NEO4J_URI")),
-        "scripts": os.environ.get("ONTOCHECK_ALLOW_SCRIPTS") == "1",
+        "neo4j": bool(os.environ.get("NEO4J_URI")) and not PUBLIC,
+        "scripts": os.environ.get("ONTOCHECK_ALLOW_SCRIPTS") == "1" and not PUBLIC,
         "ollama": True,
         "planned": False,
     }
@@ -282,6 +305,8 @@ def read_pipeline(request: Request):
 
 @app.post("/api/retrievers")
 async def upload_retriever(request: Request, file: UploadFile = File(...)):
+    if PUBLIC:
+        raise HTTPException(status_code=403, detail="Uploaded retrievers run only on a local backend.")
     filename = Path(file.filename or "retriever.py").name
     if not filename.endswith(".py"):
         raise HTTPException(status_code=400, detail="Upload a Python file (.py).")
@@ -422,6 +447,16 @@ def _remember(session_id, ontology_id, queries, pipeline=None):
             intent=classify(query.get("nl_text") or ""),
             pipeline=pipeline,
         )
+
+
+def _check_run_quota(session_id):
+    """One evaluation at a time per visitor, and a few per hour."""
+    runs = list_runs(session_id)
+    if any(run["status"] in ("queued", "running") for run in runs):
+        raise HTTPException(status_code=429, detail="Your previous evaluation is still running. Wait for it to finish.")
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+    if sum(1 for run in runs if run["created_at"] >= cutoff) >= RUNS_PER_HOUR:
+        raise HTTPException(status_code=429, detail=f"This server runs up to {RUNS_PER_HOUR} evaluations per visitor per hour. Try again later.")
 
 
 def _valid_checks(checks):

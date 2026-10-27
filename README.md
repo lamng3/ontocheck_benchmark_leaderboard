@@ -70,7 +70,7 @@ Every question asked, translated, or run is saved with a rule-based intent (taxo
 | Ask: retrieval, reasoning, context | In the page, under [Pyodide](https://pyodide.org): the same Python modules as the backend | On the backend |
 | Translate and the LLM agent | Your model: Claude or GPT with your own API key, or Ollama on your computer | Ollama, or `ONTOCHECK_LLM_PROVIDER=openai` |
 | Run a SPARQL query | In the page | On the backend, with recall and precision |
-| Evaluate | Published results for the examples | FOOPS, OOPS, OQuaRE, and OntoCheck on any file |
+| Evaluate | FOOPS, OOPS, OQuaRE, and OntoCheck on the public backend (Cloud Run): files up to 5 MB, one evaluation at a time per visitor | Same, on any file up to 25 MB |
 | Cypher retriever, uploaded retriever scripts | Not available | Opt-in settings |
 | Question log | Your browser, and a shared Firestore log when configured | SQLite under `data/` |
 
@@ -94,6 +94,21 @@ OLLAMA_ORIGINS="https://lamng3.com" ollama serve
 | `ONTOCHECK_DATA` | Where uploads, runs, and saved questions are stored (default `data/`). |
 
 `GET /api/questions?intent=taxonomy` returns saved questions filtered by intent. The pipeline options live in `pipeline-options.json`. `requirements.txt` installs OntoCheck from GitHub because the PyPI release does not yet include the FOOPS, OOPS, and OQuaRE metrics.
+
+</details>
+
+<details>
+<summary><b>The public evaluation backend</b></summary>
+
+The live site's Evaluate tab calls a public copy of the backend on Cloud Run, set in `browser/api-config.js`. It runs with `ONTOCHECK_PUBLIC=1`: uploads up to 5 MB, one evaluation at a time and 12 an hour per visitor, at most two evaluations running at once, and no uploaded retriever scripts or Cypher. It keeps uploads and results on the instance's disk, so they last while the instance is awake. The site sends its session in an `X-OntoCheck-Session` header, because browsers block third-party cookies, and the backend only answers origins listed in `ONTOCHECK_CORS_ORIGINS`.
+
+To deploy it, with billing enabled on the Google Cloud project and `gcloud` signed in:
+
+```bash
+scripts/deploy_backend.sh   # prints the service URL for browser/api-config.js
+```
+
+It runs at most one instance and scales to zero when idle.
 
 </details>
 
