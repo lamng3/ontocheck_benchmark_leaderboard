@@ -566,3 +566,15 @@ footer p { margin: 0; }
   .coord { border-left: 0; border-top: 1px solid var(--line); }
   .coord:first-child { border-top: 0; }
 }
+
+/* ---------- browser mode ---------- */
+.browser-only { display: none; }
+body.browser-mode .browser-only { display: revert; }
+body.browser-mode section.browser-only { display: flex; }
+body.browser-mode .server-only { display: none; }
+.backend-note.info { border-left-color: var(--accent); }
+.example-questions { align-items: center; }
+.example-questions .meta { margin-right: 2px; }
+.example-questions .chip { height: auto; min-height: 28px; padding: 4px 11px; white-space: normal; text-align: left; line-height: 1.35; }
+#ollama-hint code { display: block; margin-top: 4px; font-size: 11.5px; overflow-wrap: anywhere; color: var(--ink); }
+#share-note { max-width: 70ch; margin-top: 4px; }

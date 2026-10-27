@@ -1713,10 +1713,12 @@ function explainApiFailure(response, data) {
   return `The evaluation service returned HTTP ${response.status}.`;
 }
 
+// Paths are relative to the page, so the backend also works behind a proxy
+// that serves the site under a subpath.
 async function api(path, options) {
   let response;
   try {
-    response = await fetch(path, options);
+    response = await fetch(path.replace(/^\//, ""), options);
   } catch {
     throw new Error(
       "The evaluation backend is not running. Start it, then open http://127.0.0.1:8000.",
@@ -1744,13 +1746,18 @@ async function checkBackend() {
   } catch {
     backendOnline = false;
   }
-  document.querySelectorAll("[data-backend-note]").forEach((note) => {
-    note.hidden = backendOnline;
-    note.innerHTML =
-      "The evaluation backend is not reachable from this page. GitHub Pages only shows the published benchmark. " +
-      "Start it locally with <code>uvicorn backend.app:app --port 8000</code>, then open " +
-      '<a href="http://127.0.0.1:8000/#ask">127.0.0.1:8000</a>.';
-  });
+  const local = "start it locally with <code>uvicorn backend.app:app --port 8000</code> and open " +
+    '<a href="http://127.0.0.1:8000/#ask">127.0.0.1:8000</a>';
+  $("#evaluate-note").hidden = backendOnline;
+  $("#evaluate-note").innerHTML =
+    "No backend is running, so this page shows the published results for the example ontologies. " +
+    `To evaluate your own file, run the backend: ${local}.`;
+  $("#ask-note").hidden = backendOnline;
+  $("#ask-note").innerHTML =
+    "Running in your browser. Python loads into this page the first time you ask (about 15 MB, once), " +
+    "and nothing you upload leaves the page. The LLM agent and Translate use the model you set under " +
+    `<b>Model</b>. Scoring queries needs the backend: ${local}.`;
+  document.body.classList.toggle("browser-mode", !backendOnline);
   return backendOnline;
 }
 
@@ -1769,23 +1776,35 @@ const runCount = $("#run-count");
 const startButton = $("#start-evaluation");
 
 let storedOntologies = [];
+let exampleOntologies = [];
+
+async function loadExamples() {
+  try {
+    exampleOntologies = (await (await fetch("examples/manifest.json")).json()).examples;
+  } catch {
+    exampleOntologies = [];
+  }
+}
+
+function findExample(id) {
+  return exampleOntologies.find((example) => example.id === id);
+}
 
 function fillOntologySelects(preferredId) {
-  const markup = storedOntologies.length
-    ? storedOntologies
-        .map(
-          (ontology) =>
-            `<option value="${escapeHtml(ontology.id)}">${escapeHtml(ontology.name)}</option>`,
-        )
-        .join("")
-    : `<option value="">Upload an ontology first</option>`;
+  const option = (item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.name)}</option>`;
+  const groups = [
+    exampleOntologies.length ? `<optgroup label="Examples">${exampleOntologies.map(option).join("")}</optgroup>` : "",
+    storedOntologies.length ? `<optgroup label="Your uploads">${storedOntologies.map(option).join("")}</optgroup>` : "",
+  ].join("");
+  const known = [...exampleOntologies, ...storedOntologies];
   [evalOntology, questionOntology].forEach((select) => {
     const current = preferredId || select.value;
-    select.innerHTML = markup;
-    if (storedOntologies.some((ontology) => ontology.id === current)) {
+    select.innerHTML = groups || `<option value="">Upload an ontology first</option>`;
+    if (known.some((ontology) => ontology.id === current)) {
       select.value = current;
     }
   });
+  renderExampleQuestions();
 }
 
 function populateEvalQuestionSets() {
@@ -1815,6 +1834,14 @@ async function refreshOntologies(preferredId) {
 }
 
 async function uploadOntology(file, statusEl) {
+  if (!backendOnline) {
+    statusEl.textContent = `Reading ${file.name} in the page…`;
+    const graph = await BrowserEngine.addUpload(file);
+    storedOntologies = [{ id: graph.id, name: graph.name }, ...storedOntologies];
+    fillOntologySelects(graph.id);
+    statusEl.textContent = `${graph.name} is ready: ${graph.triples.toLocaleString()} triples.`;
+    return graph;
+  }
   const body = new FormData();
   body.append("file", file);
   body.append("name", file.name);
@@ -1959,6 +1986,31 @@ async function pollEvaluation(id) {
   }, 1200);
 }
 
+// Without a backend, an example shows the results already computed for it:
+// the published recall and precision, and the local FOOPS and OOPS runs.
+function showPublishedEvaluation(id) {
+  const example = findExample(id);
+  if (!example) {
+    evalStatus.textContent = "Evaluating your own file needs the backend. Pick an example to see its published results.";
+    return;
+  }
+  const domain = domains.find((item) => item.name === example.name);
+  const saved = frameworkFor(example.name);
+  renderEvaluation({
+    ontology: { name: `${example.name} · published results` },
+    ontocheck: domain && {
+      recall: domain.recall / 100,
+      precision: domain.precision / 100,
+      intersection: domain.matched,
+      task_terms: domain.taskTerms,
+      ontology_terms: domain.terms,
+    },
+    foops: saved?.foops,
+    oops: saved?.oops,
+  });
+  evalStatus.innerHTML = `Published results for ${escapeHtml(example.name)}. Every metric, original and weighted, is on the <a href="#assessment" data-tab-target="assessment">Assessment</a> tab.`;
+}
+
 ontologyFile.addEventListener("change", async () => {
   const file = ontologyFile.files && ontologyFile.files[0];
   if (!file) return;
@@ -1980,6 +2032,10 @@ evalForm.addEventListener("submit", async (event) => {
   }
   if (!evalOntology.value) {
     evalStatus.textContent = "Upload an ontology before starting an evaluation.";
+    return;
+  }
+  if (!backendOnline) {
+    showPublishedEvaluation(evalOntology.value);
     return;
   }
   startButton.disabled = true;
@@ -2048,6 +2104,7 @@ let pipelineOptions = { retrievers: [], reasoners: [], context: [], intents: [] 
 let lastContextText = "";
 
 function optionBadge(option) {
+  if (option.badge) return option.badge;
   if (option.requires === "planned") return "planned";
   if (option.available === false) return "needs setup";
   if (option.default) return "default";
@@ -2100,7 +2157,7 @@ function syncParams() {
   const reasoner = chosen("reasoner");
   $("#script-params").hidden = retriever !== "script";
   document.querySelector("[data-param='hops']").hidden = reasoner !== "path";
-  document.querySelector("[data-param='model']").hidden = reasoner !== "agent";
+  document.querySelector("[data-param='model']").hidden = reasoner !== "agent" || !backendOnline;
   document.querySelector("[data-param='engine']").hidden = reasoner !== "owl";
   const usesQuery = retriever === "sparql" || retriever === "cypher";
   $("#query-hint").textContent =
@@ -2121,6 +2178,10 @@ async function loadPipelineOptions() {
     } catch {
       return;
     }
+  }
+  if (!backendOnline) {
+    const serverOnly = new Set(["cypher", "script"]);
+    pipelineOptions.retrievers = pipelineOptions.retrievers.map((item) => (serverOnly.has(item.id) ? { ...item, available: false, badge: "backend only" } : item));
   }
   renderOptionList(retrieverOptions, "retriever", pipelineOptions.retrievers);
   renderOptionList(reasonerOptions, "reasoner", pipelineOptions.reasoners);
@@ -2278,8 +2339,133 @@ function renderQueryReport(report) {
 
 function requireGraph() {
   if (questionOntology.value) return true;
-  questionStatus.textContent = "Upload a knowledge graph first.";
+  questionStatus.textContent = "Choose an example or upload a knowledge graph first.";
   return false;
+}
+
+// The graph the browser engine should use, loading an example on first use.
+async function browserGraph() {
+  const example = findExample(questionOntology.value);
+  if (example) return BrowserEngine.useExample(example);
+  return BrowserEngine.graphs.get(questionOntology.value);
+}
+
+function engineStatus(text) {
+  if (text) questionStatus.textContent = text;
+}
+
+// ---------- example questions ----------
+
+const exampleQuestions = $("#example-questions");
+
+function renderExampleQuestions() {
+  const example = findExample(questionOntology.value);
+  const picks = example ? competencyQuestions.filter((item) => item.domain === example.questions).slice(0, 4) : [];
+  exampleQuestions.hidden = !picks.length;
+  exampleQuestions.innerHTML = picks.length
+    ? `<span class="meta">Try</span>${picks
+        .map((item) => `<button type="button" class="chip" data-code="${escapeHtml(item.code)}" data-number="${item.number}">${escapeHtml(item.question)}</button>`)
+        .join("")}`
+    : "";
+}
+
+exampleQuestions.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-code]");
+  if (!button) return;
+  const item = competencyQuestions.find((q) => q.code === button.dataset.code && String(q.number) === button.dataset.number);
+  if (!item) return;
+  nlQuestion.value = item.question;
+  sparqlQuestion.value = item.query;
+  nlQuestion.dispatchEvent(new Event("input"));
+});
+
+questionOntology.addEventListener("change", renderExampleQuestions);
+
+// ---------- model settings (browser mode) ----------
+
+const modelBackend = $("#model-backend");
+const modelUrl = $("#model-url");
+const modelName = $("#model-name");
+const modelKey = $("#model-key");
+
+function fillModelSettings() {
+  $("#ollama-origins").textContent = `OLLAMA_ORIGINS="${location.origin}" ollama serve`;
+  $("#share-note").hidden = !window.ONTOCHECK_FIREBASE;
+  const settings = BrowserEngine.settings();
+  modelBackend.value = settings.backend;
+  modelUrl.value = settings.url;
+  modelName.value = settings.model;
+  modelKey.value = settings.key;
+  $("#model-key-field").hidden = settings.backend !== "openai";
+  $("#ollama-hint").hidden = settings.backend !== "ollama";
+}
+
+[modelBackend, modelUrl, modelName, modelKey].forEach((input) =>
+  input.addEventListener("change", () => {
+    if (input === modelBackend) {
+      const ollama = modelBackend.value === "ollama";
+      modelUrl.value = ollama ? "http://127.0.0.1:11434" : "https://api.openai.com/v1";
+      modelName.value = ollama ? "llama3.1" : "gpt-4o-mini";
+    }
+    BrowserEngine.saveSettings({
+      backend: modelBackend.value,
+      url: modelUrl.value.trim(),
+      model: modelName.value.trim(),
+      key: modelKey.value.trim(),
+    });
+    $("#model-key-field").hidden = modelBackend.value !== "openai";
+    $("#ollama-hint").hidden = modelBackend.value !== "ollama";
+  }),
+);
+
+// ---------- browser question log ----------
+
+const LOCAL_QUESTIONS = "ontocheck-questions";
+
+function readLocalQuestions() {
+  try {
+    return JSON.parse(localStorage.getItem(LOCAL_QUESTIONS) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+// Same rule as the backend: one row per SPARQL query, or per text without one.
+function rememberLocally(record) {
+  const rows = readLocalQuestions();
+  const match = rows.find((row) => (record.sparql && row.sparql === record.sparql) || (!row.sparql && row.nl_text === record.nl_text));
+  if (match) Object.assign(match, Object.fromEntries(Object.entries(record).filter(([, value]) => value !== undefined && value !== "")));
+  else rows.unshift({ id: `local-${Date.now()}`, created_at: new Date().toISOString(), recall: null, precision: null, ...record });
+  try {
+    localStorage.setItem(LOCAL_QUESTIONS, JSON.stringify(rows.slice(0, 500)));
+  } catch {
+    // Storage can be full or blocked; the shared log still gets the question.
+  }
+}
+
+async function saveQuestion(record) {
+  const { retriever, reasoner, context } = pipelineConfig();
+  const example = findExample(questionOntology.value);
+  const full = {
+    nl_text: record.nl_text.trim().slice(0, 2000),
+    sparql: (record.sparql || "").slice(0, 10000),
+    intent: record.intent?.intent || "other",
+    intent_cue: record.intent?.cue || "",
+    source: record.source,
+    graph: example ? example.name : "upload",
+    pipeline: {
+      retriever: { id: retriever.id, k: retriever.k },
+      reasoner: { id: reasoner.id, hops: reasoner.hops },
+      context: Object.fromEntries(Object.entries(context).filter(([key]) => key !== "notes_text")),
+    },
+  };
+  rememberLocally(full);
+  refreshMemory();
+  return BrowserEngine.logQuestion(full);
+}
+
+function savedNote(shared) {
+  return shared ? "Saved to the shared question log." : "Saved in this browser.";
 }
 
 $("#ask-run").addEventListener("click", async () => {
@@ -2292,16 +2478,22 @@ $("#ask-run").addEventListener("click", async () => {
   button.disabled = true;
   questionStatus.textContent = "Retrieving and reasoning…";
   try {
-    const result = await postJson("/api/ask", {
-      ontology_id: questionOntology.value,
-      nl_text: nlQuestion.value,
-      query: sparqlQuestion.value,
-      ...pipelineConfig(),
-    });
+    const body = { ontology_id: questionOntology.value, nl_text: nlQuestion.value, query: sparqlQuestion.value, ...pipelineConfig() };
+    if (backendOnline) {
+      const result = await postJson("/api/ask", body);
+      renderAsk(result);
+      showIntent(result.intent);
+      questionStatus.textContent = "Saved to the question log.";
+      refreshMemory();
+      return;
+    }
+    await BrowserEngine.start(engineStatus);
+    const graph = await browserGraph();
+    questionStatus.textContent = body.reasoner.id === "agent" ? "Retrieving, then asking the model…" : "Retrieving and reasoning…";
+    const result = await BrowserEngine.ask(graph, body, readLocalQuestions());
     renderAsk(result);
     showIntent(result.intent);
-    questionStatus.textContent = "Saved to the question log.";
-    refreshMemory();
+    questionStatus.textContent = savedNote(await saveQuestion({ nl_text: body.nl_text, intent: result.intent, source: "ask" }));
   } catch (error) {
     questionStatus.textContent = error.message;
   } finally {
@@ -2317,15 +2509,27 @@ $("#translate-question").addEventListener("click", async () => {
   }
   questionStatus.textContent = "Translating…";
   try {
-    const data = await postJson("/api/questions/translate", {
-      ontology_id: questionOntology.value,
-      nl_text: nlQuestion.value,
-      context: lastContextText || questionContext.value,
-    });
+    let data;
+    if (backendOnline) {
+      data = await postJson("/api/questions/translate", {
+        ontology_id: questionOntology.value,
+        nl_text: nlQuestion.value,
+        context: lastContextText || questionContext.value,
+      });
+    } else {
+      await BrowserEngine.start(engineStatus);
+      const graph = await browserGraph();
+      questionStatus.textContent = "Translating…";
+      data = await BrowserEngine.translate(graph, nlQuestion.value, lastContextText || questionContext.value, readLocalQuestions());
+      data.saved = savedNote(
+        await saveQuestion({ nl_text: nlQuestion.value, sparql: data.sparql, intent: await BrowserEngine.intent(nlQuestion.value), source: "translate" }),
+      );
+    }
     sparqlQuestion.value = data.sparql;
     queryEditor.open = true;
     const translator = data.provider ? `${data.provider} / ${data.model}` : data.model;
-    questionStatus.textContent = `Translated with ${translator}${lastContextText ? " using the context above" : ""}. Score the query to save it.`;
+    const next = data.saved || "Score the query to save it.";
+    questionStatus.textContent = `Translated with ${translator}${lastContextText ? " using the context above" : ""}. ${next}`;
     refreshMemory();
   } catch (error) {
     questionStatus.textContent = error.message;
@@ -2347,8 +2551,38 @@ async function runQuestion(path) {
   questionStatus.textContent = "Saved to the question log.";
 }
 
+// Without a backend, the query runs in the page and shows its rows; recall
+// and precision need OntoCheck on the backend.
+async function runQueryInPage() {
+  if (!requireGraph()) return;
+  if (!sparqlQuestion.value.trim()) {
+    questionStatus.textContent = "Write a query, or translate the question first.";
+    return;
+  }
+  await BrowserEngine.start(engineStatus);
+  const graph = await browserGraph();
+  questionStatus.textContent = "Running the query…";
+  const result = await BrowserEngine.runQuery(graph, sparqlQuestion.value);
+  const head = result.vars.map((name) => `<th class="l">?${escapeHtml(name)}</th>`).join("");
+  const rows = result.rows.map((row) => `<tr>${row.map((value) => `<td class="l">${escapeHtml(value)}</td>`).join("")}</tr>`).join("");
+  queryResult.innerHTML = `
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <h2>${plural(result.count, "row")}</h2>
+          <p class="meta">${result.count > result.rows.length ? `First ${result.rows.length} shown. ` : ""}Recall and precision need the backend.</p>
+        </div>
+      </div>
+      ${rows ? `<div class="table-scroll"><table class="board compact hits"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></div>` : '<p class="empty">The query returned no rows.</p>'}
+    </div>
+  `;
+  questionStatus.textContent = savedNote(
+    await saveQuestion({ nl_text: nlQuestion.value || "SPARQL query", sparql: sparqlQuestion.value, intent: await BrowserEngine.intent(nlQuestion.value), source: "query" }),
+  );
+}
+
 $("#evaluate-question").addEventListener("click", () => {
-  runQuestion("/api/questions/evaluate").catch((error) => {
+  (backendOnline ? runQuestion("/api/questions/evaluate") : runQueryInPage()).catch((error) => {
     questionStatus.textContent = error.message;
   });
 });
@@ -2373,10 +2607,11 @@ function showIntent(intent) {
 let intentTimer;
 nlQuestion.addEventListener("input", () => {
   window.clearTimeout(intentTimer);
-  if (!backendOnline) return;
+  // In the browser, wait until Python has loaded rather than load it per keystroke.
+  if (!backendOnline && !BrowserEngine.loaded) return;
   intentTimer = window.setTimeout(async () => {
     try {
-      showIntent(await postJson("/api/intent", { text: nlQuestion.value }));
+      showIntent(backendOnline ? await postJson("/api/intent", { text: nlQuestion.value }) : await BrowserEngine.intent(nlQuestion.value));
     } catch {
       intentChip.hidden = true;
     }
@@ -2423,6 +2658,12 @@ let selectedIntent = "all";
 let visibleMemory = [];
 
 async function refreshMemory() {
+  if (!backendOnline) {
+    storedQuestions = readLocalQuestions();
+    renderMemory();
+    if (!storedQuestions.length) memoryCount.textContent = "Questions you ask in this browser appear here.";
+    return;
+  }
   try {
     const data = await api("/api/questions");
     storedQuestions = data.questions;
@@ -2531,14 +2772,25 @@ loadAssessment();
 const competencyQuestionsReady = loadCompetencyQuestions();
 populateEvalQuestionSets();
 showTab(location.hash.replace("#", ""));
-checkBackend().then((online) => {
+competencyQuestionsReady.then(renderExampleQuestions);
+
+// Picking an example in Evaluate also picks its question set.
+evalOntology.addEventListener("change", () => {
+  const example = findExample(evalOntology.value);
+  if (example) evalQuestionSet.value = example.questions;
+});
+
+Promise.all([checkBackend(), loadExamples()]).then(([online]) => {
   loadPipelineOptions();
   if (!online) {
     fillOntologySelects();
+    evalOntology.dispatchEvent(new Event("change"));
+    fillModelSettings();
     renderSavedRuns();
-    runCount.textContent = "Saved evaluations appear after the backend is running.";
-    memoryCount.textContent = "The question log is available when the backend is running.";
-    evalStatus.textContent = "The evaluation backend is not running.";
+    runCount.textContent = "Saved evaluations appear when the backend is running.";
+    startButton.textContent = "Show results";
+    evalStatus.textContent = "Pick an example to see its published results.";
+    refreshMemory();
     return;
   }
   refreshOntologies();
