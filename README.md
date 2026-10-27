@@ -60,9 +60,10 @@ The **Ask** tab runs a question through a pipeline with four parts:
 2. **Retriever**: nearest neighbour (character n-grams, the default), pattern
    matching, the SPARQL query in the editor, a Cypher query against Neo4j, or
    your own script.
-3. **Reasoner**: path-based (the default), rule-based (RDFS and OWL rules),
-   or an LLM agent through Ollama. OWL reasoners (HermiT, Pellet, ELK) are
-   listed but not wired in yet.
+3. **Reasoner**: path-based (the default), rule-based (RDFS and OWL Horn
+   clause rules), or an LLM agent through Ollama. AMIE (rules mined from
+   instance facts) and OWL reasoners (HermiT, Pellet, ELK) are listed but not
+   wired in yet.
 4. **Context**: choose which parts go in (retrieved terms, reasoner output,
    saved questions, only those with the same intent, a schema summary, your
    notes) and a character budget. **Translate to SPARQL** sends this context to

@@ -44,9 +44,16 @@
     },
     {
       "id": "rule",
-      "label": "Rule-based",
-      "summary": "Forward-chains RDFS and OWL rules: subclass, domain, range, inverse, transitive.",
+      "label": "Rule-based (Horn clause)",
+      "summary": "Forward-chains RDFS and OWL Horn rules: subclass, domain, range, inverse, transitive.",
       "params": []
+    },
+    {
+      "id": "amie",
+      "label": "AMIE rules",
+      "summary": "Applies Horn rules that AMIE mines from the graph's instance facts.",
+      "params": [],
+      "requires": "planned"
     },
     {
       "id": "owl",

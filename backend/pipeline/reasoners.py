@@ -90,7 +90,7 @@ def _successors(pairs):
 
 
 def _apply_rules(facts):
-    """One round of rules; returns {rule name: new facts}."""
+    """One round of Horn rules; returns {rule name: new facts}."""
     by_predicate = defaultdict(list)
     for s, p, o in facts:
         by_predicate[p].append((s, o))
@@ -129,7 +129,7 @@ def _apply_rules(facts):
 
 
 def rule_based(graph, terms, hits, **_):
-    """Forward chaining of RDFS and OWL rules, reported near the hits."""
+    """Forward chaining of RDFS and OWL Horn rules, reported near the hits."""
     facts = {(s, p, o) for s, p, o in graph if not isinstance(s, BNode) and not isinstance(o, BNode)}
     seeds = {URIRef(hit["iri"]) for hit in hits if hit["iri"]}
     inferred = []
@@ -181,6 +181,7 @@ def planned(name):
 REASONERS = {
     "path": path_based,
     "rule": rule_based,
+    "amie": planned("AMIE"),
     "owl": planned("OWL"),
     "agent": agent,
     "none": lambda *_args, **_kwargs: {"kind": "none", "items": [], "text": ""},
