@@ -2383,38 +2383,111 @@ questionOntology.addEventListener("change", renderExampleQuestions);
 
 // ---------- model settings (browser mode) ----------
 
-const modelBackend = $("#model-backend");
+const modelProvider = $("#model-provider");
+const modelClaude = $("#model-claude");
+const modelGpt = $("#model-gpt");
+const modelOllama = $("#model-ollama");
 const modelUrl = $("#model-url");
-const modelName = $("#model-name");
 const modelKey = $("#model-key");
+const modelRemember = $("#model-remember");
+
+function showProvider(provider) {
+  document.querySelectorAll("#panel-ask [data-provider]").forEach((el) => {
+    el.hidden = !el.dataset.provider.split(" ").includes(provider);
+  });
+  const info = BrowserEngine.PROVIDERS[provider];
+  if (info.keyUrl) $("#model-key-link").href = info.keyUrl;
+  const { key, remembered } = BrowserEngine.apiKey(provider);
+  modelKey.value = key;
+  modelRemember.checked = remembered;
+  if (provider === "openai" && key) loadGptModels(key);
+}
+
+let gptModelsFor = "";
+
+async function loadGptModels(key) {
+  if (gptModelsFor === key) return;
+  gptModelsFor = key;
+  try {
+    const ids = await BrowserEngine.gptModels(key);
+    $("#gpt-models").innerHTML = ids.map((id) => `<option value="${escapeHtml(id)}"></option>`).join("");
+  } catch (error) {
+    gptModelsFor = "";
+    questionStatus.textContent = error.message;
+  }
+}
 
 function fillModelSettings() {
   $("#ollama-origins").textContent = `OLLAMA_ORIGINS="${location.origin}" ollama serve`;
   $("#share-note").hidden = !window.ONTOCHECK_FIREBASE;
   const settings = BrowserEngine.settings();
-  modelBackend.value = settings.backend;
-  modelUrl.value = settings.url;
-  modelName.value = settings.model;
-  modelKey.value = settings.key;
-  $("#model-key-field").hidden = settings.backend !== "openai";
-  $("#ollama-hint").hidden = settings.backend !== "ollama";
+  modelProvider.value = settings.provider;
+  modelClaude.value = settings.models.anthropic;
+  modelGpt.value = settings.models.openai;
+  modelOllama.value = settings.models.ollama;
+  modelUrl.value = settings.ollamaUrl;
+  showProvider(settings.provider);
 }
 
-[modelBackend, modelUrl, modelName, modelKey].forEach((input) =>
+function saveModelSettings() {
+  BrowserEngine.saveSettings({
+    provider: modelProvider.value,
+    models: { anthropic: modelClaude.value, openai: modelGpt.value.trim(), ollama: modelOllama.value.trim() || "llama3.1" },
+    ollamaUrl: modelUrl.value.trim() || "http://127.0.0.1:11434",
+  });
+}
+
+modelProvider.addEventListener("change", () => {
+  saveModelSettings();
+  showProvider(modelProvider.value);
+  $("#model-test-status").textContent = "";
+});
+
+// Put the models this key or Ollama offers into the matching picker.
+function offerModels(provider, models) {
+  if (provider === "anthropic") {
+    const current = modelClaude.value;
+    const claude = models.filter((id) => id.startsWith("claude-"));
+    if (!claude.length) return;
+    modelClaude.innerHTML = claude.map((id) => `<option value="${escapeHtml(id)}">${escapeHtml(id)}</option>`).join("");
+    modelClaude.value = claude.includes(current) ? current : claude[0];
+    saveModelSettings();
+  } else {
+    $(provider === "openai" ? "#gpt-models" : "#ollama-models").innerHTML = models
+      .map((id) => `<option value="${escapeHtml(id)}"></option>`)
+      .join("");
+  }
+}
+
+$("#model-test").addEventListener("click", async () => {
+  const status = $("#model-test-status");
+  const button = $("#model-test");
+  // A key typed but not yet blurred has not fired "change"; save it first.
+  if (modelProvider.value !== "ollama") BrowserEngine.saveApiKey(modelProvider.value, modelKey.value.trim(), modelRemember.checked);
+  saveModelSettings();
+  button.disabled = true;
+  status.textContent = "Checking…";
+  try {
+    const result = await BrowserEngine.testConnection();
+    offerModels(result.provider, result.models);
+    const label = BrowserEngine.PROVIDERS[result.provider].label;
+    status.textContent = !result.models.length
+      ? `Connected to ${label}, but it lists no models.`
+      : result.available
+        ? `Connected. ${plural(result.models.length, "model")} available${result.chosen ? `, including ${result.chosen}` : ""}.`
+        : `Connected, but ${result.chosen} is not available to this key. Pick one from the list.`;
+  } catch (error) {
+    status.textContent = error.message;
+  } finally {
+    button.disabled = false;
+  }
+});
+[modelClaude, modelGpt, modelOllama, modelUrl].forEach((input) => input.addEventListener("change", saveModelSettings));
+[modelKey, modelRemember].forEach((input) =>
   input.addEventListener("change", () => {
-    if (input === modelBackend) {
-      const ollama = modelBackend.value === "ollama";
-      modelUrl.value = ollama ? "http://127.0.0.1:11434" : "https://api.openai.com/v1";
-      modelName.value = ollama ? "llama3.1" : "gpt-4o-mini";
-    }
-    BrowserEngine.saveSettings({
-      backend: modelBackend.value,
-      url: modelUrl.value.trim(),
-      model: modelName.value.trim(),
-      key: modelKey.value.trim(),
-    });
-    $("#model-key-field").hidden = modelBackend.value !== "openai";
-    $("#ollama-hint").hidden = modelBackend.value !== "ollama";
+    const key = modelKey.value.trim();
+    BrowserEngine.saveApiKey(modelProvider.value, key, modelRemember.checked);
+    if (modelProvider.value === "openai" && key) loadGptModels(key);
   }),
 );
 

@@ -21,10 +21,10 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20261027-2" />
-    <script src="browser/firebase-config.js?v=20261027-2" defer></script>
-    <script src="browser/engine.js?v=20261027-2" defer></script>
-    <script src="script.js?v=20261027-2" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20261027-3" />
+    <script src="browser/firebase-config.js?v=20261027-3" defer></script>
+    <script src="browser/engine.js?v=20261027-3" defer></script>
+    <script src="script.js?v=20261027-3" defer></script>
   </head>
   <body>
     <header class="topbar">
@@ -400,21 +400,47 @@
               <p class="meta">Used by the LLM agent and by Translate.</p>
               <label class="param grow">
                 <span>Provider</span>
-                <select id="model-backend">
+                <select id="model-provider">
+                  <option value="anthropic">Claude (Anthropic API key)</option>
+                  <option value="openai">GPT (OpenAI API key)</option>
                   <option value="ollama">Ollama on this computer</option>
-                  <option value="openai">OpenAI-compatible API</option>
                 </select>
               </label>
-              <div class="params">
-                <label class="param grow"><span>Address</span><input id="model-url" type="text" autocomplete="off" spellcheck="false" /></label>
-                <label class="param grow"><span>Model</span><input id="model-name" type="text" autocomplete="off" spellcheck="false" /></label>
+              <div class="params" data-provider="anthropic">
+                <label class="param grow">
+                  <span>Model</span>
+                  <select id="model-claude">
+                    <option value="claude-opus-5-5">Claude Opus 5.5</option>
+                    <option value="claude-sonnet-5-5">Claude Sonnet 5.5</option>
+                    <option value="claude-haiku-5-5">Claude Haiku 5.5</option>
+                  </select>
+                </label>
               </div>
-              <label class="param grow" id="model-key-field" hidden>
-                <span>API key (stays in this browser)</span>
-                <input id="model-key" type="password" autocomplete="off" />
-              </label>
-              <p class="meta" id="ollama-hint">
-                For Ollama, allow this page first:
+              <div class="params" data-provider="openai">
+                <label class="param grow">
+                  <span>Model</span>
+                  <input id="model-gpt" type="text" list="gpt-models" placeholder="Newest GPT mini; test to list yours" autocomplete="off" spellcheck="false" />
+                  <datalist id="gpt-models"></datalist>
+                </label>
+              </div>
+              <div class="params" data-provider="ollama">
+                <label class="param grow"><span>Address</span><input id="model-url" type="text" autocomplete="off" spellcheck="false" /></label>
+                <label class="param grow"><span>Model</span><input id="model-ollama" type="text" list="ollama-models" autocomplete="off" spellcheck="false" /><datalist id="ollama-models"></datalist></label>
+              </div>
+              <div class="key-field" data-provider="anthropic openai">
+                <label class="param grow">
+                  <span>API key <a id="model-key-link" href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">get one ↗</a></span>
+                  <input id="model-key" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your key" />
+                </label>
+                <label class="remember"><input id="model-remember" type="checkbox" /> Remember on this device</label>
+                <p class="meta">Sent only to the provider, straight from this page. Without “remember”, it is forgotten when the tab closes.</p>
+              </div>
+              <div class="test-row">
+                <button class="btn" id="model-test" type="button">Test connection</button>
+                <span class="meta" id="model-test-status" role="status"></span>
+              </div>
+              <p class="meta" id="ollama-hint" data-provider="ollama">
+                Let Ollama accept requests from this page:
                 <code id="ollama-origins">OLLAMA_ORIGINS=… ollama serve</code>
               </p>
             </section>
