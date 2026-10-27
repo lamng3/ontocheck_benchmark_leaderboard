@@ -21,11 +21,11 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20261027-5" />
-    <script src="browser/firebase-config.js?v=20261027-5" defer></script>
-    <script src="browser/api-config.js?v=20261027-5" defer></script>
-    <script src="browser/engine.js?v=20261027-5" defer></script>
-    <script src="script.js?v=20261027-5" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20261027-6" />
+    <script src="browser/firebase-config.js?v=20261027-6" defer></script>
+    <script src="browser/api-config.js?v=20261027-6" defer></script>
+    <script src="browser/engine.js?v=20261027-6" defer></script>
+    <script src="script.js?v=20261027-6" defer></script>
   </head>
   <body>
     <header class="topbar">
@@ -271,7 +271,6 @@
             </p>
           </div>
         </div>
-        <p class="backend-note" id="evaluate-note" hidden></p>
 
         <div class="split">
           <form class="card form-card" id="eval-form">
@@ -337,23 +336,42 @@
             </p>
           </div>
         </div>
-        <p class="backend-note info" id="ask-note" hidden></p>
-
-        <div class="ask-layout">
-          <aside class="card pipeline" aria-label="Pipeline settings">
-            <div class="card-head"><h2>Pipeline</h2></div>
-
-            <section class="stage">
-              <h3><span class="step">1</span> Knowledge graph</h3>
+        <div class="card pipeline-bar" aria-label="Pipeline settings">
+          <div class="pipe-tabs">
+            <button type="button" class="pipe-tab" data-stage="graph" aria-expanded="false" aria-controls="stage-graph">
+              <span class="step">1</span>
+              <span class="pipe-text"><small>Knowledge graph</small><b id="sum-graph"></b></span>
+              <span class="caret" aria-hidden="true">▾</span>
+            </button>
+            <button type="button" class="pipe-tab" data-stage="retriever" aria-expanded="false" aria-controls="stage-retriever">
+              <span class="step">2</span>
+              <span class="pipe-text"><small>Retriever</small><b id="sum-retriever"></b></span>
+              <span class="caret" aria-hidden="true">▾</span>
+            </button>
+            <button type="button" class="pipe-tab" data-stage="reasoner" aria-expanded="false" aria-controls="stage-reasoner">
+              <span class="step">3</span>
+              <span class="pipe-text"><small>Reasoner</small><b id="sum-reasoner"></b></span>
+              <span class="caret" aria-hidden="true">▾</span>
+            </button>
+            <button type="button" class="pipe-tab" data-stage="context" aria-expanded="false" aria-controls="stage-context">
+              <span class="step">4</span>
+              <span class="pipe-text"><small>Context</small><b id="sum-context"></b></span>
+              <span class="caret" aria-hidden="true">▾</span>
+            </button>
+            <button type="button" class="pipe-tab browser-only" data-stage="model" aria-expanded="false" aria-controls="stage-model">
+              <span class="step">5</span>
+              <span class="pipe-text"><small>Model</small><b id="sum-model"></b></span>
+              <span class="caret" aria-hidden="true">▾</span>
+            </button>
+          </div>
+          <div class="pipe-panel" id="stage-graph" hidden>
               <select id="question-ontology" aria-label="Knowledge graph"></select>
               <label class="link-btn">
                 <input id="ask-kg-file" type="file" accept=".ttl,.owl,.rdf,.xml,.n3,.nt,.jsonld" class="visually-hidden" />
                 Upload a graph
               </label>
-            </section>
-
-            <section class="stage">
-              <h3><span class="step">2</span> Retriever</h3>
+          </div>
+          <div class="pipe-panel" id="stage-retriever" hidden>
               <div class="options" id="retriever-options" role="radiogroup" aria-label="Retriever"></div>
               <div class="params">
                 <label class="param"><span>Top k</span><input id="retriever-k" type="number" min="1" max="50" value="8" /></label>
@@ -368,10 +386,8 @@
                   Upload .py
                 </label>
               </div>
-            </section>
-
-            <section class="stage">
-              <h3><span class="step">3</span> Reasoner</h3>
+          </div>
+          <div class="pipe-panel" id="stage-reasoner" hidden>
               <div class="options" id="reasoner-options" role="radiogroup" aria-label="Reasoner"></div>
               <div class="params">
                 <label class="param" data-param="hops"><span>Max hops</span><input id="reasoner-hops" type="number" min="1" max="6" value="3" /></label>
@@ -381,10 +397,8 @@
                   <select id="reasoner-engine"><option>HermiT</option><option>Pellet</option><option>ELK</option></select>
                 </label>
               </div>
-            </section>
-
-            <section class="stage">
-              <h3><span class="step">4</span> Context</h3>
+          </div>
+          <div class="pipe-panel" id="stage-context" hidden>
               <div class="checks" id="context-options"></div>
               <div class="params">
                 <label class="param"><span>Saved questions</span><input id="context-saved-k" type="number" min="0" max="20" value="5" /></label>
@@ -394,10 +408,8 @@
                 <span>Your notes</span>
                 <textarea id="question-context" rows="3" placeholder="Anything the model should know"></textarea>
               </label>
-            </section>
-
-            <section class="stage browser-only" id="model-stage">
-              <h3><span class="step">5</span> Model</h3>
+          </div>
+          <div class="pipe-panel browser-only" id="stage-model" hidden>
               <p class="meta">Used by the LLM agent and by Translate.</p>
               <label class="param grow">
                 <span>Provider</span>
@@ -444,11 +456,10 @@
                 Let Ollama accept requests from this page:
                 <code id="ollama-origins">OLLAMA_ORIGINS=… ollama serve</code>
               </p>
-            </section>
-          </aside>
+          </div>
+        </div>
 
-          <div class="ask-main">
-            <div class="card composer">
+        <div class="card composer">
               <label class="field">
                 <span>Question</span>
                 <textarea id="nl-question" rows="3" placeholder="Which metals are subclasses of material?"></textarea>
@@ -476,9 +487,8 @@
               <p id="question-status" class="status" role="status"></p>
             </div>
 
-            <div id="ask-result"></div>
-            <div id="query-result"></div>
-          </div>
+        <div id="query-result"></div>
+        <div id="ask-result"></div>
         </div>
 
         <div class="card">

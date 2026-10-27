@@ -91,4 +91,5 @@ def run_query(path, sparql, limit=50):
             break
         values = row if isinstance(row, tuple) else [row]
         rows.append([label_of(terms, value) if isinstance(value, (URIRef, BNode)) else ("" if value is None else str(value)) for value in values])
-    return json.dumps({"vars": names, "rows": rows, "count": len(result)})
+    individuals = sum(1 for term in terms.values() if term["kind"] == "individual")
+    return json.dumps({"vars": names, "rows": rows, "count": len(result), "individuals": individuals})

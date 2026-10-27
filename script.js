@@ -1788,21 +1788,6 @@ async function checkBackend() {
       }
     }
   }
-  const local = "start it locally with <code>uvicorn backend.app:app --port 8000</code> and open " +
-    '<a href="http://127.0.0.1:8000/#ask">127.0.0.1:8000</a>';
-  $("#evaluate-note").hidden = backendOnline;
-  $("#evaluate-note").classList.toggle("info", !backendOnline);
-  $("#evaluate-note").innerHTML = hostedInfo
-    ? `Evaluations run on a shared server: files up to ${hostedInfo.max_upload_mb} MB and one evaluation at a time per visitor. ` +
-      "Uploads and results are kept while the server is awake, not permanently. The first request after a quiet spell can take a few seconds."
-    : "Evaluations run in your browser: OntoCheck loads into this page the first time you start one " +
-      "(about 30 MB with WordNet, once), and your file never leaves the page. The public FOOPS and OOPS web services " +
-      `are not called; their checks run locally, as they do offline. Results are saved in this browser. For files over a few MB, run the backend: ${local}.`;
-  $("#ask-note").hidden = backendOnline;
-  $("#ask-note").innerHTML =
-    "Running in your browser. Python loads into this page the first time you ask (about 15 MB, once), " +
-    "and nothing you upload leaves the page. The LLM agent and Translate use the model you set under " +
-    `<b>Model</b>. Scoring queries needs the backend: ${local}.`;
   document.body.classList.toggle("browser-mode", !backendOnline);
   return backendOnline;
 }
@@ -1852,6 +1837,7 @@ function fillOntologySelects(preferredId) {
   };
   fill(evalOntology, evalBase === null ? pageOntologies : storedOntologies);
   fill(questionOntology, backendOnline ? storedOntologies : pageOntologies);
+  if (pipelineOptions.retrievers.length) renderPipelineSummary();
   renderExampleQuestions();
 }
 
@@ -2284,6 +2270,7 @@ async function loadPipelineOptions() {
   renderContextOptions();
   renderScripts(pipelineOptions.scripts || []);
   syncParams();
+  renderPipelineSummary();
   renderMemory();
 }
 
@@ -2450,6 +2437,43 @@ function engineStatus(text) {
   if (text) questionStatus.textContent = text;
 }
 
+// ---------- pipeline bar ----------
+
+// One settings section open at a time, under the row of summaries.
+const stageTabs = document.querySelectorAll(".pipe-tab");
+
+function toggleStage(stage, force) {
+  stageTabs.forEach((tab) => {
+    const mine = tab.dataset.stage === stage;
+    const open = mine && (force ?? tab.getAttribute("aria-expanded") !== "true");
+    tab.setAttribute("aria-expanded", String(open));
+    $(`#stage-${tab.dataset.stage}`).hidden = !open;
+  });
+}
+
+$(".pipe-tabs").addEventListener("click", (event) => {
+  const tab = event.target.closest(".pipe-tab");
+  if (tab) toggleStage(tab.dataset.stage);
+});
+
+function optionLabel(list, id) {
+  return (list || []).find((option) => option.id === id)?.label || id || "—";
+}
+
+function renderPipelineSummary() {
+  $("#sum-graph").textContent = questionOntology.selectedOptions[0]?.text || "None yet";
+  const retriever = chosen("retriever");
+  $("#sum-retriever").textContent = `${optionLabel(pipelineOptions.retrievers, retriever)} · top ${$("#retriever-k").value}`;
+  const reasoner = chosen("reasoner");
+  const hops = reasoner === "path" ? ` · ${$("#reasoner-hops").value} hops` : "";
+  $("#sum-reasoner").textContent = `${optionLabel(pipelineOptions.reasoners, reasoner)}${hops}`;
+  const parts = [...contextOptions.querySelectorAll("input:checked")].filter((input) => input.value !== "same_intent").length;
+  $("#sum-context").textContent = `${plural(parts, "part")} · ${Number($("#context-max").value).toLocaleString()} chars`;
+}
+
+$(".pipeline-bar").addEventListener("change", renderPipelineSummary);
+$(".pipeline-bar").addEventListener("input", renderPipelineSummary);
+
 // ---------- example questions ----------
 
 const exampleQuestions = $("#example-questions");
@@ -2472,6 +2496,7 @@ exampleQuestions.addEventListener("click", (event) => {
   if (!item) return;
   nlQuestion.value = item.question;
   sparqlQuestion.value = item.query;
+  queryEditor.open = true; // show the published query that came with it
   nlQuestion.dispatchEvent(new Event("input"));
 });
 
@@ -2523,10 +2548,12 @@ function renderModelSummary() {
   const summary = $("#model-summary");
   summary.textContent = `Model: ${model}${needsKey ? " · add key" : ""}`;
   summary.classList.toggle("needs-key", needsKey);
+  $("#sum-model").textContent = `${model}${needsKey ? " · add key" : ""}`;
 }
 
 $("#model-summary").addEventListener("click", () => {
-  $("#model-stage").scrollIntoView({ behavior: "smooth", block: "center" });
+  toggleStage("model", true);
+  $(".pipeline-bar").scrollIntoView({ behavior: "smooth", block: "start" });
   const field = modelProvider.value === "ollama" ? modelOllama : modelKey;
   window.setTimeout(() => field.focus(), 300);
 });
@@ -2737,12 +2764,22 @@ async function runQuestion(path) {
     pipeline: { retriever, reasoner, context: { ...context, notes_text: undefined } },
   });
   renderQueryReport(report);
+  queryResult.scrollIntoView({ behavior: "smooth", block: "nearest" });
   await refreshMemory();
   questionStatus.textContent = "Saved to the question log.";
 }
 
 // Without a backend, the query runs in the page and shows its rows; recall
 // and precision need OntoCheck on the backend.
+// Competency-question queries usually ask for instance data; say so when the
+// graph has none, so an empty result does not look like a failure.
+function emptyQueryNote(result) {
+  if (result.individuals === 0) {
+    return "No rows. This graph defines classes and properties but no individuals, and this query looks for instance data. Run it on a knowledge graph with data, or ask about the schema (for example subclasses).";
+  }
+  return "No rows matched this query in the selected graph.";
+}
+
 async function runQueryInPage() {
   if (!requireGraph()) return;
   if (!sparqlQuestion.value.trim()) {
@@ -2763,9 +2800,10 @@ async function runQueryInPage() {
           <p class="meta">${result.count > result.rows.length ? `First ${result.rows.length} shown. ` : ""}Recall and precision need the backend.</p>
         </div>
       </div>
-      ${rows ? `<div class="table-scroll"><table class="board compact hits"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></div>` : '<p class="empty">The query returned no rows.</p>'}
+      ${rows ? `<div class="table-scroll"><table class="board compact hits"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></div>` : `<p class="empty">${escapeHtml(emptyQueryNote(result))}</p>`}
     </div>
   `;
+  queryResult.scrollIntoView({ behavior: "smooth", block: "nearest" });
   questionStatus.textContent = savedNote(
     await saveQuestion({ nl_text: nlQuestion.value || "SPARQL query", sparql: sparqlQuestion.value, intent: await BrowserEngine.intent(nlQuestion.value), source: "query" }),
   );
