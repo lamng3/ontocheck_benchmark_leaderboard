@@ -75,26 +75,66 @@
     return ready;
   }
 
+  // Evaluate runs OntoCheck in a worker (browser/evaluate-worker.js), with its
+  // own Python, so the page stays responsive during a run. It loads on the
+  // first evaluation, so Ask does not pay for it.
+  let worker = null;
+  let nextRun = 0;
+  const runs = new Map(); // id -> {resolve, reject, onStatus}
+
+  function evaluate(graph, checks, sparql, prefixes, onStatus = () => {}) {
+    if (!worker) {
+      worker = new Worker("browser/evaluate-worker.js?v=20261027-5");
+      worker.onmessage = ({ data }) => {
+        if (data.type === "status") {
+          runs.forEach((run) => run.onStatus(data.text));
+          return;
+        }
+        const run = runs.get(data.id);
+        if (!run) return;
+        runs.delete(data.id);
+        if (data.type === "result") run.resolve(data.result);
+        else run.reject(new Error(data.message));
+      };
+      worker.onerror = (event) => {
+        runs.forEach((run) => run.reject(new Error(event.message || "The evaluation worker stopped.")));
+        runs.clear();
+        worker = null;
+      };
+    }
+    const id = ++nextRun;
+    return new Promise((resolve, reject) => {
+      runs.set(id, { resolve, reject, onStatus });
+      worker.postMessage({ id, base: location.href, text: graph.text, suffix: graph.suffix, checks, sparql, prefixes });
+    });
+  }
+
   function call(name, ...args) {
     return JSON.parse(engine[name](...args));
   }
 
-  async function addGraph(id, name, contents, suffix, example = false) {
-    await start();
-    const { path, triples } = call("add_graph", id, contents, suffix);
-    const record = { id, name, path, triples, example };
-    graphs.set(id, record);
-    return record;
-  }
-
+  // A graph keeps its file text; Ask parses it into this page's Python the
+  // first time it needs it, and Evaluate sends the text to the worker.
   async function useExample(example) {
-    if (graphs.has(example.id)) return graphs.get(example.id);
-    return addGraph(example.id, example.name, await text(example.file), ".ttl", true);
+    if (!graphs.has(example.id)) {
+      graphs.set(example.id, { id: example.id, name: example.name, text: await text(example.file), suffix: ".ttl", example: true });
+    }
+    return graphs.get(example.id);
   }
 
   async function addUpload(file) {
     const suffix = (file.name.match(/\.[^.]+$/) || [".ttl"])[0];
-    return addGraph(`upload-${Date.now()}`, file.name, await file.text(), suffix);
+    const record = { id: `upload-${Date.now()}`, name: file.name, text: await file.text(), suffix, example: false };
+    graphs.set(record.id, record);
+    return record;
+  }
+
+  async function parsed(graph) {
+    if (!graph.path) {
+      await start();
+      Object.assign(graph, call("add_graph", graph.id, graph.text, graph.suffix));
+    }
+    return graph;
   }
 
   // ---------- model ----------
@@ -343,6 +383,7 @@
 
   async function translate(graph, question, contextText, examples) {
     await start();
+    graph = await parsed(graph);
     const examplesJson = JSON.stringify(examples);
     const prompt = engine.translation_prompt(graph.path, question, contextText, examplesJson);
     let reply = await complete(prompt, TRANSLATE_SYSTEM);
@@ -357,6 +398,7 @@
 
   async function ask(graph, body, saved) {
     await start();
+    graph = await parsed(graph);
     const result = call(
       "ask",
       graph.path,
@@ -382,6 +424,7 @@
 
   async function runQuery(graph, sparql) {
     await start();
+    graph = await parsed(graph);
     return call("run_query", graph.path, sparql);
   }
 
@@ -420,6 +463,7 @@
     translate,
     intent,
     runQuery,
+    evaluate,
     settings,
     saveSettings,
     apiKey,

@@ -21,11 +21,11 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20261027-3" />
-    <script src="browser/firebase-config.js?v=20261027-3" defer></script>
-    <script src="browser/api-config.js?v=20261027-4" defer></script>
-    <script src="browser/engine.js?v=20261027-3" defer></script>
-    <script src="script.js?v=20261027-4" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20261027-5" />
+    <script src="browser/firebase-config.js?v=20261027-5" defer></script>
+    <script src="browser/api-config.js?v=20261027-5" defer></script>
+    <script src="browser/engine.js?v=20261027-5" defer></script>
+    <script src="script.js?v=20261027-5" defer></script>
   </head>
   <body>
     <header class="topbar">
@@ -396,7 +396,7 @@
               </label>
             </section>
 
-            <section class="stage browser-only">
+            <section class="stage browser-only" id="model-stage">
               <h3><span class="step">5</span> Model</h3>
               <p class="meta">Used by the LLM agent and by Translate.</p>
               <label class="param grow">
@@ -456,6 +456,7 @@
               <div class="chips example-questions" id="example-questions" hidden></div>
               <div class="composer-row">
                 <span class="intent" id="intent-chip" hidden></span>
+                <button type="button" class="model-summary browser-only" id="model-summary" title="Change the model, or add your API key"></button>
                 <div class="composer-actions">
                   <button class="btn" id="translate-question" type="button">Translate to SPARQL</button>
                   <button class="btn primary" id="ask-run" type="button">Ask</button>
