@@ -5,212 +5,190 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Upload an ontology, run FOOPS, OOPS, OQuaRE, and OntoCheck, and compare published benchmark scores."
+      content="Competency-question coverage for materials ontologies, applied-domain scores, and a workbench to evaluate ontologies and ask questions of them."
     />
-    <title>OntoCheck Benchmark Leaderboard</title>
+    <title>OntoCheck Leaderboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20261002-1" />
-    <script src="script.js?v=20261002-1" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20261027-1" />
+    <script src="script.js?v=20261027-1" defer></script>
   </head>
   <body>
-    <div class="ambient ambient-one"></div>
-    <div class="ambient ambient-two"></div>
-
-    <header class="site-header">
-      <a class="brand" href="#benchmark" data-tab-target="benchmark" aria-label="OntoCheck leaderboard home">
-        <span class="brand-mark" aria-hidden="true">O</span>
-        <span>OntoCheck <strong>Benchmarks</strong></span>
-      </a>
-      <nav class="tab-nav" role="tablist" aria-label="Primary">
-        <button
-          type="button"
-          class="active"
-          role="tab"
-          id="tab-benchmark"
-          data-tab="benchmark"
-          aria-controls="panel-benchmark"
-          aria-selected="true"
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="#leaderboard" data-tab-target="leaderboard" aria-label="OntoCheck leaderboard home">
+          <span class="brand-mark" aria-hidden="true">O</span>
+          <span>OntoCheck <span class="brand-sub">Leaderboard</span></span>
+        </a>
+        <nav class="tabs" role="tablist" aria-label="Primary">
+          <button type="button" role="tab" id="tab-leaderboard" data-tab="leaderboard" aria-controls="panel-leaderboard">Leaderboard</button>
+          <button type="button" role="tab" id="tab-domains" data-tab="domains" aria-controls="panel-domains">Domains</button>
+          <button type="button" role="tab" id="tab-assessment" data-tab="assessment" aria-controls="panel-assessment">Assessment</button>
+          <button type="button" role="tab" id="tab-cqs" data-tab="cqs" aria-controls="panel-cqs">Questions</button>
+          <button type="button" role="tab" id="tab-evaluate" data-tab="evaluate" aria-controls="panel-evaluate">Evaluate</button>
+          <button type="button" role="tab" id="tab-ask" data-tab="ask" aria-controls="panel-ask">Ask</button>
+        </nav>
+        <a
+          class="ext-link"
+          href="https://github.com/cwru-sdle/OntoCheck/blob/main/SupplementaryMaterials/2605-KunduMehdiTran-OntoCheck-SupplementaryMaterial.pdf"
+          >Paper <span aria-hidden="true">↗</span></a
         >
-          Benchmark
-        </button>
-        <button
-          type="button"
-          role="tab"
-          id="tab-evaluate"
-          data-tab="evaluate"
-          aria-controls="panel-evaluate"
-          aria-selected="false"
-        >
-          Evaluate
-        </button>
-        <button
-          type="button"
-          role="tab"
-          id="tab-questions"
-          data-tab="questions"
-          aria-controls="panel-questions"
-          aria-selected="false"
-        >
-          Questions
-        </button>
-      </nav>
-      <a
-        class="github-link"
-        href="https://github.com/cwru-sdle/OntoCheck/blob/main/SupplementaryMaterials/2605-KunduMehdiTran-OntoCheck-SupplementaryMaterial.pdf"
-      >
-        View paper
-        <span aria-hidden="true">↗</span>
-      </a>
+      </div>
     </header>
 
     <main>
-      <div
-        class="tab-panel"
-        id="panel-benchmark"
-        role="tabpanel"
-        aria-labelledby="tab-benchmark"
-      >
-      <section class="hero">
-        <div class="eyebrow"><span></span> Competency-question evaluation</div>
-        <h1>How well do materials<br /><em>ontologies answer?</em></h1>
-        <p class="hero-copy">
-          Published coverage for MDS-Onto, PMDCo, AM-Ontology, EMMO, and CHAMEO.
-        </p>
-        <div class="summary-grid" aria-label="Benchmark summary">
-          <article>
-            <span class="summary-value">05</span>
-            <span class="summary-label">Ontologies compared</span>
-          </article>
-          <article>
-            <span class="summary-value">50</span>
-            <span class="summary-label">General competency questions</span>
-          </article>
-          <article>
-            <span class="summary-value">06</span>
-            <span class="summary-label">Applied domains</span>
-          </article>
-          <article>
-            <span class="summary-value">96.7%</span>
-            <span class="summary-label">Top overall coverage</span>
-          </article>
-        </div>
-      </section>
-
-      <section class="section" id="leaderboard">
-        <div class="section-heading">
+      <!-- Leaderboard -->
+      <section class="page" id="panel-leaderboard" role="tabpanel" aria-labelledby="tab-leaderboard">
+        <div class="page-head">
           <div>
-            <p class="kicker">Table SF · Overall results</p>
-            <h2>Ontology leaderboard</h2>
+            <h1>Ontology leaderboard</h1>
+            <p class="lede">
+              How completely five materials ontologies answer 50 general competency
+              questions, overall and in each of seven categories.
+            </p>
           </div>
-          <p>
-            Ranked by aggregate coverage across 50 questions spanning seven
-            materials-science categories.
+          <dl class="stats">
+            <div><dt>Ontologies</dt><dd>5</dd></div>
+            <div><dt>General questions</dt><dd>50</dd></div>
+            <div><dt>Categories</dt><dd>7</dd></div>
+            <div><dt>Applied domains</dt><dd>6</dd></div>
+            <div><dt>Published questions</dt><dd id="stat-cq-count">—</dd></div>
+          </dl>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2>Coverage</h2>
+              <p class="meta">Tables SF and SE · competency-question coverage, a baseline in the four-level framework · select a column to rank by it</p>
+            </div>
+            <div class="heat-legend" aria-label="Cell shading">
+              <span>&lt;60</span>
+              <i class="h0"></i><i class="h1"></i><i class="h2"></i><i class="h3"></i><i class="h4"></i><i class="h5"></i>
+              <span>100%</span>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table class="board" id="board" aria-describedby="board-note"></table>
+          </div>
+          <p class="card-foot" id="board-note">
+            Coverage is the share of competency questions an ontology can answer.
+            The top coverage is underlined; darker cells score higher.
           </p>
         </div>
 
-        <div class="leaderboard-card">
-          <div class="table-toolbar">
-            <div class="legend">
-              <span><i class="legend-dot top"></i> ≥ 95%</span>
-              <span><i class="legend-dot mid"></i> 80–94.9%</span>
-              <span><i class="legend-dot low"></i> &lt; 80%</span>
-            </div>
-            <label>
-              Sort by
-              <select id="sort-ontologies">
-                <option value="coverage">Coverage</option>
-                <option value="terms">Ontology terms</option>
-                <option value="name">Name</option>
-              </select>
-            </label>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th scope="col">Rank</th>
-                  <th scope="col">Ontology</th>
-                  <th scope="col">Terms</th>
-                  <th scope="col">Coverage</th>
-                  <th scope="col" class="bar-column">Relative score</th>
-                </tr>
-              </thead>
-              <tbody id="ontology-table"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="category-panel">
-          <div class="panel-heading">
+        <div class="card">
+          <div class="card-head">
             <div>
-              <p class="kicker">Table SE · Category detail</p>
-              <h3>Coverage by capability</h3>
+              <h2>Category profile</h2>
+              <p class="meta">One ontology highlighted against the other four</p>
             </div>
-            <div id="ontology-filters" class="filter-pills" aria-label="Filter ontology"></div>
+            <div class="chips" id="profile-chips" role="group" aria-label="Highlight an ontology"></div>
           </div>
-          <div id="category-chart" class="category-chart"></div>
+          <div id="profile-chart" class="profile-chart"></div>
         </div>
       </section>
 
-      <section class="section domain-section" id="domains">
-        <div class="section-heading">
+      <!-- Domains -->
+      <section class="page" id="panel-domains" role="tabpanel" aria-labelledby="tab-domains" hidden>
+        <div class="page-head">
           <div>
-            <p class="kicker">Table SC · Applied assessments</p>
-            <h2>Domain performance</h2>
+            <h1>Applied domains</h1>
+            <p class="lede">
+              Task-based recall and precision for six domain ontologies (Table SC),
+              next to local FOOPS and OOPS runs of the same files.
+            </p>
           </div>
-          <p>Recall and precision across six applied domains.</p>
         </div>
-        <div id="domain-grid" class="domain-grid"></div>
-        <div class="category-panel domain-frameworks">
-          <div class="panel-heading">
+
+        <div class="card">
+          <div class="card-head">
             <div>
-              <p class="kicker">Local OntoCheck</p>
-              <h3>FOOPS and OOPS</h3>
+              <h2>Domain results</h2>
+              <p class="meta">Select a domain to see its FAIR tests and pitfalls</p>
             </div>
-            <div
-              id="domain-framework-filters"
-              class="filter-pills"
-              aria-label="Choose a domain"
-            ></div>
           </div>
-          <p id="domain-framework-status" class="match-line"></p>
-          <div id="domain-framework-results" class="result-grid"></div>
+          <div class="table-scroll">
+            <table class="board" id="domain-board"></table>
+          </div>
+        </div>
+
+        <div class="card" id="domain-detail">
+          <div class="card-head">
+            <div>
+              <h2 id="domain-detail-title">Local OntoCheck run</h2>
+              <p class="meta" id="domain-framework-status"></p>
+            </div>
+          </div>
+          <div id="domain-framework-results" class="detail-grid"></div>
         </div>
       </section>
 
-      <section class="section assessment-section" id="assessment">
-        <div class="section-heading">
+      <!-- Ontology assessment -->
+      <section class="page" id="panel-assessment" role="tabpanel" aria-labelledby="tab-assessment" hidden>
+        <div class="page-head">
           <div>
-            <h2>Ontology assessment</h2>
+            <h1>Ontology assessment</h1>
+            <p class="lede">
+              Each domain ontology's four-level fitness profile for its own competency
+              questions, next to the ontology-quality baselines: OOPS, FOOPS, OQuaRE, and
+              OntoCheck's term coverage.
+            </p>
           </div>
         </div>
 
-        <div class="leaderboard-card">
-          <div class="table-wrap">
-            <table class="assessment-rank">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2>Four-level fitness framework</h2>
+              <p class="meta">
+                Fitness is a profile of five coordinates, not one score. Levels follow the
+                OntoCheck-Bench whitepaper.
+              </p>
+            </div>
+          </div>
+          <div class="framework" id="fitness-framework"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2>Domain profiles</h2>
+              <p class="meta">
+                Ranked by one coordinate at a time; select a column to change it. Each domain is
+                scored on its own questions.
+              </p>
+            </div>
+            <p class="meta assess-key"><span class="assess-value">original</span><span class="assess-value weighted">weighted</span></p>
+          </div>
+          <div class="table-scroll">
+            <table class="board assess-rank">
               <thead>
-                <tr class="assessment-levels">
+                <tr class="assess-levels">
                   <td colspan="2"></td>
-                  <th scope="colgroup" colspan="3">Level 0</th>
-                  <th scope="colgroup" colspan="2">Level I</th>
-                  <th scope="colgroup">Level II</th>
-                  <th scope="colgroup">Level IV</th>
+                  <th scope="colgroup" colspan="4">Baselines</th>
+                  <th scope="colgroup">Level I</th>
+                  <th scope="colgroup" colspan="2">Level II</th>
+                  <th scope="colgroup">Level III</th>
+                  <th scope="colgroup" colspan="2">Level IV</th>
                 </tr>
                 <tr>
-                  <th scope="col">Rank</th>
-                  <th scope="col">Domain</th>
+                  <th scope="col" class="rank">Rank</th>
+                  <th scope="col" class="l sticky-col">Domain</th>
                   <th scope="col"><button type="button" data-sort="oops">OOPS</button></th>
                   <th scope="col"><button type="button" data-sort="foops">FOOPS</button></th>
                   <th scope="col"><button type="button" data-sort="oquare">OQuaRE</button></th>
-                  <th scope="col"><button type="button" data-sort="recall">Recall</button></th>
-                  <th scope="col"><button type="button" data-sort="conceptualFitness">Conceptual fitness</button></th>
-                  <th scope="col"><button type="button" data-sort="structuralFitness">Structural fitness</button></th>
-                  <th scope="col"><button type="button" data-sort="benchmarkScore">Benchmark score</button></th>
+                  <th scope="col" class="wrap"><button type="button" data-sort="recall">Term recall</button></th>
+                  <th scope="col" class="wrap"><button type="button" data-sort="conceptualFitness">Conceptual F<sub>C</sub></button></th>
+                  <th scope="col" class="wrap"><button type="button" data-sort="structuralFitness">Structural F<sub>S</sub></button></th>
+                  <th scope="col" class="wrap"><button type="button" data-sort="logicalFitness">Logical F<sub>L</sub></button></th>
+                  <th scope="col" class="wrap"><button type="button" data-sort="retrievalFitness">Retrieval F<sub>R</sub></button></th>
+                  <th scope="col" class="wrap"><button type="button" data-sort="answerAccuracy">Answer accuracy</button></th>
+                  <th scope="col" class="wrap"><button type="button" data-sort="reasoningPath">Reasoning path</button></th>
                 </tr>
               </thead>
               <tbody id="assessment-rank"></tbody>
@@ -218,293 +196,259 @@
           </div>
         </div>
 
-        <div class="category-panel assessment-detail">
-          <div class="panel-heading">
-            <div class="assessment-pill-rows">
-              <div id="assessment-levels" class="filter-pills assessment-pills" role="tablist" aria-label="Choose a level"></div>
-              <div id="assessment-tables" class="filter-pills assessment-pills" role="tablist" aria-label="Choose a table"></div>
-            </div>
-            <div id="assessment-domains" class="filter-pills" aria-label="Choose a domain"></div>
+        <div class="card">
+          <div class="card-head assess-controls">
+            <div class="chips" id="assessment-levels" role="group" aria-label="Choose a level"></div>
+            <div class="chips" id="assessment-tables" role="group" aria-label="Choose a table"></div>
           </div>
-          <table class="assessment-table">
-            <thead id="assessment-head"></thead>
-            <tbody id="assessment-body"></tbody>
-          </table>
-          <table class="assessment-table assessment-queries" id="assessment-queries" hidden>
-            <thead id="assessment-queries-head"></thead>
-            <tbody id="assessment-queries-body"></tbody>
-          </table>
+          <div class="chips chips-row" id="assessment-domains" role="group" aria-label="Choose a domain"></div>
+          <div class="table-scroll">
+            <table class="board assess-table">
+              <thead id="assessment-head"></thead>
+              <tbody id="assessment-body"></tbody>
+            </table>
+          </div>
+          <div class="table-scroll" id="assessment-queries" hidden>
+            <table class="board assess-table assess-queries">
+              <thead id="assessment-queries-head"></thead>
+              <tbody id="assessment-queries-body"></tbody>
+            </table>
+          </div>
         </div>
       </section>
 
-      <section class="section question-section" id="competency-questions">
-        <div class="section-heading">
+      <!-- Competency questions -->
+      <section class="page" id="panel-cqs" role="tabpanel" aria-labelledby="tab-cqs" hidden>
+        <div class="page-head">
           <div>
-            <p class="kicker">Supplementary question sets</p>
-            <h2>Competency questions</h2>
+            <h1>Competency questions</h1>
+            <p class="lede">
+              Every question used in the evaluations, with its executable SPARQL.
+            </p>
           </div>
-          <p>
-            Explore the questions used in the evaluations and inspect their
-            executable SPARQL queries.
-          </p>
         </div>
 
-        <div class="question-explorer">
-          <div class="question-toolbar">
-            <label class="search-field">
+        <div class="card">
+          <div class="toolbar">
+            <label class="search">
               <span class="visually-hidden">Search competency questions</span>
-              <svg
-                viewBox="0 0 24 24"
-                width="17"
-                height="17"
-                fill="none"
-                aria-hidden="true"
-              >
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true">
                 <path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" />
               </svg>
-              <input
-                id="question-search"
-                type="search"
-                placeholder="Search questions or SPARQL…"
-                autocomplete="off"
-              />
+              <input id="question-search" type="search" placeholder="Search questions or SPARQL" autocomplete="off" />
             </label>
-            <label class="domain-select-label">
-              <span>Question set</span>
-              <select id="question-domain">
-                <option value="all">All question sets</option>
-              </select>
-            </label>
+            <span class="meta" id="question-count" aria-live="polite">Loading question sets…</span>
           </div>
-          <div class="question-meta">
-            <p id="question-count" aria-live="polite">Loading question sets…</p>
-            <p>Open a question to view its SPARQL</p>
+          <div class="chips chips-row" id="question-sets" role="group" aria-label="Question set"></div>
+          <div id="question-list" class="rows">
+            <div class="loading" aria-hidden="true"><span></span><span></span><span></span></div>
           </div>
-          <div id="question-list" class="question-list">
-            <div class="question-loading" aria-hidden="true">
-              <span></span><span></span><span></span>
-            </div>
-          </div>
-          <div class="question-actions">
-            <button
-              id="show-less-questions"
-              class="question-action secondary-action"
-              type="button"
-              hidden
-            >
-              Show less
-            </button>
-            <button
-              id="load-more-questions"
-              class="question-action"
-              type="button"
-              hidden
-            >
-              Show more questions
-            </button>
+          <div class="card-actions">
+            <button id="show-less-questions" class="btn" type="button" hidden>Show less</button>
+            <button id="load-more-questions" class="btn" type="button" hidden>Show more</button>
           </div>
         </div>
       </section>
-      </div>
 
-      <section
-        class="tab-panel section"
-        id="panel-evaluate"
-        role="tabpanel"
-        aria-labelledby="tab-evaluate"
-        hidden
-      >
-        <div class="section-heading">
+      <!-- Evaluate -->
+      <section class="page" id="panel-evaluate" role="tabpanel" aria-labelledby="tab-evaluate" hidden>
+        <div class="page-head">
           <div>
-            <p class="kicker">Runtime evaluation</p>
-            <h2>Choose measures, then start</h2>
-          </div>
-          <p>
-            Upload an ontology and select FOOPS, OOPS, and OQuaRE. Each
-            selected measure opens its own result panel. OntoCheck recall and
-            precision run when a question set is included. This only works at
-            http://127.0.0.1:8000 after you start the backend. The GitHub Pages
-            site cannot run an evaluation.
-          </p>
-        </div>
-
-        <form class="config-card" id="eval-form">
-          <div class="config-grid">
-            <label class="field">
-              Ontology file
-              <input
-                id="ontology-file"
-                type="file"
-                accept=".ttl,.owl,.rdf,.xml,.n3,.nt,.jsonld"
-              />
-            </label>
-            <label class="field">
-              Saved ontology
-              <select id="eval-ontology"></select>
-            </label>
-            <label class="field">
-              Competency questions
-              <select id="eval-question-set">
-                <option value="none">None</option>
-              </select>
-            </label>
-            <label class="field">
-              Domain prefixes
-              <input
-                id="domain-prefixes"
-                type="text"
-                placeholder="Leave blank to read PREFIX declarations"
-                autocomplete="off"
-              />
-            </label>
-          </div>
-          <fieldset class="check-row">
-            <legend>Measures</legend>
-            <label class="check-pill">
-              <input type="checkbox" name="check" value="foops" checked />
-              FOOPS
-            </label>
-            <label class="check-pill">
-              <input type="checkbox" name="check" value="oops" checked />
-              OOPS
-            </label>
-            <label class="check-pill">
-              <input type="checkbox" name="check" value="oquare" checked />
-              OQuaRE
-            </label>
-          </fieldset>
-          <div class="form-actions">
-            <button class="button primary" id="start-evaluation" type="submit">
-              Start evaluation
-            </button>
-            <p id="eval-status" role="status">Upload an ontology to begin.</p>
-          </div>
-        </form>
-        <div class="question-explorer saved-runs">
-          <div class="panel-heading">
-            <div>
-              <p class="kicker">Stored for this browser</p>
-              <h3>Saved evaluations</h3>
-            </div>
-            <p id="run-count">No saved evaluations yet.</p>
-          </div>
-          <div id="run-list" class="run-list">
-            <p class="empty-state">
-              Finished evaluations stay in the local database and appear here.
+            <h1>Evaluate an ontology</h1>
+            <p class="lede">
+              Upload a file and run FOOPS, OOPS, and OQuaRE. Add a question set to
+              also score OntoCheck recall and precision.
             </p>
           </div>
         </div>
-        <div id="eval-results" class="result-stack"></div>
-      </section>
+        <p class="backend-note" data-backend-note hidden></p>
 
-      <section
-        class="tab-panel section"
-        id="panel-questions"
-        role="tabpanel"
-        aria-labelledby="tab-questions"
-        hidden
-      >
-        <div class="section-heading">
-          <div>
-            <p class="kicker">Query memory</p>
-            <h2>Ask in natural language</h2>
+        <div class="split">
+          <form class="card form-card" id="eval-form">
+            <div class="card-head"><h2>New evaluation</h2></div>
+            <div class="form-body">
+              <label class="field">
+                <span>Ontology file</span>
+                <input id="ontology-file" type="file" accept=".ttl,.owl,.rdf,.xml,.n3,.nt,.jsonld" />
+              </label>
+              <label class="field">
+                <span>Or a saved ontology</span>
+                <select id="eval-ontology"></select>
+              </label>
+              <label class="field">
+                <span>Competency questions</span>
+                <select id="eval-question-set">
+                  <option value="none">None</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Domain prefixes</span>
+                <input id="domain-prefixes" type="text" placeholder="Blank reads PREFIX declarations" autocomplete="off" />
+              </label>
+              <fieldset class="field">
+                <legend>Measures</legend>
+                <div class="toggle-row">
+                  <label class="toggle"><input type="checkbox" name="check" value="foops" checked /> FOOPS</label>
+                  <label class="toggle"><input type="checkbox" name="check" value="oops" checked /> OOPS</label>
+                  <label class="toggle"><input type="checkbox" name="check" value="oquare" checked /> OQuaRE</label>
+                </div>
+              </fieldset>
+            </div>
+            <div class="form-foot">
+              <button class="btn primary" id="start-evaluation" type="submit">Start evaluation</button>
+              <p id="eval-status" class="status" role="status">Upload an ontology to begin.</p>
+            </div>
+          </form>
+
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h2>Saved evaluations</h2>
+                <p class="meta" id="run-count">No saved evaluations yet.</p>
+              </div>
+            </div>
+            <div class="table-scroll">
+              <table class="board compact" id="run-list"></table>
+            </div>
           </div>
-          <p>
-            Translate a competency question into SPARQL with
-            <a href="https://github.com/lamng3/nl2sparql">nl2sparql</a>,
-            then score that query against the selected ontology. Optional
-            context and saved questions are sent with the translation.
-          </p>
         </div>
 
-        <form class="config-card" id="question-form">
-          <div class="config-grid">
-            <label class="field">
-              Ontology
-              <select id="question-ontology"></select>
-            </label>
-            <label class="field field-span">
-              Natural-language question
-              <textarea
-                id="nl-question"
-                rows="3"
-                placeholder="Which metals are subclasses of material?"
-              ></textarea>
-            </label>
-            <label class="field field-span">
-              Context
-              <textarea
-                id="question-context"
-                rows="3"
-                placeholder="Optional notes. Saved questions are included automatically."
-              ></textarea>
-            </label>
-            <label class="field field-span">
-              SPARQL
-              <textarea
-                id="sparql-question"
-                rows="8"
-                spellcheck="false"
-                placeholder="Paste a query, or translate the question above."
-              ></textarea>
-            </label>
-          </div>
-          <div class="form-actions">
-            <button class="button secondary" id="translate-question" type="button">
-              Translate
-            </button>
-            <button class="button primary" id="evaluate-question" type="button">
-              Evaluate
-            </button>
-            <button class="button secondary" id="context-evaluate" type="button">
-              Context evaluation
-            </button>
-          </div>
-          <p id="question-status" role="status"></p>
-        </form>
+        <div id="eval-results"></div>
+      </section>
 
-        <div id="query-result" class="result-stack"></div>
+      <!-- Ask -->
+      <section class="page" id="panel-ask" role="tabpanel" aria-labelledby="tab-ask" hidden>
+        <div class="page-head">
+          <div>
+            <h1>Ask a knowledge graph</h1>
+            <p class="lede">
+              Choose a graph, a retriever, and a reasoner, then decide what goes into the
+              context. Every question is saved with its intent.
+            </p>
+          </div>
+        </div>
+        <p class="backend-note" data-backend-note hidden></p>
 
-        <div class="question-explorer memory-panel">
-          <div class="panel-heading">
-            <div>
-              <p class="kicker">Information panel</p>
-              <h3>Saved questions</h3>
+        <div class="ask-layout">
+          <aside class="card pipeline" aria-label="Pipeline settings">
+            <div class="card-head"><h2>Pipeline</h2></div>
+
+            <section class="stage">
+              <h3><span class="step">1</span> Knowledge graph</h3>
+              <select id="question-ontology" aria-label="Knowledge graph"></select>
+              <label class="link-btn">
+                <input id="ask-kg-file" type="file" accept=".ttl,.owl,.rdf,.xml,.n3,.nt,.jsonld" class="visually-hidden" />
+                Upload a graph
+              </label>
+            </section>
+
+            <section class="stage">
+              <h3><span class="step">2</span> Retriever</h3>
+              <div class="options" id="retriever-options" role="radiogroup" aria-label="Retriever"></div>
+              <div class="params">
+                <label class="param"><span>Top k</span><input id="retriever-k" type="number" min="1" max="50" value="8" /></label>
+              </div>
+              <div class="params" id="script-params" hidden>
+                <label class="param grow">
+                  <span>Script</span>
+                  <select id="retriever-script"><option value="">No script uploaded</option></select>
+                </label>
+                <label class="link-btn">
+                  <input id="retriever-file" type="file" accept=".py" class="visually-hidden" />
+                  Upload .py
+                </label>
+              </div>
+            </section>
+
+            <section class="stage">
+              <h3><span class="step">3</span> Reasoner</h3>
+              <div class="options" id="reasoner-options" role="radiogroup" aria-label="Reasoner"></div>
+              <div class="params">
+                <label class="param" data-param="hops"><span>Max hops</span><input id="reasoner-hops" type="number" min="1" max="6" value="3" /></label>
+                <label class="param grow" data-param="model" hidden><span>Ollama model</span><input id="reasoner-model" type="text" placeholder="llama3.1" autocomplete="off" /></label>
+                <label class="param grow" data-param="engine" hidden>
+                  <span>Engine</span>
+                  <select id="reasoner-engine"><option>HermiT</option><option>Pellet</option><option>ELK</option></select>
+                </label>
+              </div>
+            </section>
+
+            <section class="stage">
+              <h3><span class="step">4</span> Context</h3>
+              <div class="checks" id="context-options"></div>
+              <div class="params">
+                <label class="param"><span>Saved questions</span><input id="context-saved-k" type="number" min="0" max="20" value="5" /></label>
+                <label class="param"><span>Max characters</span><input id="context-max" type="number" min="500" max="40000" step="500" value="6000" /></label>
+              </div>
+              <label class="field">
+                <span>Your notes</span>
+                <textarea id="question-context" rows="3" placeholder="Anything the model should know"></textarea>
+              </label>
+            </section>
+          </aside>
+
+          <div class="ask-main">
+            <div class="card composer">
+              <label class="field">
+                <span>Question</span>
+                <textarea id="nl-question" rows="3" placeholder="Which metals are subclasses of material?"></textarea>
+              </label>
+              <div class="composer-row">
+                <span class="intent" id="intent-chip" hidden></span>
+                <div class="composer-actions">
+                  <button class="btn" id="translate-question" type="button">Translate to SPARQL</button>
+                  <button class="btn primary" id="ask-run" type="button">Ask</button>
+                </div>
+              </div>
+              <details class="query-editor" id="query-editor">
+                <summary>
+                  <span>Query</span>
+                  <span class="meta" id="query-hint">SPARQL to score, or to run with the SPARQL retriever</span>
+                </summary>
+                <textarea id="sparql-question" rows="7" spellcheck="false" placeholder="SELECT ?class WHERE { ?class rdfs:subClassOf ?parent }"></textarea>
+                <div class="composer-actions">
+                  <button class="btn" id="context-evaluate" type="button">Score with saved questions</button>
+                  <button class="btn" id="evaluate-question" type="button">Score query</button>
+                </div>
+              </details>
+              <p id="question-status" class="status" role="status"></p>
             </div>
-            <label class="search-field">
+
+            <div id="ask-result"></div>
+            <div id="query-result"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2>Question log</h2>
+              <p class="meta" id="memory-count">No saved questions yet.</p>
+            </div>
+            <button class="btn" id="export-questions" type="button">Export JSON</button>
+          </div>
+          <div class="toolbar">
+            <label class="search">
               <span class="visually-hidden">Search saved questions</span>
-              <input
-                id="memory-search"
-                type="search"
-                placeholder="Search past questions or SPARQL…"
-                autocomplete="off"
-              />
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true">
+                <path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" />
+              </svg>
+              <input id="memory-search" type="search" placeholder="Search questions or SPARQL" autocomplete="off" />
             </label>
           </div>
-          <div class="question-meta">
-            <p id="memory-count">No saved questions yet.</p>
-            <p>Each question is stored with its SPARQL</p>
-          </div>
-          <div id="memory-list" class="question-list">
-            <p class="empty-state">
-              Evaluated questions appear here for this browser.
-            </p>
+          <div class="chips chips-row" id="intent-filter" role="group" aria-label="Filter by intent"></div>
+          <div id="memory-list" class="rows">
+            <p class="empty">Questions you ask appear here.</p>
           </div>
         </div>
       </section>
     </main>
 
     <footer>
-      <div>
-        <span class="brand-mark small" aria-hidden="true">O</span>
-        <p>
-          Data transcribed from the
-          <a
-            href="https://github.com/cwru-sdle/OntoCheck/blob/main/SupplementaryMaterials/2605-KunduMehdiTran-OntoCheck-SupplementaryMaterial.pdf"
-            >OntoCheck supplementary material</a
-          >.
-        </p>
-      </div>
+      <p>
+        Benchmark data from the
+        <a href="https://github.com/cwru-sdle/OntoCheck/blob/main/SupplementaryMaterials/2605-KunduMehdiTran-OntoCheck-SupplementaryMaterial.pdf">OntoCheck supplementary material</a>.
+      </p>
       <p>Last updated <time datetime="2026-09-25">September 2026</time></p>
     </footer>
   </body>

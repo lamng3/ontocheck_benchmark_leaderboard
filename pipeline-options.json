@@ -1,0 +1,99 @@
+{
+  "retrievers": [
+    {
+      "id": "ann",
+      "label": "Nearest neighbour",
+      "summary": "Ranks ontology terms by character n-gram similarity to the question.",
+      "default": true,
+      "params": ["k"]
+    },
+    {
+      "id": "pattern",
+      "label": "Pattern matching",
+      "summary": "Matches question words against labels and local names.",
+      "params": ["k"]
+    },
+    {
+      "id": "sparql",
+      "label": "SPARQL query",
+      "summary": "Runs the query in the editor. Every IRI it returns is retrieved.",
+      "params": ["k", "query"]
+    },
+    {
+      "id": "cypher",
+      "label": "Cypher query",
+      "summary": "Runs the query in the editor against Neo4j. Needs NEO4J_URI.",
+      "params": ["k", "query"],
+      "requires": "neo4j"
+    },
+    {
+      "id": "script",
+      "label": "Your retriever",
+      "summary": "Upload a Python file that defines retrieve(question, graph, k).",
+      "params": ["k", "script"],
+      "requires": "scripts"
+    }
+  ],
+  "reasoners": [
+    {
+      "id": "path",
+      "label": "Path-based",
+      "summary": "Shortest paths between retrieved terms over subclass and property edges.",
+      "default": true,
+      "params": ["hops"]
+    },
+    {
+      "id": "rule",
+      "label": "Rule-based (Horn clause)",
+      "summary": "Forward-chains RDFS and OWL Horn rules: subclass, domain, range, inverse, transitive.",
+      "params": []
+    },
+    {
+      "id": "amie",
+      "label": "AMIE rules",
+      "summary": "Applies Horn rules that AMIE mines from the graph's instance facts.",
+      "params": [],
+      "requires": "planned"
+    },
+    {
+      "id": "owl",
+      "label": "OWL reasoner",
+      "summary": "HermiT, Pellet, or ELK entailment.",
+      "params": ["engine"],
+      "requires": "planned"
+    },
+    {
+      "id": "agent",
+      "label": "LLM agent",
+      "summary": "An Ollama model answers from the assembled context.",
+      "params": ["model"],
+      "requires": "ollama"
+    },
+    {
+      "id": "none",
+      "label": "No reasoning",
+      "summary": "Pass the retrieved terms to the context as they are.",
+      "params": []
+    }
+  ],
+  "context": [
+    { "id": "retrieved", "label": "Retrieved terms", "default": true },
+    { "id": "reasoning", "label": "Reasoner output", "default": true },
+    { "id": "saved", "label": "Saved questions", "default": true },
+    { "id": "same_intent", "label": "Only saved questions with the same intent", "default": false },
+    { "id": "schema", "label": "Schema summary", "default": false },
+    { "id": "notes", "label": "Your notes", "default": true }
+  ],
+  "intents": [
+    { "id": "taxonomy", "label": "Taxonomy" },
+    { "id": "definition", "label": "Definition" },
+    { "id": "property", "label": "Property" },
+    { "id": "relation", "label": "Relation" },
+    { "id": "count", "label": "Count" },
+    { "id": "boolean", "label": "Yes / no" },
+    { "id": "provenance", "label": "Provenance" },
+    { "id": "comparison", "label": "Comparison" },
+    { "id": "listing", "label": "Listing" },
+    { "id": "other", "label": "Other" }
+  ]
+}

@@ -8,6 +8,8 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
+from backend.memory.intent import classify
+
 ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = Path(os.environ.get("ONTOCHECK_DATA", ROOT / "data"))
 DB_PATH = DATA_DIR / "ontocheck.db"
@@ -66,13 +68,39 @@ def init_db():
                 precision REAL,
                 created_at TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS retrievers (
+                id TEXT PRIMARY KEY,
+                session_id TEXT NOT NULL,
+                name TEXT NOT NULL,
+                path TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
             CREATE INDEX IF NOT EXISTS idx_ontologies_session
                 ON ontologies (session_id, created_at);
             CREATE INDEX IF NOT EXISTS idx_questions_session
                 ON questions (session_id, created_at);
             """
         )
+        columns = {row["name"] for row in conn.execute("PRAGMA table_info(questions)")}
+        for name in QUESTION_COLUMNS:
+            if name not in columns:
+                conn.execute(f"ALTER TABLE questions ADD COLUMN {name} TEXT")
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_questions_intent ON questions (session_id, intent)"
+        )
+        # Label questions saved before intents were stored.
+        for row in conn.execute("SELECT id, nl_text FROM questions WHERE intent IS NULL").fetchall():
+            label = classify(row["nl_text"])
+            conn.execute(
+                "UPDATE questions SET intent = ?, intent_cue = ? WHERE id = ?",
+                (label["intent"], label["cue"], row["id"]),
+            )
         conn.commit()
+
+
+# Added after the first release; init_db adds them to older databases.
+# pipeline is JSON: {"retriever": ..., "reasoner": ..., "context": ...}.
+QUESTION_COLUMNS = ("intent", "intent_cue", "pipeline", "source")
 
 
 def _row(row):
@@ -267,36 +295,80 @@ def get_run(session_id, run_id):
     return record
 
 
-def upsert_question(session_id, ontology_id, nl_text, sparql, recall, precision):
-    sparql = sparql.strip()
+def upsert_question(
+    session_id,
+    ontology_id,
+    nl_text,
+    sparql,
+    recall=None,
+    precision=None,
+    intent=None,
+    pipeline=None,
+    source="evaluate",
+):
+    """Save a question once per SPARQL query, or once per text if it has none.
+
+    A question first asked without SPARQL is filled in when it is evaluated.
+    Scores already stored are kept when a later save has none.
+    """
+    sparql = (sparql or "").strip()
     nl_text = (nl_text or "").strip() or "SPARQL query"
+    intent = intent or {}
+    encoded = json.dumps(pipeline) if pipeline else None
     with _lock:
         conn = _connect()
-        existing = conn.execute(
-            """
-            SELECT id FROM questions
-            WHERE session_id = ? AND sparql = ?
-            """,
-            (session_id, sparql),
-        ).fetchone()
+        existing = None
+        if sparql:
+            existing = conn.execute(
+                "SELECT id FROM questions WHERE session_id = ? AND sparql = ?",
+                (session_id, sparql),
+            ).fetchone()
+        if existing is None:
+            existing = conn.execute(
+                """
+                SELECT id FROM questions
+                WHERE session_id = ? AND nl_text = ? AND sparql = ''
+                """,
+                (session_id, nl_text),
+            ).fetchone()
         if existing:
+            question_id = existing["id"]
             conn.execute(
                 """
                 UPDATE questions
-                SET ontology_id = ?, nl_text = ?, recall = ?, precision = ?
+                SET ontology_id = ?,
+                    nl_text = ?,
+                    sparql = CASE WHEN ? = '' THEN sparql ELSE ? END,
+                    recall = COALESCE(?, recall),
+                    precision = COALESCE(?, precision),
+                    intent = COALESCE(?, intent),
+                    intent_cue = COALESCE(?, intent_cue),
+                    pipeline = COALESCE(?, pipeline),
+                    source = ?
                 WHERE id = ?
                 """,
-                (ontology_id, nl_text, recall, precision, existing["id"]),
+                (
+                    ontology_id,
+                    nl_text,
+                    sparql,
+                    sparql,
+                    recall,
+                    precision,
+                    intent.get("intent"),
+                    intent.get("cue"),
+                    encoded,
+                    source,
+                    question_id,
+                ),
             )
-            conn.commit()
-            question_id = existing["id"]
         else:
             question_id = str(uuid.uuid4())
             conn.execute(
                 """
                 INSERT INTO questions
-                    (id, session_id, ontology_id, nl_text, sparql, recall, precision, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    (id, session_id, ontology_id, nl_text, sparql, recall, precision,
+                     created_at, intent, intent_cue, pipeline, source)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     question_id,
@@ -307,22 +379,69 @@ def upsert_question(session_id, ontology_id, nl_text, sparql, recall, precision)
                     recall,
                     precision,
                     _now(),
+                    intent.get("intent"),
+                    intent.get("cue"),
+                    encoded,
+                    source,
                 ),
             )
-            conn.commit()
+        conn.commit()
         row = conn.execute(
             "SELECT * FROM questions WHERE id = ?",
             (question_id,),
         ).fetchone()
-    return _row(row)
+    return _question(row)
 
 
-def list_questions(session_id):
+def _question(row):
+    record = _row(row)
+    if record is not None:
+        record.pop("session_id", None)
+        record["pipeline"] = json.loads(record["pipeline"]) if record.get("pipeline") else None
+    return record
+
+
+def list_questions(session_id, intent=None):
+    query = """
+        SELECT id, ontology_id, nl_text, sparql, recall, precision, created_at,
+               intent, intent_cue, pipeline, source
+        FROM questions
+        WHERE session_id = ?
+    """
+    params = [session_id]
+    if intent:
+        query += " AND intent = ?"
+        params.append(intent)
+    with _lock:
+        rows = _connect().execute(query + " ORDER BY created_at DESC", params).fetchall()
+    return [_question(row) for row in rows]
+
+
+def create_retriever(session_id, name, path):
+    record = {
+        "id": str(uuid.uuid4()),
+        "session_id": session_id,
+        "name": name,
+        "path": str(path),
+        "created_at": _now(),
+    }
+    with _lock:
+        _connect().execute(
+            """
+            INSERT INTO retrievers (id, session_id, name, path, created_at)
+            VALUES (:id, :session_id, :name, :path, :created_at)
+            """,
+            record,
+        )
+        _connect().commit()
+    return record
+
+
+def list_retrievers(session_id):
     with _lock:
         rows = _connect().execute(
             """
-            SELECT id, ontology_id, nl_text, sparql, recall, precision, created_at
-            FROM questions
+            SELECT id, name, path, created_at FROM retrievers
             WHERE session_id = ?
             ORDER BY created_at DESC
             """,

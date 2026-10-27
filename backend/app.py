@@ -1,6 +1,7 @@
 """HTTP API and static site for the OntoCheck evaluation workbench."""
 
 import hashlib
+import os
 import re
 import uuid
 from contextlib import asynccontextmanager
@@ -13,17 +14,22 @@ from pydantic import BaseModel, Field
 from backend.db import (
     DATA_DIR,
     create_ontology,
+    create_retriever,
     create_run,
     get_ontology,
     get_run,
     init_db,
     list_ontologies,
+    list_retrievers,
     list_runs,
 )
 from backend.evaluators.ontocheck_runner import score_queries, to_turtle
 from backend.jobs import start_evaluation
+from backend.memory.intent import classify
 from backend.memory.retrieval import select_context
 from backend.memory.store import list_questions, upsert_question
+from backend.pipeline import OPTIONS, ReasonerError, RetrieverError
+from backend.pipeline import run as run_pipeline
 from nl2sparql import Context, Example, generate
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,12 +37,14 @@ SESSION_COOKIE = "ontocheck_session"
 ALLOWED_SUFFIXES = {".ttl", ".owl", ".rdf", ".xml", ".n3", ".nt", ".jsonld"}
 CHECK_NAMES = {"foops", "oops", "oquare"}
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024
+MAX_SCRIPT_BYTES = 200 * 1024
 
 
 @asynccontextmanager
 async def lifespan(_app):
     init_db()
     (DATA_DIR / "uploads").mkdir(parents=True, exist_ok=True)
+    (DATA_DIR / "retrievers").mkdir(parents=True, exist_ok=True)
     yield
 
 
@@ -80,6 +88,20 @@ class QuestionRequest(BaseModel):
     ontology_id: str
     nl_text: str = ""
     sparql: str = ""
+    pipeline: dict | None = None
+
+
+class AskRequest(BaseModel):
+    ontology_id: str
+    nl_text: str
+    query: str = ""
+    retriever: dict = Field(default_factory=lambda: {"id": "ann", "k": 8})
+    reasoner: dict = Field(default_factory=lambda: {"id": "path", "hops": 3})
+    context: dict = Field(default_factory=dict)
+
+
+class IntentRequest(BaseModel):
+    text: str
 
 
 @app.get("/api/health")
@@ -105,6 +127,16 @@ def script():
 @app.get("/benchmark-frameworks.json")
 def benchmark_frameworks():
     return FileResponse(ROOT / "benchmark-frameworks.json", media_type="application/json")
+
+
+@app.get("/ontocheck-results.json")
+def ontocheck_results():
+    return FileResponse(ROOT / "ontocheck-results.json", media_type="application/json")
+
+
+@app.get("/pipeline-options.json")
+def pipeline_options():
+    return FileResponse(ROOT / "pipeline-options.json", media_type="application/json")
 
 
 @app.get("/api/ontologies")
@@ -202,8 +234,85 @@ def read_run(request: Request, run_id: str):
 
 
 @app.get("/api/questions")
-def read_questions(request: Request):
-    return {"questions": list_questions(request.state.session_id)}
+def read_questions(request: Request, intent: str = ""):
+    return {"questions": list_questions(request.state.session_id, intent or None)}
+
+
+@app.post("/api/intent")
+def read_intent(body: IntentRequest):
+    return classify(body.text)
+
+
+@app.get("/api/pipeline")
+def read_pipeline(request: Request):
+    """Pipeline options, with whether each one can run on this backend."""
+    ready = {
+        "neo4j": bool(os.environ.get("NEO4J_URI")),
+        "scripts": os.environ.get("ONTOCHECK_ALLOW_SCRIPTS") == "1",
+        "ollama": True,
+        "planned": False,
+    }
+    def mark(option):
+        need = option.get("requires")
+        return {**option, "available": ready.get(need, True) if need else True}
+    return {
+        **OPTIONS,
+        "retrievers": [mark(item) for item in OPTIONS["retrievers"]],
+        "reasoners": [mark(item) for item in OPTIONS["reasoners"]],
+        "scripts": [
+            {"id": item["id"], "name": item["name"], "created_at": item["created_at"]}
+            for item in list_retrievers(request.state.session_id)
+        ],
+    }
+
+
+@app.post("/api/retrievers")
+async def upload_retriever(request: Request, file: UploadFile = File(...)):
+    filename = Path(file.filename or "retriever.py").name
+    if not filename.endswith(".py"):
+        raise HTTPException(status_code=400, detail="Upload a Python file (.py).")
+    raw = await file.read()
+    if not raw or len(raw) > MAX_SCRIPT_BYTES:
+        raise HTTPException(status_code=400, detail="Retriever scripts must be 1 byte to 200 KB.")
+    if b"def retrieve" not in raw:
+        raise HTTPException(status_code=400, detail="The script must define retrieve(question, graph, k).")
+    path = DATA_DIR / "retrievers" / f"{hashlib.sha256(raw).hexdigest()[:16]}.py"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(raw)
+    record = create_retriever(request.state.session_id, filename, path)
+    return {"id": record["id"], "name": record["name"], "created_at": record["created_at"]}
+
+
+@app.post("/api/ask")
+def ask(request: Request, body: AskRequest):
+    """Retrieve, reason, and assemble context, then save the question."""
+    if not body.nl_text.strip():
+        raise HTTPException(status_code=400, detail="Enter a question.")
+    session_id = request.state.session_id
+    ontology = _owned_ontology(session_id, body.ontology_id)
+    intent = classify(body.nl_text)
+    script_path = None
+    if body.retriever.get("id") == "script":
+        scripts = {item["id"]: item for item in list_retrievers(session_id)}
+        chosen = scripts.get(body.retriever.get("script_id") or "")
+        script_path = chosen["path"] if chosen else None
+    try:
+        result = run_pipeline(
+            ontology["path"],
+            body.nl_text,
+            intent["intent"],
+            list_questions(session_id),
+            body.retriever,
+            body.reasoner,
+            body.context,
+            query=body.query,
+            script_path=script_path,
+        )
+    except (RetrieverError, ReasonerError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    pipeline = _pipeline_record(body.retriever, body.reasoner, body.context)
+    upsert_question(session_id, ontology["id"], body.nl_text, "", intent=intent, pipeline=pipeline, source="ask")
+    return {"intent": intent, **result}
 
 
 @app.post("/api/questions/translate")
@@ -211,6 +320,14 @@ def translate_question(request: Request, body: TranslateRequest):
     if not body.nl_text.strip():
         raise HTTPException(status_code=400, detail="Enter a question to translate.")
     ontology = _owned_ontology(request.state.session_id, body.ontology_id)
+    upsert_question(
+        request.state.session_id,
+        ontology["id"],
+        body.nl_text,
+        "",
+        intent=classify(body.nl_text),
+        source="translate",
+    )
     examples = [
         Example(nl=item["nl_text"], sparql=item["sparql"])
         for item in list_questions(request.state.session_id)[:8]
@@ -239,7 +356,7 @@ def evaluate_question(request: Request, body: QuestionRequest):
         ontology["path"],
         [{"nl_text": body.nl_text, "sparql": body.sparql}],
     )
-    _remember(request.state.session_id, ontology["id"], report["queries"])
+    _remember(request.state.session_id, ontology["id"], report["queries"], body.pipeline)
     return report
 
 
@@ -263,11 +380,20 @@ def context_evaluate(request: Request, body: QuestionRequest):
             detail="Enter a SPARQL query, or save one, before context evaluation.",
         )
     report = score_queries(ontology["path"], items)
-    _remember(request.state.session_id, ontology["id"], report["queries"])
+    _remember(request.state.session_id, ontology["id"], report["queries"], body.pipeline)
     return report
 
 
-def _remember(session_id, ontology_id, queries):
+def _pipeline_record(retriever, reasoner, context):
+    """What to store with a question: settings only, not the user's notes."""
+    return {
+        "retriever": {key: value for key, value in retriever.items() if key != "query"},
+        "reasoner": reasoner,
+        "context": {key: value for key, value in context.items() if key != "notes_text"},
+    }
+
+
+def _remember(session_id, ontology_id, queries, pipeline=None):
     for query in queries:
         sparql = (query.get("sparql") or "").strip()
         if not sparql or query.get("error"):
@@ -279,6 +405,8 @@ def _remember(session_id, ontology_id, queries):
             sparql,
             query.get("recall"),
             query.get("precision"),
+            intent=classify(query.get("nl_text") or ""),
+            pipeline=pipeline,
         )
 
 
