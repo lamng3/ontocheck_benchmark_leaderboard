@@ -1,123 +1,113 @@
-# OntoCheck Benchmark Leaderboard
+<div align="center">
 
-An interactive leaderboard for the competency-question evaluation results
-reported with [OntoCheck](https://github.com/cwru-sdle/OntoCheck).
+# 🏆 OntoCheck Benchmark Leaderboard
 
-## Website
+**How well do ontologies answer the questions they were built for?**
 
-**[Open the OntoCheck Benchmark Leaderboard](https://lamng3.github.io/ontocheck_benchmark_leaderboard/)**
+[![Website](https://img.shields.io/badge/site-lamng3.com%2Fontocheck-2a78d6)](https://lamng3.com/ontocheck_benchmark_leaderboard/)
+[![OntoCheck](https://img.shields.io/badge/built%20on-OntoCheck-8b5cf6)](https://github.com/cwru-sdle/OntoCheck)
+[![Python](https://img.shields.io/badge/python-3.11%2B-3b82f6)](requirements.txt)
+[![License: CC BY 4.0](https://img.shields.io/badge/license-CC%20BY%204.0-green.svg)](LICENSE)
 
-The site presents:
+[⚡ Quick start](#-quick-start) · [✨ What it is](#-what-it-is) · [🔧 Usage](#-usage) · [📊 Data](#-data) · [📝 License](#-license)
 
-- a sortable leaderboard of coverage for MDS-Onto, PMDCo, AM-Ontology, EMMO,
-  and CHAMEO, with each of the seven categories as a shaded column;
-- a category profile that highlights one ontology against the others;
-- task-based recall and precision for six applied domains, next to local
-  FOOPS and OOPS results for the same files;
-- an assessment tab ranking the domains on every OOPS, FOOPS, OQuaRE, and
-  OntoCheck metric, original and weighted by competency questions;
-- a searchable explorer containing all 176 published competency questions and
-  their SPARQL queries.
+</div>
 
-## Data source
+> [!NOTE]
+> **The website shows the published benchmark. The backend runs it on your ontology.**
+> [lamng3.com/ontocheck_benchmark_leaderboard](https://lamng3.com/ontocheck_benchmark_leaderboard/)
+> is static. Evaluating an upload and asking questions of a knowledge graph need the
+> backend running on your machine.
 
-All displayed results are transcribed from Tables SC, SE, and SF of the
-[OntoCheck supplementary material](https://github.com/cwru-sdle/OntoCheck/blob/main/SupplementaryMaterials/2605-KunduMehdiTran-OntoCheck-SupplementaryMaterial.pdf).
-
-## Ontology assessment results
-
-The **Assessment** tab reports each domain's four-level fitness profile as
-defined in the OntoCheck-Bench whitepaper: conceptual fitness (Level I),
-structural and logical fitness (Level II-A and II-B), retrieval fitness
-(Level III), and downstream reasoning fitness (Level IV, shown as answer
-accuracy and reasoning-path match). OOPS, FOOPS, OQuaRE, and OntoCheck's own
-checks and term recall appear as ontology-quality baselines, not as a level.
-Fitness is a profile, so the table ranks by one coordinate at a time. A
-coordinate that has not run shows why (for example, no retriever is
-configured yet). The tab reads `ontocheck-results.json`.
-
-To regenerate it after the ontologies change, with the OntoCheck repository
-checked out next to this one (or `ONTOCHECK_DIR` pointing at it):
+## ⚡ Quick start
 
 ```bash
+python3.13 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
+uvicorn backend.app:app --port 8000
+```
+
+Open <http://127.0.0.1:8000>. Every tab works there, including **Evaluate** and **Ask**.
+
+## ✨ What it is
+
+A leaderboard and workbench for [OntoCheck](https://github.com/cwru-sdle/OntoCheck), the competency-question evaluation of ontologies.
+
+- **Leaderboard.** Coverage for MDS-Onto, PMDCo, AM-Ontology, EMMO, and CHAMEO on 50 general questions, with each of seven categories as a shaded column, and a profile that highlights one ontology against the others.
+- **Domains.** Task-based recall and precision for six applied domains, next to local FOOPS and OOPS results for the same files.
+- **Assessment.** Each domain's four-level fitness profile from the OntoCheck-Bench whitepaper: conceptual (I), structural and logical (II-A, II-B), retrieval (III), and downstream reasoning (IV). OOPS, FOOPS, OQuaRE, and OntoCheck term recall appear as baselines, original and weighted by the domain's questions. Fitness is a profile, so the table ranks by one coordinate at a time.
+- **Questions.** All 176 published competency questions with their SPARQL, searchable by text and question set.
+- **Evaluate.** Upload an ontology and run FOOPS, OOPS, OQuaRE, and OntoCheck recall and precision.
+- **Ask.** Choose a knowledge graph, a retriever, a reasoner, and what goes into the context. Every question is saved with its intent and the settings used, so the log can be filtered by intent and exported.
+
+## 🔧 Usage
+
+<details>
+<summary><b>Ask a knowledge graph</b></summary>
+
+The **Ask** tab runs a question through four stages:
+
+1. **Knowledge graph**: any uploaded ontology.
+2. **Retriever**: nearest neighbour (character n-grams, the default), pattern matching, the SPARQL query in the editor, a Cypher query against Neo4j, or your own script.
+3. **Reasoner**: path-based (the default), rule-based (RDFS and OWL Horn clause rules), or an LLM agent through Ollama. AMIE rules and OWL reasoners (HermiT, Pellet, ELK) are listed but not wired in yet.
+4. **Context**: retrieved terms, reasoner output, saved questions (optionally only those with the same intent), a schema summary, and your notes, within a character budget. **Translate to SPARQL** sends this context to [nl2sparql](https://github.com/lamng3/nl2sparql).
+
+Every question asked, translated, or scored is saved with a rule-based intent (taxonomy, definition, property, relation, count, yes/no, provenance, comparison, listing, other) and the pipeline settings. `GET /api/questions?intent=taxonomy` filters the same way as the question log. The options live in `pipeline-options.json`.
+
+</details>
+
+<details>
+<summary><b>Translation and the LLM agent</b></summary>
+
+Both use a local [Ollama](https://ollama.com) model:
+
+```bash
+ollama serve
+ollama pull llama3.1
+```
+
+Translation reads the uploaded Turtle file, the assembled context, and up to eight saved questions. Model and API settings are documented in [nl2sparql](https://github.com/lamng3/nl2sparql).
+
+</details>
+
+<details>
+<summary><b>Optional settings</b></summary>
+
+| Variable | Effect |
+| --- | --- |
+| `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD` | Turn on the Cypher retriever (`pip install neo4j`). |
+| `ONTOCHECK_ALLOW_SCRIPTS=1` | Let uploaded retrievers run. A script defines `retrieve(question, graph, k)`, receives an rdflib `Graph`, and returns IRIs or `{"iri", "score", "why"}` dicts. It runs as Python on your machine, so it is off by default. |
+| `OLLAMA_HOST`, `OLLAMA_MODEL` | The LLM agent's server and model. |
+| `ONTOCHECK_DATA` | Where uploads, runs, and saved questions are stored (default `data/`). |
+
+`requirements.txt` installs OntoCheck from GitHub because the PyPI release does not yet include the FOOPS, OOPS, and OQuaRE metrics.
+
+</details>
+
+<details>
+<summary><b>Regenerate the assessment results</b></summary>
+
+The **Assessment** tab reads `ontocheck-results.json`. With the OntoCheck repository checked out next to this one (or `ONTOCHECK_DIR` pointing at it):
+
+```bash
 python scripts/ontocheck_results.py
 ```
 
-The domains, their question files, and benchmark suites are listed in
-OntoCheck's `SupplementaryMaterials/leaderboard-domains.json`. The same file
-can be written from OntoCheck directly:
+The domains, their question files, and benchmark suites are listed in OntoCheck's `SupplementaryMaterials/leaderboard-domains.json`. The same file can be written from OntoCheck directly:
 
 ```bash
 ontocheck-leaderboard --manifest SupplementaryMaterials/leaderboard-domains.json \
     --out ../ontocheck_benchmark_leaderboard/ontocheck-results.json
 ```
 
-## Run the evaluation backend
+</details>
 
-The [GitHub Pages site](https://lamng3.github.io/ontocheck_benchmark_leaderboard/)
-only shows the published benchmark. It has no evaluation service. If you open
-that link and click **Start evaluation**, the page reports that the request
-was rejected. Uploads, FOOPS, OOPS, OQuaRE, OntoCheck, and question memory
-run on your machine until the backend is deployed.
+## 📊 Data
 
-Use Python 3.11 or newer. From this repository:
+The leaderboard and domain results are transcribed from Tables SC, SE, and SF of the [OntoCheck supplementary material](https://github.com/cwru-sdle/OntoCheck/blob/main/SupplementaryMaterials/2605-KunduMehdiTran-OntoCheck-SupplementaryMaterial.pdf). The competency questions load from the same repository.
 
-```bash
-python3.13 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn backend.app:app --port 8000
-```
+The `master` branch is published through GitHub Pages and served at [lamng3.com/ontocheck_benchmark_leaderboard](https://lamng3.com/ontocheck_benchmark_leaderboard/). The backend is not deployed.
 
-Then open <http://127.0.0.1:8000>. Leave that terminal running. Stop the
-backend with Ctrl+C.
+## 📝 License
 
-`requirements.txt` installs OntoCheck from GitHub because the current PyPI
-release does not yet include the FOOPS, OOPS, and OQuaRE metrics.
-
-Natural-language translation uses
-[nl2sparql](https://github.com/lamng3/nl2sparql), a training-free generator.
-It reads the uploaded Turtle file, optional context from the Questions tab,
-and up to eight saved questions. Start [Ollama](https://ollama.com) and pull
-a model if needed (`ollama pull llama3.1`). Model and API settings are
-documented in that repository.
-
-## Ask a knowledge graph
-
-The **Ask** tab runs a question through a pipeline with four parts:
-
-1. **Knowledge graph**: any uploaded ontology.
-2. **Retriever**: nearest neighbour (character n-grams, the default), pattern
-   matching, the SPARQL query in the editor, a Cypher query against Neo4j, or
-   your own script.
-3. **Reasoner**: path-based (the default), rule-based (RDFS and OWL Horn
-   clause rules), or an LLM agent through Ollama. AMIE (rules mined from
-   instance facts) and OWL reasoners (HermiT, Pellet, ELK) are listed but not
-   wired in yet.
-4. **Context**: choose which parts go in (retrieved terms, reasoner output,
-   saved questions, only those with the same intent, a schema summary, your
-   notes) and a character budget. **Translate to SPARQL** sends this context to
-   nl2sparql.
-
-Every question asked, translated, or scored is saved with a rule-based intent
-(taxonomy, definition, property, relation, count, yes/no, provenance,
-comparison, listing, other) and the pipeline settings used. The question log
-filters by intent and exports JSON. `GET /api/questions?intent=taxonomy`
-returns the same filter from the API. The options themselves live in
-`pipeline-options.json`.
-
-Optional settings:
-
-- `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD` turn on the Cypher retriever
-  (`pip install neo4j`).
-- `ONTOCHECK_ALLOW_SCRIPTS=1` lets uploaded retrievers run. A script defines
-  `retrieve(question, graph, k)`, receives an rdflib `Graph`, and returns IRIs
-  or `{"iri", "score", "why"}` dicts. It runs as Python on your machine, so
-  this is off by default.
-- `OLLAMA_HOST` and `OLLAMA_MODEL` set the LLM agent's server and model.
-
-## Deployment
-
-The `master` branch is published through GitHub Pages. The evaluation backend
-is not deployed yet.
+[CC BY 4.0](LICENSE). Benchmark data and competency questions come from [OntoCheck](https://github.com/cwru-sdle/OntoCheck) under its own license.
