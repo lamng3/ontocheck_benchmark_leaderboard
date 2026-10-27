@@ -524,3 +524,31 @@ footer p { margin: 0; }
 .row-head span:nth-child(3), .row-head span:nth-child(4) { text-align: right; }
 .no-sparql { padding: 0 18px 14px 128px; }
 @media (max-width: 640px) { .row-head { display: none; } .no-sparql { padding-left: 14px; } }
+
+/* ---------- ontology assessment ---------- */
+.assess-key { display: flex; gap: 12px; align-items: center; }
+.assess-value { display: flex; align-items: center; justify-content: flex-end; gap: 6px; font-variant-numeric: tabular-nums; font-size: 13px; }
+.assess-value + .assess-value { margin-top: 2px; }
+.assess-value.weighted { color: var(--accent-ink); }
+.assess-value.same { color: var(--faint); }
+.assess-value small { color: var(--faint); font-size: 11px; }
+.assess-key .assess-value { font-size: 12px; }
+.assess-value .sev::before { width: 7px; height: 7px; }
+.assess-levels th, .assess-levels td { background: var(--surface); border-bottom: 0; padding-bottom: 0; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--faint); text-align: center; }
+.assess-rank .sticky-col .name { display: block; }
+.assess-workload { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; font-weight: 400; }
+.assess-workload:empty { display: none; }
+.workload-link { text-decoration: none; color: var(--accent-ink); }
+.workload-link:hover { text-decoration: underline; }
+.assess-controls { justify-content: flex-start; }
+.assess-table td { width: 22%; }
+.assess-table td.l { white-space: normal; }
+.assess-table th.metric { font-size: 13px; font-weight: 500; color: var(--ink); background: var(--surface); white-space: normal; position: static; }
+.assess-table th.metric .tag { margin-right: 8px; }
+.assess-table th.metric.derived { padding-left: 28px; color: var(--muted); font-weight: 400; }
+.assess-table th.query span:last-child { font-weight: 400; }
+.assess-table tr.group th { background: var(--sunk); color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding-top: 8px; padding-bottom: 8px; }
+.assess-table .missing { color: var(--faint); text-align: right; }
+.assess-table .names { font: 11.5px var(--f-mono); overflow-wrap: anywhere; color: var(--muted); }
+.assess-queries { border-top: 1px solid var(--line); }
+.assess-table thead .assess-workload { justify-content: flex-end; }

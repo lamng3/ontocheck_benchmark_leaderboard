@@ -2,6 +2,10 @@
 
 The Turtle files live in the OntoCheck supplement. Public FOOPS and OOPS
 are not called. GitHub Pages reads the JSON this script writes.
+
+Every test runs, including those that dereference the ontology IRI and
+check prefix registries, so this needs internet access. Pass --offline to
+skip those tests.
 """
 
 import json
@@ -14,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from ontocheck import run_assessment
+from rdflib import Graph
 
 from backend.evaluators.ontocheck_runner import _has_abox, _quiet_logging, _split_assessment
 from backend.evaluators.report import build_report
@@ -39,6 +44,7 @@ DOMAINS = (
 
 
 def main():
+    allow_network = "--offline" not in sys.argv[1:]
     source = _ontology_dir()
     domains = []
     with tempfile.TemporaryDirectory() as tmp:
@@ -56,7 +62,9 @@ def main():
                 )
                 continue
             print(f"Scoring {name}…", flush=True)
-            domains.append(_score(name, paths, work / name.replace(" ", "-")))
+            domains.append(
+                _score(name, paths, work / name.replace(" ", "-"), allow_network)
+            )
     payload = {"domains": domains}
     destination = ROOT / "benchmark-frameworks.json"
     destination.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
@@ -74,15 +82,32 @@ def _ontology_dir():
     return path
 
 
-def _score(name, paths, output_dir):
+def _merge(paths, output_dir):
+    """One Turtle file for a domain, so a multi-file domain is scored once."""
+
+    if len(paths) == 1:
+        return paths[0]
+    graph = Graph()
+    for path in paths:
+        part = Graph().parse(str(path), format="turtle")
+        for prefix, namespace in part.namespaces():
+            graph.bind(prefix, namespace, override=False)
+        graph += part
+    merged = output_dir / "merged.ttl"
+    graph.serialize(str(merged), format="turtle")
+    return merged
+
+
+def _score(name, paths, output_dir, allow_network=True):
     output_dir.mkdir(parents=True, exist_ok=True)
     try:
+        merged = _merge(paths, output_dir)
         result = run_assessment(
-            ttl_files=[str(path) for path in paths],
+            ttl_files=[str(merged)],
             metrics=None,
             frameworks=["FOOPS!", "OOPS!"],
-            allow_network=False,
-            has_abox=any(_has_abox(path) for path in paths),
+            allow_network=allow_network,
+            has_abox=_has_abox(merged),
             output_log_file=str(output_dir / "assessment.log"),
             output_csv_file=str(output_dir / "scores.csv"),
             framework_csv_file=str(output_dir / "framework.csv"),

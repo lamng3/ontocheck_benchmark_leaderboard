@@ -12,7 +12,7 @@ RULES = [
     ("comparison", r"\bdifference between\b|\bcompare\b|\bversus\b|\bvs\.?\b|\bdiffer\b"),
     ("provenance", r"\bwho (created|made|authored|performed|measured)\b|\bprovenance\b|\bsource of\b|\bwhen was\b|\bderived from\b"),
     ("taxonomy", r"\bsub-?class(es)?\b|\bsuper-?class(es)?\b|\b(types|kinds|categories) of\b|\bis an? (type|kind)\b|\bhierarch"),
-    ("definition", r"^\s*(what is|what are|define|describe)\b(?!.*\b(of|for|between)\b)"),
+    ("definition", r"^\s*(what is|what are|define|describe)\b(?!.*\b(of|for|between|relat\w*|connect\w*|link\w*)\b)"),
     ("relation", r"\brelat(ed|ion|ionship)\b|\bconnect(ed|s)?\b|\blink(ed|s)?\b|\bbetween\b|\bhow does\b"),
     ("property", r"\bpropert(y|ies)\b|\battribute|\bvalue of\b|\bunit of\b|\bhas a\b|\bmeasured\b|\bparameter|^\s*what (is|are) the \w+( \w+)? of\b"),
     ("boolean", r"^\s*(is|are|does|do|can|could|has|have|was|were)\b"),

@@ -129,6 +129,11 @@ def benchmark_frameworks():
     return FileResponse(ROOT / "benchmark-frameworks.json", media_type="application/json")
 
 
+@app.get("/ontocheck-results.json")
+def ontocheck_results():
+    return FileResponse(ROOT / "ontocheck-results.json", media_type="application/json")
+
+
 @app.get("/pipeline-options.json")
 def pipeline_options():
     return FileResponse(ROOT / "pipeline-options.json", media_type="application/json")

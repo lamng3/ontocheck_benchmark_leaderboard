@@ -14,8 +14,8 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20261026-1" />
-    <script src="script.js?v=20261026-1" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20261027-1" />
+    <script src="script.js?v=20261027-1" defer></script>
   </head>
   <body>
     <header class="topbar">
@@ -27,6 +27,7 @@
         <nav class="tabs" role="tablist" aria-label="Primary">
           <button type="button" role="tab" id="tab-leaderboard" data-tab="leaderboard" aria-controls="panel-leaderboard">Leaderboard</button>
           <button type="button" role="tab" id="tab-domains" data-tab="domains" aria-controls="panel-domains">Domains</button>
+          <button type="button" role="tab" id="tab-assessment" data-tab="assessment" aria-controls="panel-assessment">Assessment</button>
           <button type="button" role="tab" id="tab-cqs" data-tab="cqs" aria-controls="panel-cqs">Questions</button>
           <button type="button" role="tab" id="tab-evaluate" data-tab="evaluate" aria-controls="panel-evaluate">Evaluate</button>
           <button type="button" role="tab" id="tab-ask" data-tab="ask" aria-controls="panel-ask">Ask</button>
@@ -124,6 +125,74 @@
             </div>
           </div>
           <div id="domain-framework-results" class="detail-grid"></div>
+        </div>
+      </section>
+
+      <!-- Ontology assessment -->
+      <section class="page" id="panel-assessment" role="tabpanel" aria-labelledby="tab-assessment" hidden>
+        <div class="page-head">
+          <div>
+            <h1>Ontology assessment</h1>
+            <p class="lede">
+              Every OOPS, FOOPS, and OQuaRE metric for each domain, original and weighted by the
+              domain's competency questions, next to OntoCheck's own and query-fitness metrics.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2>Domain ranking</h2>
+              <p class="meta">Select a column to rank by it</p>
+            </div>
+            <p class="meta assess-key"><span class="assess-value">original</span><span class="assess-value weighted">weighted</span></p>
+          </div>
+          <div class="table-scroll">
+            <table class="board assess-rank">
+              <thead>
+                <tr class="assess-levels">
+                  <td colspan="2"></td>
+                  <th scope="colgroup" colspan="3">Level 0</th>
+                  <th scope="colgroup" colspan="2">Level I</th>
+                  <th scope="colgroup">Level II</th>
+                  <th scope="colgroup">Level IV</th>
+                </tr>
+                <tr>
+                  <th scope="col" class="rank">Rank</th>
+                  <th scope="col" class="l sticky-col">Domain</th>
+                  <th scope="col"><button type="button" data-sort="oops">OOPS</button></th>
+                  <th scope="col"><button type="button" data-sort="foops">FOOPS</button></th>
+                  <th scope="col"><button type="button" data-sort="oquare">OQuaRE</button></th>
+                  <th scope="col"><button type="button" data-sort="recall">Recall</button></th>
+                  <th scope="col"><button type="button" data-sort="conceptualFitness">Conceptual fitness</button></th>
+                  <th scope="col"><button type="button" data-sort="structuralFitness">Structural fitness</button></th>
+                  <th scope="col"><button type="button" data-sort="benchmarkScore">Benchmark score</button></th>
+                </tr>
+              </thead>
+              <tbody id="assessment-rank"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head assess-controls">
+            <div class="chips" id="assessment-levels" role="group" aria-label="Choose a level"></div>
+            <div class="chips" id="assessment-tables" role="group" aria-label="Choose a table"></div>
+          </div>
+          <div class="chips chips-row" id="assessment-domains" role="group" aria-label="Choose a domain"></div>
+          <div class="table-scroll">
+            <table class="board assess-table">
+              <thead id="assessment-head"></thead>
+              <tbody id="assessment-body"></tbody>
+            </table>
+          </div>
+          <div class="table-scroll" id="assessment-queries" hidden>
+            <table class="board assess-table assess-queries">
+              <thead id="assessment-queries-head"></thead>
+              <tbody id="assessment-queries-body"></tbody>
+            </table>
+          </div>
         </div>
       </section>
 

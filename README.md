@@ -14,6 +14,8 @@ The site presents:
 - a category profile that highlights one ontology against the others;
 - task-based recall and precision for six applied domains, next to local
   FOOPS and OOPS results for the same files;
+- an assessment tab ranking the domains on every OOPS, FOOPS, OQuaRE, and
+  OntoCheck metric, original and weighted by competency questions;
 - a searchable explorer containing all 176 published competency questions and
   their SPARQL queries.
 
@@ -21,6 +23,30 @@ The site presents:
 
 All displayed results are transcribed from Tables SC, SE, and SF of the
 [OntoCheck supplementary material](https://github.com/cwru-sdle/OntoCheck/blob/main/SupplementaryMaterials/2605-KunduMehdiTran-OntoCheck-SupplementaryMaterial.pdf).
+
+## Ontology assessment results
+
+The **Assessment** tab shows every OOPS, FOOPS, and OQuaRE metric
+for each domain, original and weighted by the domain's competency questions,
+next to OntoCheck's own metrics, task-based recall and precision, and the
+query-fitness metrics. It reads `ontocheck-results.json`.
+
+To regenerate it after the ontologies change, with the OntoCheck repository
+checked out next to this one (or `ONTOCHECK_DIR` pointing at it):
+
+```bash
+pip install -r requirements.txt
+python scripts/ontocheck_results.py
+```
+
+The domains, their question files, and benchmark suites are listed in
+OntoCheck's `SupplementaryMaterials/leaderboard-domains.json`. The same file
+can be written from OntoCheck directly:
+
+```bash
+ontocheck-leaderboard --manifest SupplementaryMaterials/leaderboard-domains.json \
+    --out ../ontocheck_benchmark_leaderboard/ontocheck-results.json
+```
 
 ## Run the evaluation backend
 
