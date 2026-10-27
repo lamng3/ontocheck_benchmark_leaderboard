@@ -64,7 +64,7 @@
           <div class="card-head">
             <div>
               <h2>Coverage</h2>
-              <p class="meta">Tables SF and SE · select a column to rank by it</p>
+              <p class="meta">Tables SF and SE · competency-question coverage, a baseline in the four-level framework · select a column to rank by it</p>
             </div>
             <div class="heat-legend" aria-label="Cell shading">
               <span>&lt;60</span>
@@ -134,8 +134,9 @@
           <div>
             <h1>Ontology assessment</h1>
             <p class="lede">
-              Every OOPS, FOOPS, and OQuaRE metric for each domain, original and weighted by the
-              domain's competency questions, next to OntoCheck's own and query-fitness metrics.
+              Each domain ontology's four-level fitness profile for its own competency
+              questions, next to the ontology-quality baselines: OOPS, FOOPS, OQuaRE, and
+              OntoCheck's term coverage.
             </p>
           </div>
         </div>
@@ -143,8 +144,24 @@
         <div class="card">
           <div class="card-head">
             <div>
-              <h2>Domain ranking</h2>
-              <p class="meta">Select a column to rank by it</p>
+              <h2>Four-level fitness framework</h2>
+              <p class="meta">
+                Fitness is a profile of five coordinates, not one score. Levels follow the
+                OntoCheck-Bench whitepaper.
+              </p>
+            </div>
+          </div>
+          <div class="framework" id="fitness-framework"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2>Domain profiles</h2>
+              <p class="meta">
+                Ranked by one coordinate at a time; select a column to change it. Each domain is
+                scored on its own questions.
+              </p>
             </div>
             <p class="meta assess-key"><span class="assess-value">original</span><span class="assess-value weighted">weighted</span></p>
           </div>
@@ -153,10 +170,11 @@
               <thead>
                 <tr class="assess-levels">
                   <td colspan="2"></td>
-                  <th scope="colgroup" colspan="3">Level 0</th>
-                  <th scope="colgroup" colspan="2">Level I</th>
-                  <th scope="colgroup">Level II</th>
-                  <th scope="colgroup">Level IV</th>
+                  <th scope="colgroup" colspan="4">Baselines</th>
+                  <th scope="colgroup">Level I</th>
+                  <th scope="colgroup" colspan="2">Level II</th>
+                  <th scope="colgroup">Level III</th>
+                  <th scope="colgroup" colspan="2">Level IV</th>
                 </tr>
                 <tr>
                   <th scope="col" class="rank">Rank</th>
@@ -164,10 +182,13 @@
                   <th scope="col"><button type="button" data-sort="oops">OOPS</button></th>
                   <th scope="col"><button type="button" data-sort="foops">FOOPS</button></th>
                   <th scope="col"><button type="button" data-sort="oquare">OQuaRE</button></th>
-                  <th scope="col"><button type="button" data-sort="recall">Recall</button></th>
-                  <th scope="col"><button type="button" data-sort="conceptualFitness">Conceptual fitness</button></th>
-                  <th scope="col"><button type="button" data-sort="structuralFitness">Structural fitness</button></th>
-                  <th scope="col"><button type="button" data-sort="benchmarkScore">Benchmark score</button></th>
+                  <th scope="col" class="wrap"><button type="button" data-sort="recall">Term recall</button></th>
+                  <th scope="col" class="wrap"><button type="button" data-sort="conceptualFitness">Conceptual F<sub>C</sub></button></th>
+                  <th scope="col" class="wrap"><button type="button" data-sort="structuralFitness">Structural F<sub>S</sub></button></th>
+                  <th scope="col" class="wrap"><button type="button" data-sort="logicalFitness">Logical F<sub>L</sub></button></th>
+                  <th scope="col" class="wrap"><button type="button" data-sort="retrievalFitness">Retrieval F<sub>R</sub></button></th>
+                  <th scope="col" class="wrap"><button type="button" data-sort="answerAccuracy">Answer accuracy</button></th>
+                  <th scope="col" class="wrap"><button type="button" data-sort="reasoningPath">Reasoning path</button></th>
                 </tr>
               </thead>
               <tbody id="assessment-rank"></tbody>

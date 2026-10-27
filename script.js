@@ -788,13 +788,31 @@ const assessmentBody = document.querySelector("#assessment-body");
 const assessmentQueries = document.querySelector("#assessment-queries");
 const assessmentQueriesHead = document.querySelector("#assessment-queries-head");
 const assessmentQueriesBody = document.querySelector("#assessment-queries-body");
+// The whitepaper's four-level fitness profile <F_C, (F_S, F_L), F_R, F_D>.
+// OOPS, FOOPS, OQuaRE, and OntoCheck's own checks are ontology-quality
+// baselines, not a level; the data file stores them as level "0".
 const assessmentLevelList = [
-  { key: "0", label: "Level 0" },
-  { key: "I", label: "Level I" },
-  { key: "II", label: "Level II" },
-  { key: "III", label: "Level III" },
-  { key: "IV", label: "Level IV" },
+  { key: "0", label: "Baselines" },
+  { key: "I", label: "I · Conceptual" },
+  { key: "II", label: "II · Structural & logical" },
+  { key: "III", label: "III · Retrieval" },
+  { key: "IV", label: "IV · Downstream reasoning" },
 ];
+// One entry per reported coordinate, in the whitepaper's order.
+const fitnessCoordinates = [
+  { level: "I", id: "conceptualFitness", symbol: "F_C", name: "Conceptual fitness", about: "Do the ontology's terms support the concepts and properties the questions need?" },
+  { level: "II-A", id: "structuralFitness", symbol: "F_S", name: "Structural fitness", about: "Is the connectivity the questions need represented as an admissible schema path?" },
+  { level: "II-B", id: "logicalFitness", symbol: "F_L", name: "Logical fitness", about: "Do the required conclusions follow from the ontology's axioms?" },
+  { level: "III", id: "retrievalFitness", symbol: "F_R", name: "Retrieval fitness", about: "Does a fixed retriever, guided by the ontology, return the gold evidence within budget?" },
+  { level: "IV", id: "answerAccuracy", symbol: "F_D", name: "Downstream reasoning fitness", about: "Can a fixed reasoner answer correctly, along the right path, from that evidence?" },
+];
+// Rows that are reported but are not one of the five coordinates.
+const ontocheckNotes = {
+  recall: "OntoCheck term coverage, a Level-I baseline",
+  precision: "OntoCheck term coverage, a Level-I baseline",
+  counterfactualImportance: "Validates workload weights; not part of conceptual fitness",
+  benchmarkScore: "Single score over the benchmark cases",
+};
 const assessmentKinds = [
   { key: "oops", label: "OOPS" },
   { key: "foops", label: "FOOPS" },
@@ -854,8 +872,12 @@ function rowLevel(row) {
   return row.level || ontocheckLevels[row.id] || "0";
 }
 
+function ontocheckRow(domain, id) {
+  return ((domain.tables.ontocheck || {}).rows || []).find((item) => item.id === id);
+}
+
 function ontocheckValue(domain, id) {
-  const row = ((domain.tables.ontocheck || {}).rows || []).find((item) => item.id === id);
+  const row = ontocheckRow(domain, id);
   return row && row.status === "Success" ? row.value : null;
 }
 
@@ -875,7 +897,10 @@ function rankScores(domain) {
     recall: [ontocheckValue(domain, "recall")],
     conceptualFitness: [ontocheckValue(domain, "conceptualFitness")],
     structuralFitness: [ontocheckValue(domain, "structuralFitness")],
-    benchmarkScore: [ontocheckValue(domain, "benchmarkScore")],
+    logicalFitness: [ontocheckValue(domain, "logicalFitness")],
+    retrievalFitness: [ontocheckValue(domain, "retrievalFitness")],
+    answerAccuracy: [ontocheckValue(domain, "answerAccuracy")],
+    reasoningPath: [ontocheckValue(domain, "reasoningPath")],
   };
 }
 
@@ -896,17 +921,18 @@ function benchmarkTag(domain) {
   return workloadTag(domain.benchmark, (domain.benchmark_cases || []).length, "Benchmarks");
 }
 
-function rankCell(label, values, format) {
+function rankCell(label, values, format, status) {
   const [original, weighted] = values;
   const second =
     values.length > 1 ? `<span class="assess-value weighted">${escapeHtml(format(weighted))}</span>` : "";
-  return `<td data-label="${escapeHtml(label)}"><span class="assess-value">${escapeHtml(format(original))}</span>${second}</td>`;
+  const why = status && status !== "Success" ? ` title="${escapeHtml(status)}"` : "";
+  return `<td data-label="${escapeHtml(label)}"${why}><span class="assess-value">${escapeHtml(format(original))}</span>${second}</td>`;
 }
 
 function renderAssessmentRank() {
   const scored = (assessment.domains || []).filter((domain) => domain.tables);
   if (!scored.length) {
-    assessmentRank.innerHTML = '<tr><td colspan="9" class="l"><p class="empty">The assessment results could not be loaded.</p></td></tr>';
+    assessmentRank.innerHTML = '<tr><td colspan="12" class="l"><p class="empty">The assessment results could not be loaded.</p></td></tr>';
     return;
   }
   const rows = scored.map((domain) => ({ domain, scores: rankScores(domain) }));
@@ -932,13 +958,16 @@ function renderAssessmentRank() {
             <span class="name">${escapeHtml(domain.name)}</span>
             <span class="assess-workload">${questionsTag(domain)}${benchmarkTag(domain)}</span>
           </td>
-          ${rankCell("0 · OOPS", scores.oops, assessmentPercent)}
-          ${rankCell("0 · FOOPS", scores.foops, assessmentPercent)}
-          ${rankCell("0 · OQuaRE", scores.oquare, grade)}
-          ${rankCell("I · Recall", scores.recall, score)}
+          ${rankCell("Baseline · OOPS", scores.oops, assessmentPercent)}
+          ${rankCell("Baseline · FOOPS", scores.foops, assessmentPercent)}
+          ${rankCell("Baseline · OQuaRE", scores.oquare, grade)}
+          ${rankCell("Baseline · Term recall", scores.recall, score)}
           ${rankCell("I · Conceptual fitness", scores.conceptualFitness, score)}
-          ${rankCell("II · Structural fitness", scores.structuralFitness, score)}
-          ${rankCell("IV · Benchmark score", scores.benchmarkScore, score)}
+          ${rankCell("II-A · Structural fitness", scores.structuralFitness, score)}
+          ${rankCell("II-B · Logical fitness", scores.logicalFitness, score, ontocheckRow(domain, "logicalFitness")?.status)}
+          ${rankCell("III · Retrieval fitness", scores.retrievalFitness, score, ontocheckRow(domain, "retrievalFitness")?.status)}
+          ${rankCell("IV · Answer accuracy", scores.answerAccuracy, score, ontocheckRow(domain, "answerAccuracy")?.status)}
+          ${rankCell("IV · Reasoning path", scores.reasoningPath, score, ontocheckRow(domain, "reasoningPath")?.status)}
         </tr>
       `,
     )
@@ -1039,14 +1068,15 @@ function sourceTag(domain, row) {
 
 function renderLevelTable(domain) {
   const rows = ((domain.tables.ontocheck || {}).rows || []).filter((row) => rowLevel(row).split("-")[0] === assessmentLevel);
-  const groups = assessmentLevel === "II" ? [["II-A", "Structural"], ["II-B", "Logical"]] : [[null, null]];
+  const groups = assessmentLevel === "II" ? [["II-A", "II-A · Structural"], ["II-B", "II-B · Logical"]] : [[null, null]];
   assessmentHead.innerHTML =
     '<tr><th scope="col" class="l">Metric</th><th scope="col">Value</th><th scope="col" class="l">Queries</th></tr>';
   const metricRows = (row) => {
     const source = row.status === "Success" ? sourceTag(domain, row) : "";
+    const notes = [ontocheckNotes[row.id], row.status === "Success" ? "" : row.status].filter(Boolean);
     const main = `
       <tr>
-        <th scope="row" class="l metric">${escapeHtml(row.name)}</th>
+        <th scope="row" class="l metric">${escapeHtml(row.name)}${notes.map((note) => `<small>${escapeHtml(note)}</small>`).join("")}</th>
         ${plainValueCell(row.value, row.status, null, true)}
         <td class="l"><span class="assess-workload">${source}</span></td>
       </tr>
@@ -1188,6 +1218,30 @@ function renderAssessmentPills() {
     .join("");
 }
 
+// How many domains have each coordinate, or why none do.
+function renderFramework() {
+  const scored = (assessment.domains || []).filter((domain) => domain.tables);
+  const cells = fitnessCoordinates.map((coordinate) => {
+    const rows = scored.map((domain) => ontocheckRow(domain, coordinate.id)).filter(Boolean);
+    const done = rows.filter((row) => row.status === "Success").length;
+    const reasons = [...new Set(rows.filter((row) => row.status !== "Success").map((row) => row.status))];
+    const state = !scored.length
+      ? ""
+      : done
+        ? `Scored for ${done} of ${scored.length} domains`
+        : reasons.join("; ") || "Not in the results";
+    return `
+      <div class="coord${done ? "" : " pending"}">
+        <span class="tag">${escapeHtml(coordinate.level)}</span>
+        <b>${escapeHtml(coordinate.name)} <span class="sym">F<sub>${escapeHtml(coordinate.symbol.slice(2))}</sub></span></b>
+        <p>${escapeHtml(coordinate.about)}</p>
+        <span class="state">${escapeHtml(state)}</span>
+      </div>
+    `;
+  });
+  $("#fitness-framework").innerHTML = cells.join("");
+}
+
 async function loadAssessment() {
   try {
     const response = await fetch("ontocheck-results.json");
@@ -1198,6 +1252,7 @@ async function loadAssessment() {
   }
   const first = (assessment.domains || []).find((domain) => domain.tables);
   assessmentDomain = first ? first.name : null;
+  renderFramework();
   renderAssessmentPills();
   renderAssessmentRank();
   renderAssessmentDetail();

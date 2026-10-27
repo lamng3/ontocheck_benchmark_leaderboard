@@ -552,3 +552,17 @@ footer p { margin: 0; }
 .assess-table .names { font: 11.5px var(--f-mono); overflow-wrap: anywhere; color: var(--muted); }
 .assess-queries { border-top: 1px solid var(--line); }
 .assess-table thead .assess-workload { justify-content: flex-end; }
+.framework { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.coord { padding: 14px 16px; border-left: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+.coord:first-child { border-left: 0; }
+.coord b { font-size: 14px; font-weight: 600; }
+.coord .sym { font: 500 12px var(--f-mono); color: var(--faint); }
+.coord p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.45; flex: 1; }
+.coord .state { font-size: 12px; color: var(--good-ink); }
+.coord.pending .state { color: var(--faint); }
+.assess-table th.metric small { display: block; font-size: 12px; font-weight: 400; color: var(--faint); margin-top: 2px; }
+@media (max-width: 960px) {
+  .framework { grid-template-columns: minmax(0, 1fr); }
+  .coord { border-left: 0; border-top: 1px solid var(--line); }
+  .coord:first-child { border-top: 0; }
+}

@@ -26,10 +26,15 @@ All displayed results are transcribed from Tables SC, SE, and SF of the
 
 ## Ontology assessment results
 
-The **Assessment** tab shows every OOPS, FOOPS, and OQuaRE metric
-for each domain, original and weighted by the domain's competency questions,
-next to OntoCheck's own metrics, task-based recall and precision, and the
-query-fitness metrics. It reads `ontocheck-results.json`.
+The **Assessment** tab reports each domain's four-level fitness profile as
+defined in the OntoCheck-Bench whitepaper: conceptual fitness (Level I),
+structural and logical fitness (Level II-A and II-B), retrieval fitness
+(Level III), and downstream reasoning fitness (Level IV, shown as answer
+accuracy and reasoning-path match). OOPS, FOOPS, OQuaRE, and OntoCheck's own
+checks and term recall appear as ontology-quality baselines, not as a level.
+Fitness is a profile, so the table ranks by one coordinate at a time. A
+coordinate that has not run shows why (for example, no retriever is
+configured yet). The tab reads `ontocheck-results.json`.
 
 To regenerate it after the ontologies change, with the OntoCheck repository
 checked out next to this one (or `ONTOCHECK_DIR` pointing at it):
