@@ -68,13 +68,13 @@ Every question asked, translated, or run is saved with a rule-based intent (taxo
 |:--|:--|:--|
 | Leaderboard, Domains, Assessment, Questions | Static files | Same |
 | Ask: retrieval, reasoning, context | In the page, under [Pyodide](https://pyodide.org): the same Python modules as the backend | On the backend |
-| Translate and the LLM agent | Your model: Ollama on your computer, or an OpenAI-compatible API with your key | Ollama, or `ONTOCHECK_LLM_PROVIDER=openai` |
+| Translate and the LLM agent | Your model: Claude or GPT with your own API key, or Ollama on your computer | Ollama, or `ONTOCHECK_LLM_PROVIDER=openai` |
 | Run a SPARQL query | In the page | On the backend, with recall and precision |
 | Evaluate | Published results for the examples | FOOPS, OOPS, OQuaRE, and OntoCheck on any file |
 | Cypher retriever, uploaded retriever scripts | Not available | Opt-in settings |
 | Question log | Your browser, and a shared Firestore log when configured | SQLite under `data/` |
 
-Uploaded files stay in the page on the live site. To use Ollama from the live site, let it accept requests from the page:
+Uploaded files stay in the page on the live site. Under **Model**, paste an Anthropic or OpenAI key and press **Test connection**: it lists the models that key can use, without generating anything. Keys go only to Anthropic or OpenAI, straight from the page, and are forgotten when the tab closes unless you choose to remember them. Claude requests on Opus and Sonnet enable the API's server-side fallback, so a safety decline is retried on another model. To use Ollama from the live site instead, let it accept requests from the page:
 
 ```bash
 OLLAMA_ORIGINS="https://lamng3.com" ollama serve

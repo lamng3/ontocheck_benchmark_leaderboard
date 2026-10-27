@@ -99,11 +99,31 @@
 
   // ---------- model ----------
 
-  const DEFAULT_SETTINGS = { backend: "ollama", url: "http://127.0.0.1:11434", model: "llama3.1", key: "" };
+  // Where the LLM agent and Translate send their prompts. Claude goes through
+  // the Anthropic SDK, GPT through OpenAI's API, both straight from this page
+  // with the visitor's own key; Ollama runs on the visitor's computer.
+  const ANTHROPIC_SDK = "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.130.0/+esm";
+  const PROVIDERS = {
+    anthropic: { label: "Claude", keyUrl: "https://console.anthropic.com/settings/keys" },
+    openai: { label: "GPT", baseUrl: "https://api.openai.com/v1", keyUrl: "https://platform.openai.com/api-keys" },
+    ollama: { label: "Ollama" },
+  };
+  const CLAUDE_MODELS = ["claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5"];
+  const DEFAULT_SETTINGS = {
+    provider: "anthropic",
+    models: { anthropic: "claude-opus-5-5", openai: "", ollama: "llama3.1" },
+    ollamaUrl: "http://127.0.0.1:11434",
+  };
 
   function settings() {
     try {
-      return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}") };
+      const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
+      if (saved.backend) {
+        // The earlier single-provider shape could hold a key; drop it with the rest.
+        localStorage.removeItem(SETTINGS_KEY);
+        return { ...DEFAULT_SETTINGS };
+      }
+      return { ...DEFAULT_SETTINGS, ...saved, models: { ...DEFAULT_SETTINGS.models, ...saved.models } };
     } catch {
       return { ...DEFAULT_SETTINGS };
     }
@@ -117,35 +137,205 @@
     }
   }
 
-  async function complete(prompt, system = "") {
-    const s = settings();
-    const messages = [...(system ? [{ role: "system", content: system }] : []), { role: "user", content: prompt }];
-    const base = s.url.replace(/\/$/, "");
+  // Keys never go in the settings object. They live in sessionStorage (gone
+  // when the tab closes) unless the visitor asks to remember them.
+  const keySlot = (provider) => `ontocheck-key-${provider}`;
+
+  function apiKey(provider) {
+    try {
+      const remembered = localStorage.getItem(keySlot(provider));
+      if (remembered) return { key: remembered, remembered: true };
+      return { key: sessionStorage.getItem(keySlot(provider)) || "", remembered: false };
+    } catch {
+      return { key: "", remembered: false };
+    }
+  }
+
+  function saveApiKey(provider, key, remember) {
+    try {
+      localStorage.removeItem(keySlot(provider));
+      sessionStorage.removeItem(keySlot(provider));
+      if (key) (remember ? localStorage : sessionStorage).setItem(keySlot(provider), key);
+    } catch {
+      // Storage blocked: the key is not kept, and the next call asks for it again.
+    }
+  }
+
+  let anthropicSdk = null;
+
+  async function claude(prompt, system, model, key) {
+    const Anthropic = await loadAnthropic();
+    const client = new Anthropic({ apiKey: key, dangerouslyAllowBrowser: true });
+    const base = {
+      model,
+      max_tokens: 16000,
+      ...(system ? { system } : {}),
+      messages: [{ role: "user", content: prompt }],
+    };
+    // On a safety decline, Opus and Sonnet retry on a fallback model chosen
+    // by the API; Haiku has no server-side fallback.
+    const withFallback = model === "claude-haiku-5-5" ? null : { ...base, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" };
+    let message;
+    try {
+      try {
+        message = withFallback ? await client.beta.messages.stream(withFallback).finalMessage() : await client.messages.stream(base).finalMessage();
+      } catch (error) {
+        // An account without the fallback beta gets a 400; retry plainly once.
+        if (!(withFallback && error instanceof Anthropic.BadRequestError)) throw error;
+        message = await client.messages.stream(base).finalMessage();
+      }
+    } catch (error) {
+      if (error instanceof Anthropic.AuthenticationError) throw new Error("Anthropic rejected the API key. Check it under Model.");
+      if (error instanceof Anthropic.PermissionDeniedError) throw new Error(`This API key cannot use ${model}.`);
+      if (error instanceof Anthropic.RateLimitError) throw new Error("Rate limited by Anthropic. Wait a moment and try again.");
+      if (error instanceof Anthropic.APIConnectionError) throw new Error("Could not reach api.anthropic.com.");
+      if (error instanceof Anthropic.APIError) throw new Error(`Anthropic API error ${error.status ?? ""}: ${error.message}`);
+      throw error;
+    }
+    if (message.stop_reason === "refusal") {
+      throw new Error(`Claude declined this request${message.stop_details?.explanation ? `: ${message.stop_details.explanation}` : "."}`);
+    }
+    const text = message.content.filter((block) => block.type === "text").map((block) => block.text).join("");
+    return { content: text.trim(), model: message.model };
+  }
+
+  async function gpt(prompt, system, model, key) {
+    const chosen = model || (await defaultGptModel(key));
     let response;
     try {
-      response =
-        s.backend === "openai"
-          ? await fetch(`${base}/chat/completions`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json", Authorization: `Bearer ${s.key}` },
-              body: JSON.stringify({ model: s.model, temperature: 0, messages }),
-            })
-          : await fetch(`${base}/api/chat`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ model: s.model, stream: false, options: { temperature: 0 }, messages }),
-            });
+      response = await fetch(`${PROVIDERS.openai.baseUrl}/chat/completions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+        body: JSON.stringify({
+          model: chosen,
+          messages: [...(system ? [{ role: "system", content: system }] : []), { role: "user", content: prompt }],
+        }),
+      });
     } catch {
-      throw new Error(
-        s.backend === "openai"
-          ? `Could not reach ${base}.`
-          : `Could not reach Ollama at ${base}. Start it with OLLAMA_ORIGINS="${location.origin}" ollama serve.`,
-      );
+      // OpenAI's error replies to a POST carry no CORS header, so the browser
+      // hides them. The models list does carry one: ask it why.
+      await gptModels(key);
+      throw new Error("Could not reach api.openai.com.");
     }
-    if (!response.ok) throw new Error(`The model returned HTTP ${response.status}.`);
+    const data = await response.json().catch(() => ({}));
+    if (response.status === 401) throw new Error("OpenAI rejected the API key. Check it under Model.");
+    if (!response.ok) throw new Error(`OpenAI API error ${response.status}: ${data.error?.message || ""}`);
+    return { content: (data.choices?.[0]?.message?.content || "").trim(), model: data.model };
+  }
+
+  // GPT chat models this key can use, newest first, for the model picker.
+  async function gptModels(key) {
+    let response;
+    try {
+      response = await fetch(`${PROVIDERS.openai.baseUrl}/models`, { headers: { Authorization: `Bearer ${key}` } });
+    } catch {
+      throw new Error("Could not reach api.openai.com.");
+    }
+    if (!response.ok) throw new Error(response.status === 401 ? "OpenAI rejected the API key." : `OpenAI returned HTTP ${response.status}.`);
+    const { data = [] } = await response.json();
+    return data
+      .filter((item) => /^gpt-/.test(item.id) && !/audio|realtime|transcribe|tts|image|search|instruct/.test(item.id))
+      .sort((a, b) => (b.created || 0) - (a.created || 0))
+      .map((item) => item.id);
+  }
+
+  async function defaultGptModel(key) {
+    const ids = await gptModels(key);
+    const pick = ids.find((id) => /mini$/.test(id)) || ids[0];
+    if (!pick) throw new Error("This OpenAI key lists no GPT models.");
+    return pick;
+  }
+
+  async function ollama(prompt, system, model, url) {
+    const base = url.replace(/\/$/, "");
+    let response;
+    try {
+      response = await fetch(`${base}/api/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model,
+          stream: false,
+          options: { temperature: 0 },
+          messages: [...(system ? [{ role: "system", content: system }] : []), { role: "user", content: prompt }],
+        }),
+      });
+    } catch {
+      throw new Error(`Could not reach Ollama at ${base}. Start it with OLLAMA_ORIGINS="${location.origin}" ollama serve, or use Claude or GPT with an API key.`);
+    }
+    if (!response.ok) throw new Error(`Ollama returned HTTP ${response.status}.`);
     const data = await response.json();
-    const content = s.backend === "openai" ? data.choices?.[0]?.message?.content : data.message?.content;
-    return { content: (content || "").trim(), model: s.model, provider: s.backend };
+    return { content: (data.message?.content || "").trim(), model };
+  }
+
+  async function loadAnthropic() {
+    if (!anthropicSdk) anthropicSdk = (await import(ANTHROPIC_SDK)).default;
+    return anthropicSdk;
+  }
+
+  // The models this provider offers to this key (or this Ollama), without
+  // generating anything, so checking a key costs nothing.
+  async function listModels(provider, key, ollamaUrl) {
+    if (provider === "anthropic") {
+      const Anthropic = await loadAnthropic();
+      const client = new Anthropic({ apiKey: key, dangerouslyAllowBrowser: true });
+      const ids = [];
+      try {
+        for await (const model of client.models.list()) ids.push(model.id);
+      } catch (error) {
+        if (error instanceof Anthropic.AuthenticationError) throw new Error("Anthropic rejected the API key.");
+        if (error instanceof Anthropic.APIConnectionError) {
+          // A rejected key's reply from the models list has no CORS header, so
+          // the browser reports it as a network failure. An empty Messages
+          // request is answered readably (401 for a bad key, 400 otherwise)
+          // and generates nothing.
+          try {
+            await client.messages.create({ model: "claude-haiku-5-5", max_tokens: 1, messages: [] });
+          } catch (probe) {
+            if (probe instanceof Anthropic.AuthenticationError) throw new Error("Anthropic rejected the API key.");
+          }
+          throw new Error("Could not reach api.anthropic.com.");
+        }
+        throw new Error(`Anthropic API error ${error.status ?? ""}: ${error.message}`);
+      }
+      return ids;
+    }
+    if (provider === "openai") return gptModels(key);
+    const base = ollamaUrl.replace(/\/$/, "");
+    let response;
+    try {
+      response = await fetch(`${base}/api/tags`);
+    } catch {
+      throw new Error(`Could not reach Ollama at ${base}. Start it with OLLAMA_ORIGINS="${location.origin}" ollama serve.`);
+    }
+    if (!response.ok) throw new Error(`Ollama returned HTTP ${response.status}.`);
+    return ((await response.json()).models || []).map((item) => item.name);
+  }
+
+  async function testConnection() {
+    const s = settings();
+    const provider = s.provider;
+    const key = provider === "ollama" ? "" : apiKey(provider).key;
+    if (provider !== "ollama" && !key) throw new Error(`Paste your ${PROVIDERS[provider].label} API key first.`);
+    const models = await listModels(provider, key, s.ollamaUrl);
+    const chosen = s.models[provider];
+    const available = !chosen || models.some((id) => id === chosen || id === `${chosen}:latest`);
+    return { provider, models, chosen, available };
+  }
+
+  async function complete(prompt, system = "") {
+    const s = settings();
+    const provider = s.provider;
+    const model = s.models[provider];
+    let reply;
+    if (provider === "ollama") {
+      reply = await ollama(prompt, system, model, s.ollamaUrl);
+    } else {
+      const { key } = apiKey(provider);
+      if (!key) throw new Error(`Add your ${PROVIDERS[provider].label} API key under Model to use the LLM agent and Translate.`);
+      reply = provider === "anthropic" ? await claude(prompt, system, model, key) : await gpt(prompt, system, model, key);
+    }
+    return { ...reply, provider };
   }
 
   // nl2sparql's own system prompt, so browser and server translations match.
@@ -232,6 +422,12 @@
     runQuery,
     settings,
     saveSettings,
+    apiKey,
+    saveApiKey,
+    gptModels,
+    testConnection,
+    PROVIDERS,
+    CLAUDE_MODELS,
     logQuestion,
     get loaded() {
       return Boolean(engine);
