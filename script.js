@@ -792,7 +792,7 @@ const assessmentQueriesBody = document.querySelector("#assessment-queries-body")
 // after Level 0: OOPS, FOOPS, OQuaRE, and OntoCheck's own checks, which the
 // data file labels level "0" and the whitepaper treats as baselines.
 const assessmentLevelList = [
-  { key: "0", label: "0 · Baselines" },
+  { key: "0", label: "Level 0" },
   { key: "I", label: "I · Conceptual" },
   { key: "II", label: "II · Structural & logical" },
   { key: "III", label: "III · Retrieval" },
