@@ -48,7 +48,7 @@ A leaderboard and workbench for [OntoCheck](https://github.com/cwru-sdle/OntoChe
 |:--|:--|
 | **Leaderboard** | Coverage for MDS-Onto, PMDCo, AM-Ontology, EMMO, and CHAMEO on 50 general questions, with each of seven categories as a shaded column, and a profile that highlights one ontology against the others |
 | **Domains** | Task-based recall and precision for six applied domains, next to local FOOPS and OOPS results for the same files |
-| **Assessment** | Each domain's four-level fitness profile from the OntoCheck-Bench whitepaper: conceptual (I), structural and logical (II-A, II-B), retrieval (III), and downstream reasoning (IV), next to the OOPS, FOOPS, OQuaRE, and term-recall baselines |
+| **Assessment** | Each domain's Level 0 baselines (OOPS, FOOPS, OQuaRE, and term recall) and its four-level fitness profile from the OntoCheck-Bench whitepaper: conceptual (I), structural and logical (II-A, II-B), retrieval (III), and downstream reasoning (IV) |
 | **Questions** | All 176 published competency questions with their SPARQL |
 | **Evaluate** | FOOPS, OOPS, OQuaRE, and OntoCheck recall and precision for an example or your own file |
 | **Ask** | A question through a pipeline you choose: knowledge graph, retriever, reasoner, and context |

@@ -788,11 +788,11 @@ const assessmentBody = document.querySelector("#assessment-body");
 const assessmentQueries = document.querySelector("#assessment-queries");
 const assessmentQueriesHead = document.querySelector("#assessment-queries-head");
 const assessmentQueriesBody = document.querySelector("#assessment-queries-body");
-// The whitepaper's four-level fitness profile <F_C, (F_S, F_L), F_R, F_D>.
-// OOPS, FOOPS, OQuaRE, and OntoCheck's own checks are ontology-quality
-// baselines, not a level; the data file stores them as level "0".
+// The whitepaper's four-level fitness profile <F_C, (F_S, F_L), F_R, F_D>,
+// after Level 0: OOPS, FOOPS, OQuaRE, and OntoCheck's own checks, which the
+// data file labels level "0" and the whitepaper treats as baselines.
 const assessmentLevelList = [
-  { key: "0", label: "Baselines" },
+  { key: "0", label: "0 · Baselines" },
   { key: "I", label: "I · Conceptual" },
   { key: "II", label: "II · Structural & logical" },
   { key: "III", label: "III · Retrieval" },
@@ -1221,6 +1221,17 @@ function renderAssessmentPills() {
 // How many domains have each coordinate, or why none do.
 function renderFramework() {
   const scored = (assessment.domains || []).filter((domain) => domain.tables);
+  // Level 0 has no single coordinate: it counts domains with OOPS, FOOPS,
+  // and OQuaRE results.
+  const level0 = scored.filter((domain) => ["oops", "foops", "oquare"].every((kind) => (domain.tables[kind]?.rows || []).length)).length;
+  const baseline = `
+    <div class="coord${level0 ? "" : " pending"}">
+      <span class="tag">0</span>
+      <b>Baselines</b>
+      <p>Ontology quality without the questions: OOPS pitfalls, FOOPS FAIR tests, OQuaRE characteristics, and OntoCheck's own checks.</p>
+      <span class="state">${scored.length ? escapeHtml(level0 ? `Scored for ${level0} of ${scored.length} domains` : "Not in the results") : ""}</span>
+    </div>
+  `;
   const cells = fitnessCoordinates.map((coordinate) => {
     const rows = scored.map((domain) => ontocheckRow(domain, coordinate.id)).filter(Boolean);
     const done = rows.filter((row) => row.status === "Success").length;
@@ -1239,7 +1250,7 @@ function renderFramework() {
       </div>
     `;
   });
-  $("#fitness-framework").innerHTML = cells.join("");
+  $("#fitness-framework").innerHTML = baseline + cells.join("");
 }
 
 async function loadAssessment() {
