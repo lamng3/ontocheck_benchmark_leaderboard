@@ -549,7 +549,7 @@ footer p { margin: 0; }
 .assess-table .names { font: 11.5px var(--f-mono); overflow-wrap: anywhere; color: var(--muted); }
 .assess-queries { border-top: 1px solid var(--line); }
 .assess-table thead .assess-workload { justify-content: flex-end; }
-.framework { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.framework { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
 .coord { padding: 14px 16px; border-left: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
 .coord:first-child { border-left: 0; }
 .coord b { font-size: 14px; font-weight: 600; }
