@@ -1612,6 +1612,10 @@ button.button {
   color: var(--muted);
 }
 
+.assessment-reason {
+  font-size: 12px;
+}
+
 .assessment-levels th {
   padding-bottom: 0;
   border-bottom: 0;
