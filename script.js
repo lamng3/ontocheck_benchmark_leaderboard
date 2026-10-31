@@ -362,6 +362,13 @@ const ontocheckDerived = {
     { key: "path_coverage", name: "Path coverage" },
     { key: "path_stretch", name: "Path stretch" },
   ],
+  retrievalFitness: [
+    { key: "evidence_precision", name: "Evidence precision" },
+    { key: "distractor_rate", name: "Distractor rate" },
+    { key: "support_path_recall", name: "Support-path recall" },
+    { key: "triples", name: "Retrieved triples" },
+    { key: "recall_without_ontology", name: "Evidence recall without the ontology" },
+  ],
 };
 let assessment = { domains: [] };
 let assessmentLevel = "0";
@@ -413,6 +420,7 @@ function rankScores(domain) {
     recall: [ontocheckValue(domain, "recall")],
     conceptualFitness: [ontocheckValue(domain, "conceptualFitness")],
     structuralFitness: [ontocheckValue(domain, "structuralFitness")],
+    retrievalFitness: [ontocheckValue(domain, "retrievalFitness")],
     benchmarkScore: [ontocheckValue(domain, "benchmarkScore")],
   };
 }
@@ -444,7 +452,7 @@ function rankCell(label, values, format) {
 function renderAssessmentRank() {
   const scored = (assessment.domains || []).filter((domain) => domain.tables);
   if (!scored.length) {
-    assessmentRank.innerHTML = '<tr><td colspan="9" class="assessment-missing">—</td></tr>';
+    assessmentRank.innerHTML = '<tr><td colspan="10" class="assessment-missing">—</td></tr>';
     return;
   }
   const rows = scored.map((domain) => ({ domain, scores: rankScores(domain) }));
@@ -476,6 +484,7 @@ function renderAssessmentRank() {
           ${rankCell("I · Recall", scores.recall, score)}
           ${rankCell("I · Conceptual fitness", scores.conceptualFitness, score)}
           ${rankCell("II · Structural fitness", scores.structuralFitness, score)}
+          ${rankCell("III · Evidence recall", scores.retrievalFitness, score)}
           ${rankCell("IV · Benchmark score", scores.benchmarkScore, score)}
         </tr>
       `,
@@ -571,7 +580,7 @@ function renderFrameworkTable(domain) {
 
 function sourceTag(domain, row) {
   if (row.kind === "benchmark" || row.id === "counterfactualImportance") return benchmarkTag(domain);
-  if (row.kind === "task" || row.kind === "fitness") return questionsTag(domain);
+  if (row.kind === "task" || row.kind === "fitness" || row.kind === "retrieval") return questionsTag(domain);
   return "";
 }
 
@@ -656,6 +665,22 @@ function renderQueryTable(domain) {
             ${fixedCell(q.F_S, "Structural fitness")}
             ${fixedCell(q.path_coverage, "Path coverage")}
             ${nameList(q.unrealised, "Unrealised")}
+          </tr>
+        `,
+      )
+      .join("");
+  } else if (assessmentLevel === "III" && queries.some((q) => q.ER !== undefined)) {
+    assessmentQueriesHead.innerHTML =
+      '<tr><th scope="col">Query</th><th scope="col">Evidence recall</th><th scope="col">Support-path recall</th><th scope="col">Without the ontology</th></tr>';
+    assessmentQueriesBody.innerHTML = queries
+      .filter((q) => q.ER !== undefined)
+      .map(
+        (q) => `
+          <tr>
+            ${queryCell(q.qid, q.question)}
+            ${fixedCell(q.ER, "Evidence recall")}
+            ${fixedCell(q.support_path_recall, "Support-path recall")}
+            ${fixedCell(q.ER_without_ontology, "Without the ontology")}
           </tr>
         `,
       )
