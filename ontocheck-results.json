@@ -12,7 +12,7 @@
         "EBSD.ttl"
       ],
       "questions": "EBSD.json",
-      "benchmark": null,
+      "benchmark": "EBSD-cq.json",
       "has_abox": false,
       "weighted_by": [
         "competency questions"
@@ -1670,17 +1670,56 @@
               "name": "Counterfactual concept importance",
               "kind": "fitness",
               "level": "I",
-              "value": null,
-              "status": "Not available (no benchmark suite)",
-              "detail": {}
+              "value": 0.2507,
+              "status": "Success",
+              "detail": {
+                "Z_baseline": 0.7,
+                "top": [
+                  {
+                    "concept": "https://cwrusdle.bitbucket.io/mds/MaterialsProcessing",
+                    "element": "https://cwrusdle.bitbucket.io/mds/MaterialsProcessing",
+                    "drop": 0.35,
+                    "w_impact": 0.25,
+                    "w_work": 0.0278
+                  },
+                  {
+                    "concept": "https://cwrusdle.bitbucket.io/mds/GrindingMachine",
+                    "element": "https://cwrusdle.bitbucket.io/mds/GrindingMachine",
+                    "drop": 0.3,
+                    "w_impact": 0.2143,
+                    "w_work": 0.0903
+                  },
+                  {
+                    "concept": "https://cwrusdle.bitbucket.io/mds/Grinding",
+                    "element": "https://cwrusdle.bitbucket.io/mds/Grinding",
+                    "drop": 0.25,
+                    "w_impact": 0.1786,
+                    "w_work": 0.375
+                  },
+                  {
+                    "concept": "https://cwrusdle.bitbucket.io/mds/hasGrindingWheelSpeed",
+                    "element": "https://cwrusdle.bitbucket.io/mds/hasGrindingWheelSpeed",
+                    "drop": 0.1333,
+                    "w_impact": 0.0952,
+                    "w_work": 0.0903
+                  },
+                  {
+                    "concept": "https://cwrusdle.bitbucket.io/mds/deliversCoolant",
+                    "element": "https://cwrusdle.bitbucket.io/mds/deliversCoolant",
+                    "drop": 0.0833,
+                    "w_impact": 0.0595,
+                    "w_work": 0.0625
+                  }
+                ]
+              }
             },
             {
               "id": "benchmarkScore",
               "name": "Benchmark score",
               "kind": "benchmark",
               "level": "IV",
-              "value": null,
-              "status": "Not available (no benchmark suite)",
+              "value": 0.7,
+              "status": "Success",
               "detail": {}
             },
             {
@@ -1688,8 +1727,8 @@
               "name": "Answer accuracy",
               "kind": "benchmark",
               "level": "IV",
-              "value": null,
-              "status": "Not available (no benchmark suite)",
+              "value": 0.6667,
+              "status": "Success",
               "detail": {}
             },
             {
@@ -1697,8 +1736,8 @@
               "name": "Reasoning-path match",
               "kind": "benchmark",
               "level": "IV",
-              "value": null,
-              "status": "Not available (no benchmark suite)",
+              "value": 1.0,
+              "status": "Success",
               "detail": {}
             }
           ]
@@ -2026,7 +2065,52 @@
           ]
         }
       ],
-      "benchmark_cases": []
+      "benchmark_cases": [
+        {
+          "id": "ebsd-retrieval-001",
+          "question": "What equipment is used in the grinding step of a sample's preparation?",
+          "level": "fact_retrieval",
+          "task_type": "fact_retrieval",
+          "score": 0.0,
+          "answer_score": 0.0,
+          "evidence_score": null,
+          "constraint_score": null,
+          "status": "success"
+        },
+        {
+          "id": "ebsd-deduction-001",
+          "question": "Following the class hierarchy, what kind of process is grinding?",
+          "level": "complex_reasoning",
+          "task_type": "deduction",
+          "score": 1.0,
+          "answer_score": 1.0,
+          "evidence_score": 1.0,
+          "constraint_score": null,
+          "status": "success"
+        },
+        {
+          "id": "ebsd-summary-001",
+          "question": "Provide a structured ontology-grounded summary of the grinding machine.",
+          "level": "contextual_summarization",
+          "task_type": "contextual_summary",
+          "score": 1.0,
+          "answer_score": 1.0,
+          "evidence_score": null,
+          "constraint_score": null,
+          "status": "success"
+        },
+        {
+          "id": "ebsd-plan-001",
+          "question": "Can an ontology-grounded plan record the grinding wheel speed and the polishing voltage used to prepare a sample?",
+          "level": "constrained_generation",
+          "task_type": "constrained_plan",
+          "score": 0.8,
+          "answer_score": 0.0,
+          "evidence_score": null,
+          "constraint_score": 0.8,
+          "status": "success"
+        }
+      ]
     },
     {
       "name": "Capacitors",
@@ -2036,7 +2120,7 @@
         "Capacitor-SampleHolder.ttl"
       ],
       "questions": "Capacitors.json",
-      "benchmark": null,
+      "benchmark": "Capacitors-cq.json",
       "has_abox": false,
       "weighted_by": [
         "competency questions"
@@ -3694,17 +3778,56 @@
               "name": "Counterfactual concept importance",
               "kind": "fitness",
               "level": "I",
-              "value": null,
-              "status": "Not available (no benchmark suite)",
-              "detail": {}
+              "value": 0.2258,
+              "status": "Success",
+              "detail": {
+                "Z_baseline": 0.55,
+                "top": [
+                  {
+                    "concept": "https://cwrusdle.bitbucket.io/mds/Capacitor",
+                    "element": "https://cwrusdle.bitbucket.io/mds/Capacitor",
+                    "drop": 0.425,
+                    "w_impact": 0.4359,
+                    "w_work": 0.1
+                  },
+                  {
+                    "concept": "https://cwrusdle.bitbucket.io/mds/MultiLayerCeramicCapacitor",
+                    "element": "https://cwrusdle.bitbucket.io/mds/MultiLayerCeramicCapacitor",
+                    "drop": 0.3625,
+                    "w_impact": 0.3718,
+                    "w_work": 0.3
+                  },
+                  {
+                    "concept": "https://cwrusdle.bitbucket.io/mds/Sample",
+                    "element": "https://cwrusdle.bitbucket.io/mds/Sample",
+                    "drop": 0.0625,
+                    "w_impact": 0.0641,
+                    "w_work": 0.05
+                  },
+                  {
+                    "concept": "https://cwrusdle.bitbucket.io/mds/SolderMaterial",
+                    "element": "https://cwrusdle.bitbucket.io/mds/SolderMaterial",
+                    "drop": 0.0625,
+                    "w_impact": 0.0641,
+                    "w_work": 0.05
+                  },
+                  {
+                    "concept": "https://cwrusdle.bitbucket.io/mds/SolderingProcess",
+                    "element": "https://cwrusdle.bitbucket.io/mds/SolderingProcess",
+                    "drop": 0.0625,
+                    "w_impact": 0.0641,
+                    "w_work": 0.05
+                  }
+                ]
+              }
             },
             {
               "id": "benchmarkScore",
               "name": "Benchmark score",
               "kind": "benchmark",
               "level": "IV",
-              "value": null,
-              "status": "Not available (no benchmark suite)",
+              "value": 0.55,
+              "status": "Success",
               "detail": {}
             },
             {
@@ -3712,8 +3835,8 @@
               "name": "Answer accuracy",
               "kind": "benchmark",
               "level": "IV",
-              "value": null,
-              "status": "Not available (no benchmark suite)",
+              "value": 0.4,
+              "status": "Success",
               "detail": {}
             },
             {
@@ -3721,8 +3844,8 @@
               "name": "Reasoning-path match",
               "kind": "benchmark",
               "level": "IV",
-              "value": null,
-              "status": "Not available (no benchmark suite)",
+              "value": 1.0,
+              "status": "Success",
               "detail": {}
             }
           ]
@@ -4044,7 +4167,52 @@
           ]
         }
       ],
-      "benchmark_cases": []
+      "benchmark_cases": [
+        {
+          "id": "capacitors-retrieval-001",
+          "question": "Which sensors are part of the exposure chamber?",
+          "level": "fact_retrieval",
+          "task_type": "fact_retrieval",
+          "score": 0.0,
+          "answer_score": 0.0,
+          "evidence_score": null,
+          "constraint_score": null,
+          "status": "success"
+        },
+        {
+          "id": "capacitors-deduction-001",
+          "question": "Following the class hierarchy, what is a multilayer ceramic capacitor two levels up?",
+          "level": "complex_reasoning",
+          "task_type": "deduction",
+          "score": 1.0,
+          "answer_score": 1.0,
+          "evidence_score": 1.0,
+          "constraint_score": null,
+          "status": "success"
+        },
+        {
+          "id": "capacitors-summary-001",
+          "question": "Provide a structured ontology-grounded summary of the capacitor under test.",
+          "level": "contextual_summarization",
+          "task_type": "contextual_summary",
+          "score": 0.2,
+          "answer_score": 0.2,
+          "evidence_score": null,
+          "constraint_score": null,
+          "status": "success"
+        },
+        {
+          "id": "capacitors-plan-001",
+          "question": "Can an ontology-grounded plan select a multilayer ceramic capacitor as the sample under test and mount it by soldering?",
+          "level": "constrained_generation",
+          "task_type": "constrained_plan",
+          "score": 1.0,
+          "answer_score": 0.0,
+          "evidence_score": null,
+          "constraint_score": 1.0,
+          "status": "success"
+        }
+      ]
     },
     {
       "name": "GeoOutage",
@@ -4052,7 +4220,7 @@
         "GeoOutage.ttl"
       ],
       "questions": "GeoOutage.json",
-      "benchmark": null,
+      "benchmark": "GeoOutage-cq.json",
       "has_abox": false,
       "weighted_by": [
         "competency questions"
@@ -5710,17 +5878,56 @@
               "name": "Counterfactual concept importance",
               "kind": "fitness",
               "level": "I",
-              "value": null,
-              "status": "Not available (no benchmark suite)",
-              "detail": {}
+              "value": 0.8956,
+              "status": "Success",
+              "detail": {
+                "Z_baseline": 0.9375,
+                "top": [
+                  {
+                    "concept": "https://purl.archive.org/geooutageonto/#representsCounty",
+                    "element": "https://purl.archive.org/geooutageonto/#representsCounty",
+                    "drop": 0.4375,
+                    "w_impact": 0.3043,
+                    "w_work": 0.375
+                  },
+                  {
+                    "concept": "https://purl.archive.org/geooutageonto/#CustomerOutageRecord",
+                    "element": "https://purl.archive.org/geooutageonto/#CustomerOutageRecord",
+                    "drop": 0.375,
+                    "w_impact": 0.2609,
+                    "w_work": 0.125
+                  },
+                  {
+                    "concept": "https://purl.archive.org/geooutageonto/#NTLImage",
+                    "element": "https://purl.archive.org/geooutageonto/#NTLImage",
+                    "drop": 0.3125,
+                    "w_impact": 0.2174,
+                    "w_work": 0.2917
+                  },
+                  {
+                    "concept": "https://purl.archive.org/geooutageonto/#numberOfOutages",
+                    "element": "https://purl.archive.org/geooutageonto/#numberOfOutages",
+                    "drop": 0.1875,
+                    "w_impact": 0.1304,
+                    "w_work": 0.125
+                  },
+                  {
+                    "concept": "https://purl.archive.org/geooutageonto/#OutageMap",
+                    "element": "https://purl.archive.org/geooutageonto/#OutageMap",
+                    "drop": 0.0625,
+                    "w_impact": 0.0435,
+                    "w_work": 0.0417
+                  }
+                ]
+              }
             },
             {
               "id": "benchmarkScore",
               "name": "Benchmark score",
               "kind": "benchmark",
               "level": "IV",
-              "value": null,
-              "status": "Not available (no benchmark suite)",
+              "value": 0.9375,
+              "status": "Success",
               "detail": {}
             },
             {
@@ -5728,8 +5935,8 @@
               "name": "Answer accuracy",
               "kind": "benchmark",
               "level": "IV",
-              "value": null,
-              "status": "Not available (no benchmark suite)",
+              "value": 1.0,
+              "status": "Success",
               "detail": {}
             },
             {
@@ -5737,8 +5944,8 @@
               "name": "Reasoning-path match",
               "kind": "benchmark",
               "level": "IV",
-              "value": null,
-              "status": "Not available (no benchmark suite)",
+              "value": 1.0,
+              "status": "Success",
               "detail": {}
             }
           ]
@@ -6088,7 +6295,52 @@
           ]
         }
       ],
-      "benchmark_cases": []
+      "benchmark_cases": [
+        {
+          "id": "geooutage-retrieval-001",
+          "question": "What kind of place does an outage record, NTL image or outage map represent?",
+          "level": "fact_retrieval",
+          "task_type": "fact_retrieval",
+          "score": 1.0,
+          "answer_score": 1.0,
+          "evidence_score": null,
+          "constraint_score": null,
+          "status": "success"
+        },
+        {
+          "id": "geooutage-deduction-001",
+          "question": "Following the class hierarchy, what kind of entity is an NTL image two levels up?",
+          "level": "complex_reasoning",
+          "task_type": "deduction",
+          "score": 1.0,
+          "answer_score": 1.0,
+          "evidence_score": 1.0,
+          "constraint_score": null,
+          "status": "success"
+        },
+        {
+          "id": "geooutage-summary-001",
+          "question": "Provide a structured ontology-grounded summary of a customer outage record.",
+          "level": "contextual_summarization",
+          "task_type": "contextual_summary",
+          "score": 1.0,
+          "answer_score": 1.0,
+          "evidence_score": null,
+          "constraint_score": null,
+          "status": "success"
+        },
+        {
+          "id": "geooutage-plan-001",
+          "question": "Can an ontology-grounded plan find the NTL image and outage map for the highest-outage record in a county?",
+          "level": "constrained_generation",
+          "task_type": "constrained_plan",
+          "score": 0.75,
+          "answer_score": 0.0,
+          "evidence_score": null,
+          "constraint_score": 0.75,
+          "status": "success"
+        }
+      ]
     },
     {
       "name": "Geospatial",
@@ -6098,7 +6350,7 @@
         "Geospatial-mdsGeo.ttl"
       ],
       "questions": "Geospatial.json",
-      "benchmark": null,
+      "benchmark": "Geospatial-cq.json",
       "has_abox": false,
       "weighted_by": [
         "competency questions"
@@ -7756,17 +8008,56 @@
               "name": "Counterfactual concept importance",
               "kind": "fitness",
               "level": "I",
-              "value": null,
-              "status": "Not available (no benchmark suite)",
-              "detail": {}
+              "value": 0.6148,
+              "status": "Success",
+              "detail": {
+                "Z_baseline": 1.0,
+                "top": [
+                  {
+                    "concept": "https://cwrusdle.bitbucket.io/mds/Sensor",
+                    "element": "https://cwrusdle.bitbucket.io/mds/Sensor",
+                    "drop": 0.5625,
+                    "w_impact": 0.2328,
+                    "w_work": 0.2125
+                  },
+                  {
+                    "concept": "https://cwrusdle.bitbucket.io/mds/Satellite",
+                    "element": "https://cwrusdle.bitbucket.io/mds/Satellite",
+                    "drop": 0.3958,
+                    "w_impact": 0.1638,
+                    "w_work": 0.025
+                  },
+                  {
+                    "concept": "https://cwrusdle.bitbucket.io/mds/mountedOn",
+                    "element": "https://cwrusdle.bitbucket.io/mds/mountedOn",
+                    "drop": 0.3333,
+                    "w_impact": 0.1379,
+                    "w_work": 0.1875
+                  },
+                  {
+                    "concept": "https://cwrusdle.bitbucket.io/mds/Elevation",
+                    "element": "https://cwrusdle.bitbucket.io/mds/Elevation",
+                    "drop": 0.25,
+                    "w_impact": 0.1034,
+                    "w_work": 0.25
+                  },
+                  {
+                    "concept": "https://cwrusdle.bitbucket.io/mds/GeospatialRaster",
+                    "element": "https://cwrusdle.bitbucket.io/mds/GeospatialRaster",
+                    "drop": 0.1875,
+                    "w_impact": 0.0776,
+                    "w_work": 0.025
+                  }
+                ]
+              }
             },
             {
               "id": "benchmarkScore",
               "name": "Benchmark score",
               "kind": "benchmark",
               "level": "IV",
-              "value": null,
-              "status": "Not available (no benchmark suite)",
+              "value": 1.0,
+              "status": "Success",
               "detail": {}
             },
             {
@@ -7774,8 +8065,8 @@
               "name": "Answer accuracy",
               "kind": "benchmark",
               "level": "IV",
-              "value": null,
-              "status": "Not available (no benchmark suite)",
+              "value": 1.0,
+              "status": "Success",
               "detail": {}
             },
             {
@@ -7783,8 +8074,8 @@
               "name": "Reasoning-path match",
               "kind": "benchmark",
               "level": "IV",
-              "value": null,
-              "status": "Not available (no benchmark suite)",
+              "value": 1.0,
+              "status": "Success",
               "detail": {}
             }
           ]
@@ -8038,7 +8329,52 @@
           "unrealised": []
         }
       ],
-      "benchmark_cases": []
+      "benchmark_cases": [
+        {
+          "id": "geospatial-retrieval-001",
+          "question": "What is a sensor such as ASTER mounted on?",
+          "level": "fact_retrieval",
+          "task_type": "fact_retrieval",
+          "score": 1.0,
+          "answer_score": 1.0,
+          "evidence_score": null,
+          "constraint_score": null,
+          "status": "success"
+        },
+        {
+          "id": "geospatial-deduction-001",
+          "question": "Following the class hierarchy, what kind of thing is elevation?",
+          "level": "complex_reasoning",
+          "task_type": "deduction",
+          "score": 1.0,
+          "answer_score": 1.0,
+          "evidence_score": 1.0,
+          "constraint_score": null,
+          "status": "success"
+        },
+        {
+          "id": "geospatial-summary-001",
+          "question": "Provide a structured ontology-grounded summary of a sensor.",
+          "level": "contextual_summarization",
+          "task_type": "contextual_summary",
+          "score": 1.0,
+          "answer_score": 1.0,
+          "evidence_score": null,
+          "constraint_score": null,
+          "status": "success"
+        },
+        {
+          "id": "geospatial-plan-001",
+          "question": "Can an ontology-grounded plan select rasters from the Terra satellite at a given spatial resolution within a geohash?",
+          "level": "constrained_generation",
+          "task_type": "constrained_plan",
+          "score": 1.0,
+          "answer_score": 0.0,
+          "evidence_score": null,
+          "constraint_score": 1.0,
+          "status": "success"
+        }
+      ]
     },
     {
       "name": "Materials Processing",
