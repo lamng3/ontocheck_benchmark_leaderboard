@@ -842,6 +842,13 @@ const ontocheckDerived = {
     { key: "path_coverage", name: "Path coverage" },
     { key: "path_stretch", name: "Path stretch" },
   ],
+  retrievalFitness: [
+    { key: "evidence_precision", name: "Evidence precision" },
+    { key: "distractor_rate", name: "Distractor rate" },
+    { key: "support_path_recall", name: "Support-path recall" },
+    { key: "triples", name: "Retrieved triples" },
+    { key: "recall_without_ontology", name: "Evidence recall without the ontology" },
+  ],
 };
 let assessment = { domains: [] };
 let assessmentLevel = "0";
@@ -872,8 +879,16 @@ function rowLevel(row) {
   return row.level || ontocheckLevels[row.id] || "0";
 }
 
-function ontocheckRow(domain, id) {
-  return ((domain.tables.ontocheck || {}).rows || []).find((item) => item.id === id);
+// "Not run (no instance data)" -> "No instance data"; "" when there is no
+// reason to show.
+function missingReason(status) {
+  const match = /\((no [^)]*)\)/i.exec(status || "");
+  return match ? match[1][0].toUpperCase() + match[1].slice(1) : "";
+}
+
+function ontocheckReason(domain, id) {
+  const row = ((domain.tables.ontocheck || {}).rows || []).find((item) => item.id === id);
+  return row && row.status !== "Success" ? missingReason(row.status) : "";
 }
 
 function ontocheckValue(domain, id) {
@@ -897,10 +912,8 @@ function rankScores(domain) {
     recall: [ontocheckValue(domain, "recall")],
     conceptualFitness: [ontocheckValue(domain, "conceptualFitness")],
     structuralFitness: [ontocheckValue(domain, "structuralFitness")],
-    logicalFitness: [ontocheckValue(domain, "logicalFitness")],
     retrievalFitness: [ontocheckValue(domain, "retrievalFitness")],
-    answerAccuracy: [ontocheckValue(domain, "answerAccuracy")],
-    reasoningPath: [ontocheckValue(domain, "reasoningPath")],
+    benchmarkScore: [ontocheckValue(domain, "benchmarkScore")],
   };
 }
 
@@ -921,8 +934,11 @@ function benchmarkTag(domain) {
   return workloadTag(domain.benchmark, (domain.benchmark_cases || []).length, "Benchmarks");
 }
 
-function rankCell(label, values, format, status) {
+function rankCell(label, values, format, reason) {
   const [original, weighted] = values;
+  if ((original === null || original === undefined) && reason) {
+    return `<td data-label="${escapeHtml(label)}" class="assessment-missing"><span class="assessment-reason">${escapeHtml(reason)}</span></td>`;
+  }
   const second =
     values.length > 1 ? `<span class="assess-value weighted">${escapeHtml(format(weighted))}</span>` : "";
   const why = status && status !== "Success" ? ` title="${escapeHtml(status)}"` : "";
@@ -932,7 +948,7 @@ function rankCell(label, values, format, status) {
 function renderAssessmentRank() {
   const scored = (assessment.domains || []).filter((domain) => domain.tables);
   if (!scored.length) {
-    assessmentRank.innerHTML = '<tr><td colspan="12" class="l"><p class="empty">The assessment results could not be loaded.</p></td></tr>';
+    assessmentRank.innerHTML = '<tr><td colspan="10" class="assessment-missing">—</td></tr>';
     return;
   }
   const rows = scored.map((domain) => ({ domain, scores: rankScores(domain) }));
@@ -958,16 +974,14 @@ function renderAssessmentRank() {
             <span class="name">${escapeHtml(domain.name)}</span>
             <span class="assess-workload">${questionsTag(domain)}${benchmarkTag(domain)}</span>
           </td>
-          ${rankCell("Baseline · OOPS", scores.oops, assessmentPercent)}
-          ${rankCell("Baseline · FOOPS", scores.foops, assessmentPercent)}
-          ${rankCell("Baseline · OQuaRE", scores.oquare, grade)}
-          ${rankCell("Baseline · Term recall", scores.recall, score)}
-          ${rankCell("I · Conceptual fitness", scores.conceptualFitness, score)}
-          ${rankCell("II-A · Structural fitness", scores.structuralFitness, score)}
-          ${rankCell("II-B · Logical fitness", scores.logicalFitness, score, ontocheckRow(domain, "logicalFitness")?.status)}
-          ${rankCell("III · Retrieval fitness", scores.retrievalFitness, score, ontocheckRow(domain, "retrievalFitness")?.status)}
-          ${rankCell("IV · Answer accuracy", scores.answerAccuracy, score, ontocheckRow(domain, "answerAccuracy")?.status)}
-          ${rankCell("IV · Reasoning path", scores.reasoningPath, score, ontocheckRow(domain, "reasoningPath")?.status)}
+          ${rankCell("0 · OOPS", scores.oops, assessmentPercent)}
+          ${rankCell("0 · FOOPS", scores.foops, assessmentPercent)}
+          ${rankCell("0 · OQuaRE", scores.oquare, grade)}
+          ${rankCell("I · Recall", scores.recall, score, ontocheckReason(domain, "recall"))}
+          ${rankCell("I · Conceptual fitness", scores.conceptualFitness, score, ontocheckReason(domain, "conceptualFitness"))}
+          ${rankCell("II · Structural fitness", scores.structuralFitness, score, ontocheckReason(domain, "structuralFitness"))}
+          ${rankCell("III · Evidence recall", scores.retrievalFitness, score, ontocheckReason(domain, "retrievalFitness"))}
+          ${rankCell("IV · Benchmark score", scores.benchmarkScore, score, ontocheckReason(domain, "benchmarkScore"))}
         </tr>
       `,
     )
@@ -996,7 +1010,7 @@ function assessmentValueCell(row, field) {
 
 function plainValueCell(value, status, label, fixed) {
   const ok = !status || status === "Success";
-  const text = !ok ? "—" : fixed && typeof value === "number" ? value.toFixed(3) : formatAssessmentValue(value);
+  const text = !ok ? missingReason(status) || "—" : fixed && typeof value === "number" ? value.toFixed(3) : formatAssessmentValue(value);
   const attrs = (label ? ` data-label="${escapeHtml(label)}"` : "") + (ok ? "" : ` title="${escapeHtml(status)}"`);
   return `
     <td class="${ok ? "" : "missing"}"${attrs}>
@@ -1062,7 +1076,7 @@ function renderFrameworkTable(domain) {
 
 function sourceTag(domain, row) {
   if (row.kind === "benchmark" || row.id === "counterfactualImportance") return benchmarkTag(domain);
-  if (row.kind === "task" || row.kind === "fitness") return questionsTag(domain);
+  if (row.kind === "task" || row.kind === "fitness" || row.kind === "retrieval") return questionsTag(domain);
   return "";
 }
 
@@ -1148,6 +1162,22 @@ function renderQueryTable(domain) {
             ${fixedCell(q.F_S, "Structural fitness")}
             ${fixedCell(q.path_coverage, "Path coverage")}
             ${nameList(q.unrealised, "Unrealised")}
+          </tr>
+        `,
+      )
+      .join("");
+  } else if (assessmentLevel === "III" && queries.some((q) => q.ER !== undefined)) {
+    assessmentQueriesHead.innerHTML =
+      '<tr><th scope="col">Query</th><th scope="col">Evidence recall</th><th scope="col">Support-path recall</th><th scope="col">Without the ontology</th></tr>';
+    assessmentQueriesBody.innerHTML = queries
+      .filter((q) => q.ER !== undefined)
+      .map(
+        (q) => `
+          <tr>
+            ${queryCell(q.qid, q.question)}
+            ${fixedCell(q.ER, "Evidence recall")}
+            ${fixedCell(q.support_path_recall, "Support-path recall")}
+            ${fixedCell(q.ER_without_ontology, "Without the ontology")}
           </tr>
         `,
       )
