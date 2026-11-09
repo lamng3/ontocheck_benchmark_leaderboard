@@ -1,0 +1,790 @@
+@prefix ElectronicComponents-Capacitor-Equipment: <https://cwrusdle.bitbucket.io/mds/EC-Equipment/> .
+@prefix ElectronicComponents-Capacitor-Sample: <https://cwrusdle.bitbucket.io/mds/EC-Sample/> .
+@prefix ElectronicComponents-Capacitor-Sample_Holder: <https://cwrusdle.bitbucket.io/mds/EC-Sample_Holder/> .
+@prefix cco: <https://www.commoncoreontologies.org/> .
+@prefix dcmi: <http://purl.org/dc/terms/> .
+@prefix mds: <https://cwrusdle.bitbucket.io/mds/> .
+@prefix obo: <http://purl.obolibrary.org/obo/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix xsd1: <https://www.w3.org/TR/xmlschema-1#> .
+
+mds:ActofOpening a owl:Class ;
+    rdfs:label "Act of Opening" ;
+    rdfs:subClassOf cco:ont00000228 ;
+    skos:altLabel "Opening Process" ;
+    skos:definition "Opening the supplier/manufacturer packaging to use the artifacts within." .
+
+mds:ApplicationNorm a owl:Class ;
+    rdfs:label "Application Norm" ;
+    rdfs:subClassOf cco:ont00000127 ;
+    skos:altLabel "Application Rating, Recommended Use" ;
+    skos:definition "Application rating of a component given by manufacturer" ;
+    mds:value xsd:string .
+
+mds:AuxiliaryInputConnector a owl:Class ;
+    rdfs:label "Auxiliary Input Connector" ;
+    rdfs:subClassOf mds:ElectricalConnector ;
+    skos:altLabel "AUX-In Connector" ;
+    skos:definition "An electrical connector for an auxiliary input." .
+
+mds:AuxiliaryOutputConnector a owl:Class ;
+    rdfs:label "Auxiliary Output Connector" ;
+    rdfs:subClassOf mds:ElectricalConnector ;
+    skos:altLabel "AUX-Out Connector" ;
+    skos:definition "An electrical connector for an auxiliary output." .
+
+mds:CapacitanceTolerance a owl:Class ;
+    rdfs:label "Capacitance Tolerance" ;
+    rdfs:subClassOf mds:Capacitance,
+        mds:Tolerance ;
+    skos:altLabel "" ;
+    skos:definition "Tolerance of the capacitance for a given sample (ex. capacitor)" .
+
+mds:CapacitorHeight a owl:Class ;
+    rdfs:label "Capacitor Height" ;
+    rdfs:subClassOf mds:SampleDimension ;
+    skos:altLabel "" ;
+    skos:definition "Manufacturer specified height of a capacitor" ;
+    mds:value xsd:float .
+
+mds:CapacitorLength a owl:Class ;
+    rdfs:label "Capacitor Length" ;
+    rdfs:subClassOf mds:SampleDimension ;
+    skos:altLabel "" ;
+    skos:definition "Manufacturer specified length of a capafcitor" ;
+    mds:value xsd:float .
+
+mds:CapacitorRemoved a owl:Class ;
+    rdfs:label "Capacitor Removed" ;
+    rdfs:subClassOf mds:DesolderingProcess,
+        mds:PrintedCircuitBoardContactPad ;
+    skos:altLabel "" ;
+    skos:definition "Boolean for whether a capacior was removed from a contact pad (like from on a PCB)" ;
+    mds:value xsd1:boolean .
+
+mds:CapacitorWidth a owl:Class ;
+    rdfs:label "Capacitor Width" ;
+    rdfs:subClassOf mds:SampleDimension ;
+    skos:altLabel "" ;
+    skos:definition "Manufacturer specified width of a capacitor" ;
+    mds:value xsd:float .
+
+mds:CapactiorLengthTolerance a owl:Class ;
+    rdfs:label "Capacitor Length Tolerance" ;
+    rdfs:subClassOf mds:Tolerance ;
+    skos:altLabel "" ;
+    skos:definition "Manufacturer specified length tolerance of a capacitor (±)" ;
+    mds:value xsd:float .
+
+mds:CapactiorTerminalElectrodeLength a owl:Class ;
+    rdfs:label "Capacitor Terminal Electrode Length" ;
+    rdfs:subClassOf mds:SampleDimension ;
+    skos:altLabel "Capacitor Electrode Length, Capacitor End Termination Length" ;
+    skos:definition "Manufacturer specified terminal electrode length of a capacitor" ;
+    mds:value xsd:float .
+
+mds:CapactiorTerminalElectrodeLengthTolerance a owl:Class ;
+    rdfs:label "Capacitor Terminal Electrode Length CapactiorLengthTolerance" ;
+    rdfs:subClassOf mds:Tolerance ;
+    skos:altLabel "Capacitor Electrode Length Tolerance, Capacitor End Termination Length Tolerance" ;
+    skos:definition "Manufacturer specified variation in terminal electrode length of a capacitor (±)" ;
+    mds:value xsd:float .
+
+mds:CapactiorWidthTolerance a owl:Class ;
+    rdfs:label "Capacitor Width Tolerance" ;
+    rdfs:subClassOf mds:Tolerance ;
+    skos:altLabel "" ;
+    skos:definition "Manufacturer specified width tolerance of a capacitor (±)" ;
+    mds:value xsd:float .
+
+mds:CommunicationPortConnector a owl:Class ;
+    rdfs:label "Communication Connector" ;
+    rdfs:subClassOf mds:ElectricalConnector ;
+    skos:altLabel "COM Connector" ;
+    skos:definition "An electrical connector primarily used for trasfering data between one system to another." .
+
+mds:DeSolderLocation a owl:Class ;
+    rdfs:label "Desolder Location" ;
+    rdfs:subClassOf mds:DesolderingProcess ;
+    skos:altLabel "Desolder geographic area" ;
+    skos:definition "Location where desoldering process occured" ;
+    mds:value xsd1:string .
+
+mds:Desolderer a owl:Class ;
+    rdfs:label "Desolderer" ;
+    rdfs:subClassOf mds:DesolderingProcess,
+        cco:ont00001017 ;
+    skos:altLabel "" ;
+    skos:definition "Agent which carries out the desoldering process" ;
+    mds:value xsd1:string .
+
+mds:DesolderingGun a owl:Class ;
+    rdfs:label "Desoldering Gun" ;
+    rdfs:subClassOf mds:DesolderingGunUsed,
+        mds:ont00000581 ;
+    skos:altLabel "Solder Sucker" ;
+    skos:definition "Tool used to remove the solder during the desoldering process" .
+
+mds:DigitalEnableConnector a owl:Class ;
+    rdfs:label "Digital Enable Connector" ;
+    rdfs:subClassOf mds:ElectricalConnector ;
+    skos:altLabel "" ;
+    skos:definition "An electrical connector for controlling specific features of a system or digital circuit." .
+
+ElectronicComponents-Capacitor-Equipment:Ontology a owl:Ontology ;
+    rdfs:label "ElectronicComponents-Capacitor-Equipment" ;
+    dcmi:creator "Rishabh Kundu, Jacob Anthony Lample, Quynh Tran, Van Tran, Ravi Lin, Roger French, Alp Sehirlioglu" ;
+    dcmi:description "An ontology for the equipment surrounding capacitors undergoing HALT through aixHALT. The aim is to capture all the metadata associated with the tools required so this ontology may be used universally." ;
+    dcmi:title "ElectronicComponents-Capacitor-Equipment" ;
+    owl:versionInfo "0.0.1" .
+
+ElectronicComponents-Capacitor-Sample:Ontology a owl:Ontology ;
+    rdfs:label "ElectronicComponents-Capacitor-Sample" ;
+    dcmi:creator "Rishabh Kundu, Jacob Anthony Lample, Van Tran, Quynh Tran, Ravi Lin, Roger French, Alp Sehirlioglu" ;
+    dcmi:description "Particularly, an ontology for capacitors undergoing HALT through aixHALT. The aim is to capture all the metadata associated with a capacitor so this ontology may be used universally. " ;
+    dcmi:title "ElectronicComponents-Capacitor-Sample" ;
+    owl:versionInfo "0.0.1" .
+
+ElectronicComponents-Capacitor-Sample_Holder:Ontology a owl:Ontology ;
+    rdfs:label "ElectronicComponents-Capacitor-Sample_Holder" ;
+    dcmi:creator "Rishabh Kundu, Jacob Anthony Lample, Quynh Tran, Van Tran, Ravi Lin, Roger French, Alp Sehirlioglu" ;
+    dcmi:description "An ontology for sample holders for capacitors undergoing HALT through aixHALT. The aim is to capture all the metadata associated with a capacitor sample holder so this ontology may be used universally. " ;
+    dcmi:title "ElectronicComponents-Capacitor-Sample_Holder" ;
+    owl:versionInfo "0.0.1" .
+
+mds:ElectricalWireGauge a owl:Class ;
+    rdfs:label "Electrical Wire Gauge" ;
+    rdfs:subClassOf mds:ElectricalWire,
+        cco:ont00001304 ;
+    skos:altLabel "Electrical Wire Thickness, Electrical Wire Diameter" ;
+    skos:definition "Represents the gauge of an electrical wire. May be provided with the American Wire Gauge (AWG) standard" ;
+    skos:example "A 14 AWG wire" ;
+    mds:value xsd1:integer .
+
+mds:ElectricalWireInsulationDiameter a owl:Class ;
+    rdfs:label "Electrical Wire Insulation Diameter" ;
+    rdfs:comment "This is found by subtracting the thickness of the conducting wire inside (usually given by the AWG standard) from the measured diameter of the given wire." ;
+    rdfs:subClassOf mds:ElectricalWire,
+        cco:ont00001304 ;
+    skos:altLabel "Electrical Wire Insulation Thickness" ;
+    skos:definition "Represents the thickness of a given electrical wire's insulation." ;
+    mds:value xsd1:float .
+
+mds:ElectricalWireInsulationMaterial a owl:Class ;
+    rdfs:label "Electrical Wire Insulation Material" ;
+    rdfs:subClassOf mds:ElectricalWire,
+        cco:ont00000575 ;
+    skos:altLabel "Electrical Wire Insulation Composition" ;
+    skos:definition "Represents the material of which the insulation on an electrical wire is composed of." ;
+    mds:value xsd1:string .
+
+mds:ElectricalWireMaterial a owl:Class ;
+    rdfs:label "Electrical Wire Material" ;
+    rdfs:comment "This does not include the insulation material." ;
+    rdfs:subClassOf mds:ElectricalWire,
+        cco:ont00000575 ;
+    skos:altLabel "Electrical Wire Composition" ;
+    skos:definition "Represents the material an electrical wire is composed of." ;
+    skos:example "A copper wire, an aluminum wire" ;
+    mds:value xsd1:string .
+
+mds:EthernetCable a owl:Class ;
+    rdfs:label "Ethernet Cable" ;
+    rdfs:subClassOf mds:ElectricalWire ;
+    skos:altLabel "Ethernet Wire" ;
+    skos:definition "A type of electrical wire that transmits data through encoded electrical signals." .
+
+mds:ExposureChamberFan a owl:Class ;
+    rdfs:label "Exposure Chamber Fan" ;
+    rdfs:subClassOf cco:ont00000338 ;
+    skos:altLabel "" ;
+    skos:definition "A type of fan that resides within some type of chamber with the object of maintaing air flow within the chamber." ;
+    skos:example "Airflow fan within an exposure chamber" ;
+    mds:value xsd1:string .
+
+mds:ExposureChamberInsulationMaterial a owl:Class ;
+    rdfs:label "Exposure Chamber Insulation Material" ;
+    rdfs:subClassOf mds:ExposureChamber ;
+    skos:altLabel "Exposure Chamber Side Hole Plug Material" ;
+    skos:definition "Class to represent the insulation/plug material on the sides of an environment control chamber." ;
+    skos:example "Polymer coated styrofoam" ;
+    mds:value xsd1:string .
+
+mds:ExposureChamberLight a owl:Class ;
+    rdfs:label "Exposure Chamber Light" ;
+    rdfs:subClassOf cco:ont00000236 ;
+    skos:altLabel "Exposure Chamber Lamp" ;
+    skos:definition "Class to represent the light within an exposure chamber." ;
+    mds:value xsd1:boolean .
+
+mds:ExposureChamberVent a owl:Class ;
+    rdfs:label "Exposure Chamber Vent" ;
+    rdfs:subClassOf cco:ont00000256 ;
+    skos:altLabel "" ;
+    skos:definition "Class to represent an exposure chamber vent." ;
+    mds:value xsd1:string .
+
+mds:ExposureChamberWireGrateHeight a owl:Class ;
+    rdfs:label "Exposure Chamber Wire Grate Height" ;
+    rdfs:comment "Refer to the equipment instruction to enter the appropriate rack level" ;
+    rdfs:subClassOf mds:ExposureChamberWireGrate,
+        cco:ont00000967 ;
+    skos:altLabel "Exposure Chamber Rack Level" ;
+    skos:definition "The height at which a chamber rack is set at during testing." ;
+    mds:value xsd1:integer .
+
+mds:FluxMaterial a owl:Class ;
+    rdfs:label "Flux Material" ;
+    rdfs:subClassOf mds:ExternalFluxUsed ;
+    skos:altlabel "Kind of Flux" ;
+    skos:definition "If flux was used in the soldering process, what type of flux is it (ex. rosin, inorganic flux, etc.)" ;
+    mds:value xsd1:string .
+
+mds:GlassTransitionTemperature a owl:Class ;
+    rdfs:label "Glass Transition Temperature" ;
+    rdfs:subClassOf mds:PrintedCircuitBoardDesign,
+        cco:ont00000441 ;
+    skos:altLabel "GTT" ;
+    skos:definition "Represents the glass transition temperature of a material" ;
+    mds:value xsd1:float .
+
+mds:GroundWire a owl:Class ;
+    rdfs:label "Ground Wire" ;
+    rdfs:subClassOf mds:ElectricalWire ;
+    skos:altLabel "Ground Cable" ;
+    skos:definition "A type of electrical wire that attempts to prevent damage and fires by provideing a low resistance path for electricity to flow to in the event of a current surge or other electrical anomaly." .
+
+mds:JSEN-Connector a owl:Class ;
+    rdfs:label "JSEN Connector" ;
+    rdfs:subClassOf mds:DIN-Connector,
+        mds:ElectricalComponentHighlyAcceleratedLifetimeTestingSystem ;
+    skos:altLabel "" ;
+    skos:definition "An electrical connector for interacting with electrical samples in an Electrical Component Lifetime Testing System." .
+
+mds:LotCode a owl:Class ;
+    rdfs:label "Lot Code" ;
+    rdfs:subClassOf cco:ont00001309 ;
+    skos:altLabel "BatchCode" ;
+    skos:definition "Code provided by manufacturer about which lot or batch a sample is from" ;
+    mds:value xsd:string .
+
+mds:LowerTemperatureLimit a owl:Class ;
+    rdfs:label "Lower Temperature Limit" ;
+    rdfs:subClassOf cco:ont00000127,
+        cco:ont00000441 ;
+    skos:altLabel "" ;
+    skos:definition "Manufacturer specified lower operational temperature limit to maintain manufactuer specified functional tolerance (ex. if a capacitor has -55 degrees Celcius as its lower operational temperature, the manufactuer specifies that its envinronment temperature during usage does not drop below -55 degrees Celcius to maintain the capacitave tolerance)" ;
+    mds:value xsd:float .
+
+mds:MicroController a owl:Class ;
+    rdfs:label "MircoController" ;
+    rdfs:subClassOf mds:ElectricalComponentHighlyAcceleratedLifetimeTestingSystem,
+        cco:ont00000781 ;
+    skos:altLabel "µC" ;
+    skos:definition "An artifact that controls the input and output signals." .
+
+mds:MultiLayerCeramicCapacitor a owl:Class ;
+    rdfs:label "MultiLayer Ceramic Capacitor" ;
+    rdfs:subClassOf mds:Capacitor ;
+    skos:altLabel "MLCC" ;
+    skos:definition "A capacitor that is designed with multiple layers of dielectric and metal" .
+
+mds:NumberOfExposureChamberWireGrates a owl:Class ;
+    rdfs:label "Number of Exposure Chamber Wire Grates" ;
+    rdfs:subClassOf mds:ExposureChamberWireGrate ;
+    skos:altLabel "Exposure Chamber Grates in Usage" ;
+    skos:definition "How many chamber racks are being used at one instance in a particular application." ;
+    mds:value xsd1:integer .
+
+mds:NumberOfPrintedCircuitBoardLayers a owl:Class ;
+    rdfs:label "Number of Printed Circuit Board Layers" ;
+    rdfs:subClassOf mds:PrintedCircuitBoardDesign ;
+    skos:altLabel "Number of PCB Layers" ;
+    skos:definition "Represents how many layers a PCB has" ;
+    mds:value xsd1:float .
+
+mds:PackagingMaterial a owl:Class ;
+    rdfs:label "Packaging Material" ;
+    rdfs:subClassOf mds:ExternalPackaging ;
+    skos:altLabel "" ;
+    skos:definition "Type of material that an artifact is packaged in (ex. for a capacitor: paper or embossed packaging)" .
+
+mds:PhaseToGroundVoltage a owl:Class ;
+    rdfs:label "Phase To Ground Voltage" ;
+    rdfs:subClassOf mds:ElectricalWire,
+        mds:VoltageRating ;
+    skos:altLabel "PtG-V" ;
+    skos:definition "The voltage rating of a wire for phase to ground applications." ;
+    mds:value xsd1:integer .
+
+mds:PhaseToPhaseVoltage a owl:Class ;
+    rdfs:label "Phase To Phase Voltage" ;
+    rdfs:subClassOf mds:ElectricalWire,
+        mds:VoltageRating ;
+    skos:altLabel "PtP-V" ;
+    skos:definition "The voltage rating of a wire for phase to phase applications." ;
+    mds:value xsd1:integer .
+
+mds:PrintedCircuitBoardCoatingType a owl:Class ;
+    rdfs:label "Printed Circuit Board Coating Type" ;
+    rdfs:subClassOf mds:PrintedCircuitBoardDesign ;
+    skos:altLabel "PCB Coating Type, PCB Coating Material" ;
+    skos:definition "Represents the material that a PCB is coated with (ex. gold or copper)" ;
+    mds:value xsd1:string .
+
+mds:PrintedCircuitBoardContactPadCleaned a owl:Class ;
+    rdfs:label "Printed Circuit Board Contact Pad Cleaned" ;
+    rdfs:subClassOf mds:PrintedCircuitBoardContactPad ;
+    skos:altLabel "PCB Contact Pad Cleaned" ;
+    skos:definition "Boolean for whether or not a PCB contact pad has been cleaned with alcohol/anything else before undergoing a function" ;
+    mds:value xsd1:boolean .
+
+mds:PrintedCircuitBoardContactPadReference a owl:Class ;
+    rdfs:label "Printed Circuit Board Contact Pad Reference" ;
+    rdfs:subClassOf cco:ont00000292 ;
+    skos:altLabel "Contact Pad Identifier, Contact Pad Position, PCB Contact Pad Reference" ;
+    skos:definition "Identifier for each unique contact pad position on a PCB (ex. C54)" ;
+    mds:value xsd1:string .
+
+mds:PrintedCircuitBoardID a owl:Class ;
+    rdfs:label "Printed Circuit Board ID" ;
+    rdfs:subClassOf cco:ont00000292 ;
+    skos:altLabel "PCB code, PCB number, PCB pin, PCB ID" ;
+    skos:definition "Unique identifing pin/number for a PCB" ;
+    mds:value xsd1:integer .
+
+mds:RelativeHumiditySensor a owl:Class ;
+    rdfs:label "Realative Humidity Sensor" ;
+    rdfs:subClassOf cco:ont00000569 ;
+    skos:altLabel "RH Sensor" ;
+    skos:definition "A type of sensor/transducer that measures relative humidity" .
+
+mds:SampleHolderCase a owl:Class ;
+    rdfs:label "Sample Holder Case" ;
+    rdfs:comment "This will be the bearer of (or something) an interlock and ground port" ;
+    rdfs:subClassOf mds:ElectricalComponentHighlyAcceleratedLifetimeTestingSystem,
+        cco:ont00001042 ;
+    skos:altLabel "Sample Holder Cage" ;
+    skos:definition "The metal cage in which a sample and/or sample holder is contained within during electrical testing." .
+
+mds:SolderIronTemp a owl:Class ;
+    rdfs:label "Solder Iron Temp" ;
+    rdfs:subClassOf mds:SolderIron,
+        cco:ont00000441 ;
+    skos:altLabel "Solder Fe Temp, Solder Temp, Solder Fe T" ;
+    skos:definition "Temperature of a solder iron throughout the soldering or desoldering process as desired by the agent using it" ;
+    mds:value xsd1:float .
+
+mds:SolderLocation a owl:Class ;
+    rdfs:label "Solder Location" ;
+    rdfs:subClassOf mds:SolderingProcess ;
+    skos:altLabel "Solder geographic area" ;
+    skos:definition "Location where soldering process occured" ;
+    mds:value xsd1:string .
+
+mds:SolderMaterial a owl:Class ;
+    rdfs:label "Solder Material" ;
+    rdfs:subClassOf mds:SolderProcessType ;
+    skos:altlabel "" ;
+    skos:definition "Represents the material which the chosen solder is comprised of in the soldering process (ex. PbSn, Sn, etc.)" ;
+    mds:value xsd1:string .
+
+mds:SolderWireThickness a owl:Class ;
+    rdfs:label "Solder Wire Thickness" ;
+    rdfs:subClassOf mds:SolderProcessType,
+        cco:ont00001304 ;
+    skos:altLabel "Solder Thickness" ;
+    skos:definition "Thickness of solder wire used (if any) in soldering process" ;
+    mds:value xsd1:float .
+
+mds:Solderer a owl:Class ;
+    rdfs:label "Solderer" ;
+    rdfs:subClassOf mds:SolderingProcess,
+        cco:ont00001017 ;
+    skos:altLabel "" ;
+    skos:definition "Agent which carries out the soldeirng process" ;
+    mds:value xsd1:string .
+
+mds:Supplier a owl:Class ;
+    rdfs:label "Supplier" ;
+    rdfs:subClassOf cco:ont00000443 ;
+    skos:altLabel "" ;
+    skos:definition "Supplier of a given component or instrument" ;
+    mds:value xsd:string .
+
+mds:TypeKThermocouple a owl:Class ;
+    rdfs:label "Type K Thermocouple" ;
+    rdfs:subClassOf mds:Thermocouple ;
+    skos:altLabel "" ;
+    skos:definition "A type of thermocouple which can be operated from -270°C to 1260°C (approx.)." .
+
+mds:UniversialSerialBusConnector a owl:Class ;
+    rdfs:label "Universial Serial Bus Connector" ;
+    rdfs:subClassOf mds:ElectricalConnector ;
+    skos:altLabel "USB Connector" ;
+    skos:definition "An electrical connector, present on most or all computers and numerous other devices" .
+
+mds:UpperTemperatureLimit a owl:Class ;
+    rdfs:label "Upper Temperature Limit" ;
+    rdfs:subClassOf cco:ont00000127,
+        cco:ont00000441 ;
+    skos:altLabel "" ;
+    skos:definition "Manufacturer specified upper operational temperature limit to maintain manufactuer specified functional tolerance (ex. if a capacitor has 125 degrees Celcius as its upper operational temperature, the manufactuer specifies that its envinronment temperature during usage does not superceed 125 degrees Celcius to maintain the capacitave tolerance)" ;
+    mds:value xsd:float .
+
+mds:VoltageAmplifier a owl:Class ;
+    rdfs:label "Voltage Amplifier" ;
+    rdfs:comment "A type of amplifier that specializes in electrical energies only | This will have an instance of voltage rating" ;
+    rdfs:subClassOf mds:Amplifier ;
+    skos:altLabel "" ;
+    skos:definition "Any system that recieves an external electrical energy and increases it." ;
+    skos:example "A voltage amplifier that recieves a voltage of 25V and outputs a voltage of 200V; A current amplifier that recives a current of 50A and outputs 200A" .
+
+mds:VoltageInConnector a owl:Class ;
+    rdfs:label "Voltage In Connector" ;
+    rdfs:subClassOf mds:ElectricalConnector ;
+    skos:altLabel "V-In Connector" ;
+    skos:definition "An electrical connector where voltage is the input." .
+
+mds:VoltageMonitorConnector a owl:Class ;
+    rdfs:label "Voltage Monitor Connector" ;
+    rdfs:subClassOf mds:ElectricalConnector ;
+    skos:altLabel "V-Mon Connector" ;
+    skos:definition "An electrical connector for monitoring voltage." .
+
+mds:VoltageOutConnector a owl:Class ;
+    rdfs:label "Voltage Out Connector" ;
+    rdfs:subClassOf mds:ElectricalConnector ;
+    skos:altLabel "V-Out Connector" ;
+    skos:definition "An electrical connector where voltage is the output." .
+
+mds:WallOutlet a owl:Class ;
+    rdfs:label "Wall Outlet" ;
+    rdfs:subClassOf cco:ont00001049 ;
+    skos:altLabel "Power Outlet" ;
+    skos:definition "An electrical outlet that is tied into the main wiring of a building in order to provide power to devices plugged into it." .
+
+mds:Amplifier a owl:Class ;
+    rdfs:label "Amplifier" ;
+    rdfs:subClassOf cco:ont00000995 ;
+    skos:altLabel "" ;
+    skos:definition "Any system that recieves some kind of external force or energy and increases its magnitude." ;
+    skos:example "A voltage amplifier that recieves a voltage of 25V and outputs a voltage of 200V; A music amplifier that recives a quiet vocal signal and increases its volume" .
+
+mds:Capacitance a owl:Class ;
+    rdfs:label "Capacitance" ;
+    rdfs:subClassOf cco:ont00000127 ;
+    skos:altLabel "" ;
+    skos:definition "Capacitance of an electric component (ex. capacitor)" ;
+    mds:value xsd:float .
+
+mds:Capacitor a owl:Class ;
+    rdfs:label "Capacitor" ;
+    rdfs:subClassOf mds:ElectronicComponents ;
+    skos:altLabel "" ;
+    skos:definition "Electronic component that stores electrical energy" .
+
+mds:DIN-Connector a owl:Class ;
+    rdfs:label "DIN Connector" ;
+    rdfs:comment "The 32 pin DIN 41612 connector (JSEN) will be an instance of this <- also maintains an Artifact Function as given by cco to be included later <- this instance will connect to PCB and µC" ;
+    rdfs:subClassOf mds:ElectricalConnector ;
+    skos:altLabel "" ;
+    skos:definition "A type of electrical connector which adheres to the Deutsches Institut fur Normung (DIN) standards for connectors." .
+
+mds:DesolderingGunUsed a owl:Class ;
+    rdfs:label "Desoldering Gun Used" ;
+    rdfs:subClassOf mds:DesolderingProcess ;
+    skos:altLabel "Desoldering Pump Used" ;
+    skos:definition "Boolean for whether the solder removal gun was used" ;
+    mds:value xsd1:boolean .
+
+mds:ElectricalTestingSampleHolder a owl:Class ;
+    rdfs:label "Electrical Testing Sample Holder" ;
+    rdfs:subClassOf cco:ont00000995 ;
+    skos:altLabel "" ;
+    skos:definition "A material artifact that is used to test and hold electrical components" .
+
+mds:ElectronicComponents a owl:Class ;
+    rdfs:label "Electronic Components" ;
+    rdfs:subClassOf mds:Sample ;
+    skos:altLabel "" ;
+    skos:definition "Any sample that has an electronic functionality associated with it (ex. capacitors or resistors)" .
+
+mds:ExposureChamber a owl:Class ;
+    rdfs:label "Exposure Chamber" ;
+    rdfs:comment "This will have an instance of Upper and Lower Temperature Limit" ;
+    rdfs:subClassOf cco:ont00000453 ;
+    skos:altLabel "Environment Control Chamber" ;
+    skos:definition "Any contained unit which posseses the capability to alter environmental conditions with the intent of accelerating degradation of an artifact within for the purpose of studying the effect on the contained artifact." .
+
+mds:ExternalFluxUsed a owl:Class ;
+    rdfs:label "External Flux Used" ;
+    rdfs:subClassOf mds:PrintedCircuitBoardContactPad,
+        mds:SolderingProcess ;
+    skos:altLabel "" ;
+    skos:definition "Boolean for whether or not external flux was used in the soldering process" ;
+    mds:value xsd1:boolean .
+
+mds:ExternalPackaging a owl:Class ;
+    rdfs:label "External Packaging" ;
+    rdfs:subClassOf cco:ont00000020 ;
+    skos:altLabel "Product Container, Protective Casing" ;
+    skos:definition "Container that components are manufactured, shipped and stored in" .
+
+mds:HighlyAcceleratedLifetimeTestingSystem a owl:Class ;
+    rdfs:label "Highly Accelerated Lifetime Testing System" ;
+    rdfs:subClassOf cco:ont00000995 ;
+    skos:altLabel "HALT" ;
+    skos:definition "Any system that is intented to measure/estimate/analyze the lifetime of a material artifact by exposing it to stressors that accelerates its degradation." .
+
+mds:PrintedCircuitBoard a owl:Class ;
+    rdfs:label "Printed Circuit Board" ;
+    rdfs:subClassOf mds:ElectricalTestingSampleHolder ;
+    skos:altLabel "PCB" ;
+    skos:definition "Material artifact that electronic components (like capacitors) are soldered on to to be subjected to desired function/testing" .
+
+mds:SolderIron a owl:Class ;
+    rdfs:label "Solder Iron" ;
+    rdfs:subClassOf mds:DesolderingProcess,
+        mds:SolderingProcess,
+        cco:ont00000581 ;
+    skos:altLabel "Solder Fe" ;
+    skos:definition "Soldering Iron used to carry out the soldering or desoldering process" ;
+    mds:value xsd1:string .
+
+mds:SolderParameters a owl:Class ;
+    rdfs:label "Solder Parameters" ;
+    rdfs:subClassOf mds:SolderingProcess,
+        cco:ont00000575 ;
+    skos:altLabel "" ;
+    skos:definition "Umbrella to represents solder variables (like solder material, solder wire thickness, etc.)" .
+
+cco:ont00000020 a owl:Class ;
+    rdfs:label "Container"@en ;
+    rdfs:subClassOf cco:ont00000995 ;
+    skos:definition "A Material Artifact that is designed to contain (wholly or partially) some material entity."@en ;
+    cco:ont00001760 "https://www.commoncoreontologies.org/ArtifactOntology"^^xsd:anyURI .
+
+cco:ont00000228 a owl:Class ;
+    rdfs:label "Planned Act"@en ;
+    rdfs:subClassOf cco:ont00000005 ;
+    skos:altLabel "Intentional Act"@en ;
+    skos:definition "An Act in which at least one Agent plays a causative role and which is prescribed by some Directive Information Content Entity held by at least one of the Agents."@en ;
+    cco:ont00001760 "https://www.commoncoreontologies.org/EventOntology"^^xsd:anyURI .
+
+cco:ont00000236 a owl:Class ;
+    rdfs:label "Lighting System"@en ;
+    rdfs:subClassOf cco:ont00000995 ;
+    skos:definition "A Material Artifact that is designed to emit light within some area."@en ;
+    cco:ont00001760 "https://www.commoncoreontologies.org/ArtifactOntology"^^xsd1:anyURI .
+
+cco:ont00000338 a owl:Class ;
+    rdfs:label "Fan"@en ;
+    rdfs:subClassOf cco:ont00000256 ;
+    skos:definition "A Fluid Control Artifact that consists of a rotating arrangement of vanes or blades that are designed to act on a portion of fluid to create flow within it."@en ;
+    cco:ont00001754 "https://en.wikipedia.org/wiki/Fan_(machine)" ;
+    cco:ont00001760 "https://www.commoncoreontologies.org/ArtifactOntology"^^xsd1:anyURI .
+
+cco:ont00000443 a owl:Class ;
+    rdfs:label "Commercial Organization"@en ;
+    rdfs:subClassOf cco:ont00001180 ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:intersectionOf ( cco:ont00001180 [ a owl:Restriction ;
+                        owl:onProperty obo:BFO_0000196 ;
+                        owl:someValuesFrom cco:ont00000485 ] ) ] ;
+    skos:definition "An Organization that is the bearer of a Commercial Role and whose primary objective is to make a profit from the provision of goods or services."@en ;
+    cco:ont00001760 "https://www.commoncoreontologies.org/AgentOntology"^^xsd:anyURI .
+
+cco:ont00000453 a owl:Class ;
+    rdfs:label "Environment Control System"@en ;
+    rdfs:comment "Controlling air quality typically involves temperature control, oxygen replenishment, and removal of moisture, odor, smoke, heat, dust, airborne bacteria, carbon dioxide, and other undesired gases or particulates."@en ;
+    rdfs:subClassOf cco:ont00000995 ;
+    skos:definition "A Material Artifact that is designed to control the temperature, air quality, or other feature of a Site that is relevant to the comfort or operation of entities located within that Site."@en ;
+    cco:ont00001760 "https://www.commoncoreontologies.org/ArtifactOntology"^^xsd1:anyURI .
+
+cco:ont00000592 a owl:Class ;
+    rdfs:label "Veracity Measurement Information Content Entity"@en ;
+    rdfs:comment "'Deviation Measurement Information Content Entity' and 'Veracity Measurement Information Content Entity' are complementary notions. Deviation is a measure of whether reality conforms to an ICE (e.g., a plan or prediction), whereas Veracity is a measure of whether a Descriptive ICE conforms to reality."@en,
+        "Note, the term 'accuracy' is avoided due to its ambiguity between: correctness-of-performance (see: 'Reliability Measurement Information Content Entity'), correctness-of-information ('Veracity Measurement Information Content Entity'), and adherance-to-expectations (see: 'Deviation Measurement Information Content Entity')."@en ;
+    rdfs:subClassOf cco:ont00001163 ;
+    skos:altLabel "Accuracy of Information"@en,
+        "Trueness Measurement"@en,
+        "Veracity Measurement"@en ;
+    skos:definition "A Measurement Information Content Entity that is a measurement of the extent to which a description conforms to the reality it describes."@en ;
+    cco:ont00001760 "https://www.commoncoreontologies.org/InformationEntityOntology"^^xsd:anyURI .
+
+cco:ont00000781 a owl:Class ;
+    rdfs:label "Control System"@en ;
+    rdfs:subClassOf cco:ont00000995 ;
+    skos:definition "A Material Artifact that is designed to manage, command, direct, or regulate the behavior of at least one other Artifact."@en ;
+    cco:ont00001754 "https://en.wikipedia.org/w/index.php?title=Control_system&oldid=1061817176"^^xsd1:anyURI ;
+    cco:ont00001760 "https://www.commoncoreontologies.org/ArtifactOntology"^^xsd1:anyURI .
+
+cco:ont00001049 a owl:Class ;
+    rdfs:label "Electrical Power Source"@en ;
+    rdfs:subClassOf cco:ont00000288 ;
+    skos:definition "A Power Source that is designed to generate, control, and transfer power in the form of electrical energy."@en ;
+    cco:ont00001760 "https://www.commoncoreontologies.org/ArtifactOntology"^^xsd1:anyURI .
+
+cco:ont00001309 a owl:Class ;
+    rdfs:label "Lot Number"@en ;
+    rdfs:subClassOf cco:ont00000077 ;
+    skos:definition "A Code Identifier that designates a particular quantity or lot of material from a single manufacturer."@en ;
+    cco:ont00001754 "https://en.wikipedia.org/w/index.php?title=Lot_number&oldid=1061846325"^^xsd:anyURI ;
+    cco:ont00001760 "https://www.commoncoreontologies.org/InformationEntityOntology"^^xsd:anyURI .
+
+mds:ExposureChamberWireGrate a owl:Class ;
+    rdfs:label "Exposure Chamber Wire Grate" ;
+    rdfs:comment "Within the scope of SDLE, CWRU, US, facilities, this is not the interlock or metal cage in which samples are held but the surface which holds all samples and sample holders" ;
+    rdfs:subClassOf cco:ont00001042 ;
+    skos:altLabel "Exposure Chamber Sample Rack" ;
+    skos:definition "The rack, stand, or support on which a sample or sample holder rests upon during testing within a exposure chamber." ;
+    skos:example "Wire grate in an exposure chamber; wire grate in a high temperature oven" .
+
+mds:SolderProcessType a owl:Class ;
+    rdfs:label "Solder Process Type" ;
+    rdfs:subClassOf mds:SolderParameters ;
+    skos:altLabel "Soldering Process Style" ;
+    skos:definition "Type of solder process used for soldering (ex. reflow, wire, wave, etc.)" ;
+    mds:value xsd1:string .
+
+mds:VoltageRating a owl:Class ;
+    rdfs:label "Voltage Rating" ;
+    rdfs:subClassOf cco:ont00000127 ;
+    skos:altLabel "" ;
+    skos:definition "Manufacturer specified operational voltage of an artifact (ex. if a capacitor has a voltage rating of 25V, the manufactuer specifies usage up to 25V)" ;
+    mds:value xsd:float .
+
+cco:ont00000256 a owl:Class ;
+    rdfs:label "Fluid Control Artifact"@en ;
+    rdfs:subClassOf cco:ont00000995 ;
+    skos:definition "A Material Artifact that is designed to manipulate the flow of a fluid (i.e. a liquid or a gas)."@en ;
+    cco:ont00001760 "https://www.commoncoreontologies.org/ArtifactOntology"^^xsd1:anyURI .
+
+cco:ont00000292 a owl:Class ;
+    rdfs:label "Artifact Identifier"@en ;
+    rdfs:subClassOf cco:ont00000686 ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:intersectionOf ( cco:ont00000686 [ a owl:Restriction ;
+                        owl:onProperty cco:ont00001916 ;
+                        owl:someValuesFrom cco:ont00000995 ] ) ] ;
+    skos:definition "A Designative Information Content Entity which designates some Artifact."@en ;
+    cco:ont00001760 "https://www.commoncoreontologies.org/ArtifactOntology"^^xsd1:anyURI .
+
+cco:ont00000663 a owl:Class ;
+    rdfs:label "Power Transmission Artifact"@en ;
+    rdfs:subClassOf cco:ont00000995 ;
+    skos:definition "A Material Artifact that is designed to transfer and regulate Power flow from a Power Source to an application point."@en ;
+    cco:ont00001760 "https://www.commoncoreontologies.org/ArtifactOntology"^^xsd1:anyURI .
+
+cco:ont00001017 a owl:Class ;
+    rdfs:label "Agent"@en ;
+    rdfs:subClassOf obo:BFO_0000040 ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:intersectionOf ( obo:BFO_0000040 [ a owl:Restriction ;
+                        owl:onProperty obo:BFO_0000196 ;
+                        owl:someValuesFrom cco:ont00001379 ] ) ] ;
+    skos:definition "A Material Entity that bears an Agent Capability."@en ;
+    cco:ont00001754 "Schlosser, Markus, \"Agency\", The Stanford Encyclopedia of Philosophy (Winter 2019 Edition), Edward N. Zalta (ed.), available at: https://plato.stanford.edu/archives/win2019/entries/agency/"@en ;
+    cco:ont00001760 "https://www.commoncoreontologies.org/AgentOntology"^^xsd1:anyURI .
+
+cco:ont00001042 a owl:Class ;
+    rdfs:label "Equipment Mount"@en ;
+    rdfs:subClassOf cco:ont00000995 ;
+    skos:definition "A Material Artifact that is designed to support an Artifact."@en ;
+    cco:ont00001760 "https://www.commoncoreontologies.org/ArtifactOntology"^^xsd1:anyURI .
+
+cco:ont00001196 a owl:Class ;
+    rdfs:label "Act of Artifact Assembly"@en ;
+    rdfs:comment "Many Acts of Manufacturing and Construction involve one or more Acts of Artifact Assembly, but Acts of Artifact Assembly can also occur in isolation from these activities."@en ;
+    rdfs:subClassOf cco:ont00000908 ;
+    skos:definition "An Act of Artifact Processing wherein a new Artifact is created by fitting component parts together."@en ;
+    skos:example "putting together a piece of furniture purchased from Ikea" ;
+    cco:ont00001760 "https://www.commoncoreontologies.org/EventOntology"^^xsd1:anyURI .
+
+mds:ElectricalComponentHighlyAcceleratedLifetimeTestingSystem a owl:Class ;
+    rdfs:label "Electrical Component Lifetime Testing System" ;
+    rdfs:subClassOf mds:HighlyAcceleratedLifetimeTestingSystem ;
+    skos:altLabel "EC-HALT" ;
+    skos:definition "A type of Highly Accelerated Lifetime Testing System that is used specifically for electrical components" .
+
+mds:PrintedCircuitBoardContactPad a owl:Class ;
+    rdfs:label "Printed Circuit Board Contact Pad" ;
+    rdfs:subClassOf mds:PrintedCircuitBoardDesign ;
+    skos:altLabel "PCB Contact Pad" ;
+    skos:definition "Individual contact pad on a PCB (ex.: these can be used for HALT testing of capacitors)" .
+
+cco:ont00001304 a owl:Class ;
+    rdfs:label "Dimension Specification"@en ;
+    rdfs:subClassOf cco:ont00000575 ;
+    skos:definition "An Quality Specification that prescribes some Size Quality."@en ;
+    cco:ont00001760 "https://www.commoncoreontologies.org/ArtifactOntology"^^xsd1:anyURI .
+
+mds:PrintedCircuitBoardDesign a owl:Class ;
+    rdfs:label "Printed Circuit Board Design" ;
+    rdfs:subClassOf mds:PrintedCircuitBoard ;
+    skos:altLabel "PCB Style, PCB Design" ;
+    skos:definition "Determines design of PCB that is being used for a function" .
+
+mds:Tolerance a owl:Class ;
+    rdfs:label "Tolerance" ;
+    rdfs:subClassOf cco:ont00000592 ;
+    skos:altLabel "" ;
+    skos:definition "Class that represents the operational limit values and respective functional property variation of a sample (ex. for a capacitor, capacitance varies by X% capacative tolerance witnin a temperature tolerance of A to B)" .
+
+cco:ont00000575 a owl:Class ;
+    rdfs:label "Quality Specification"@en ;
+    rdfs:subClassOf cco:ont00000965 ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:intersectionOf ( cco:ont00000965 [ a owl:Restriction ;
+                        owl:onProperty cco:ont00001942 ;
+                        owl:someValuesFrom obo:BFO_0000019 ] ) ] ;
+    skos:definition "A Directive Information Content Entity that prescribes some Quality."@en ;
+    cco:ont00001760 "https://www.commoncoreontologies.org/ArtifactOntology"^^xsd1:anyURI .
+
+mds:DesolderingProcess a owl:Class ;
+    rdfs:label "Desoldering Process" ;
+    rdfs:subClassOf cco:ont00001196 ;
+    skos:altLabel "Act of Desoldering, Desoldering" ;
+    skos:definition "Represents the process of desoldering an electric component to a circuit board (ex. capacitor off of a PCB)" .
+
+mds:SolderingProcess a owl:Class ;
+    rdfs:label "Soldering Process" ;
+    rdfs:subClassOf cco:ont00001196 ;
+    skos:altLabel "Act of Soldering, Soldering" ;
+    skos:definition "Represents the process of soldering an electric component to a circuit board (ex. capacitor to a PCB)" .
+
+cco:ont00000127 a owl:Class ;
+    rdfs:label "Performance Specification"@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty cco:ont00001980 ;
+            owl:someValuesFrom obo:BFO_0000001 ],
+        cco:ont00000965 ;
+    skos:definition "A Directive Information Content Entity that prescribes some aspect of the behavior of a participant in a Process given one or more operating conditions."@en ;
+    skos:example "Maximum Speed at high altitude; Rate of Ascent at 10 degrees celsius with nominal payload." ;
+    cco:ont00001760 "https://www.commoncoreontologies.org/InformationEntityOntology"^^xsd:anyURI .
+
+mds:ElectricalWire a owl:Class ;
+    rdfs:label "Electrical Wire" ;
+    rdfs:subClassOf cco:ont00000663 ;
+    skos:altLabel "Electrical Cable" ;
+    skos:definition "A power transmission artifact made of conductive material that carries charge from one location to another." .
+
+mds:ElectricalConnector a owl:Class ;
+    rdfs:label "Electrical Connector" ;
+    rdfs:comment "At every joint in any given electrical circuit, there is some form of connector present at the joint" ;
+    rdfs:subClassOf cco:ont00000663 ;
+    skos:altLabel "Electrical Port, Electrical Interface" ;
+    skos:definition "A power transmission artifact that provides an interface for another power transmission artifact (ex. an electrical wire)." ;
+    skos:example "USB port on a laptop, RJ45 (ethernet) port from the wall (not the respective wires)" .
+
+cco:ont00000995 a owl:Class ;
+    rdfs:label "Material Artifact"@en ;
+    rdfs:subClassOf obo:BFO_0000040 ;
+    skos:definition "A Material Entity that was designed by some Agent to realize a certain Function."@en ;
+    cco:ont00001760 "https://www.commoncoreontologies.org/ArtifactOntology"^^xsd1:anyURI .
+

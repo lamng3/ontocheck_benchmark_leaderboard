@@ -1,0 +1,27 @@
+rules_version = '2';
+
+// The shared question log. Visitors can add a question; nobody can read,
+// change, or delete one through the web config. Read them in the Firebase
+// console or with the Admin SDK.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /questions/{id} {
+      allow create: if isQuestion(request.resource.data);
+      allow read, update, delete: if false;
+    }
+
+    function isQuestion(q) {
+      return q.keys().hasOnly(['nl_text', 'sparql', 'intent', 'intent_cue', 'source', 'graph', 'pipeline', 'created_at'])
+        && q.keys().hasAll(['nl_text', 'intent', 'source', 'created_at'])
+        && q.nl_text is string && q.nl_text.size() > 0 && q.nl_text.size() <= 2000
+        && (!('sparql' in q) || (q.sparql is string && q.sparql.size() <= 10000))
+        && q.intent in ['taxonomy', 'definition', 'property', 'relation', 'count', 'boolean',
+                        'provenance', 'comparison', 'listing', 'other']
+        && (!('intent_cue' in q) || (q.intent_cue is string && q.intent_cue.size() <= 200))
+        && q.source in ['ask', 'translate', 'query']
+        && (!('graph' in q) || (q.graph is string && q.graph.size() <= 100))
+        && (!('pipeline' in q) || (q.pipeline is map && q.pipeline.keys().hasOnly(['retriever', 'reasoner', 'context'])))
+        && q.created_at == request.time;
+    }
+  }
+}
