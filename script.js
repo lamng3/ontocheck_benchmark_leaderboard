@@ -795,23 +795,23 @@ const assessmentLevelList = [
   { key: "0", label: "Level 0" },
   { key: "I", label: "I · Conceptual" },
   { key: "II", label: "II · Structural & logical" },
-  { key: "III", label: "III · Retrieval" },
-  { key: "IV", label: "IV · Downstream reasoning" },
+  { key: "III", label: "III · Retrieval & reasoning" },
+  { key: "IV", label: "IV · RAG" },
 ];
 // One entry per reported coordinate, in the whitepaper's order.
 const fitnessCoordinates = [
   { level: "I", id: "conceptualFitness", symbol: "F_C", name: "Conceptual fitness", about: "Do the ontology's terms support the concepts and properties the questions need?" },
   { level: "II-A", id: "structuralFitness", symbol: "F_S", name: "Structural fitness", about: "Is the connectivity the questions need represented as an admissible schema path?" },
   { level: "II-B", id: "logicalFitness", symbol: "F_L", name: "Logical fitness", about: "Do the required conclusions follow from the ontology's axioms?" },
-  { level: "III", id: "retrievalFitness", symbol: "F_R", name: "Retrieval fitness", about: "Does a fixed retriever, guided by the ontology, return the gold evidence within budget?" },
-  { level: "IV", id: "answerAccuracy", symbol: "F_D", name: "Downstream reasoning fitness", about: "Can a fixed reasoner answer correctly, along the right path, from that evidence?" },
+  { level: "III", id: "retrievalScore", symbol: "F_R", name: "Retrieval", about: "Does the retriever, guided by the ontology, return the evidence the questions need?" },
+  { level: "III", id: "reasoningScore", symbol: "F_D", name: "Reasoning", about: "Can the reasoner answer correctly from that evidence?" },
+  { level: "IV", id: "benchmarkScore", name: "RAG score", about: "How the whole retrieve-and-reason pipeline scores on the domain's benchmark cases." },
 ];
 // Rows that are reported but are not one of the five coordinates.
 const ontocheckNotes = {
   recall: "OntoCheck term coverage, a Level-I baseline",
   precision: "OntoCheck term coverage, a Level-I baseline",
   counterfactualImportance: "Validates workload weights; not part of conceptual fitness",
-  benchmarkScore: "Single score over the benchmark cases",
 };
 const assessmentKinds = [
   { key: "oops", label: "OOPS" },
@@ -827,7 +827,6 @@ const ontocheckLevels = {
   counterfactualImportance: "I",
   structuralFitness: "II-A",
   logicalFitness: "II-B",
-  retrievalFitness: "III",
   benchmarkScore: "IV",
   answerAccuracy: "IV",
   reasoningPath: "IV",
@@ -842,14 +841,15 @@ const ontocheckDerived = {
     { key: "path_coverage", name: "Path coverage" },
     { key: "path_stretch", name: "Path stretch" },
   ],
-  retrievalFitness: [
-    { key: "evidence_precision", name: "Evidence precision" },
-    { key: "distractor_rate", name: "Distractor rate" },
-    { key: "support_path_recall", name: "Support-path recall" },
-    { key: "triples", name: "Retrieved triples" },
-    { key: "recall_without_ontology", name: "Evidence recall without the ontology" },
-  ],
 };
+// Level III comes from the planner's level3-results.json: a score and the
+// best attack plan's counterfactual influence for retrieval and reasoning.
+const level3Measures = [
+  { id: "retrievalScore", part: "retrieval", key: "score", name: "Retrieval" },
+  { id: "retrievalInfluence", part: "retrieval", key: "counterfactual_influence", name: "Counterfactual influence on retrieval" },
+  { id: "reasoningScore", part: "reasoning", key: "score", name: "Reasoning" },
+  { id: "reasoningInfluence", part: "reasoning", key: "counterfactual_influence", name: "Counterfactual influence on reasoning" },
+];
 let assessment = { domains: [] };
 let assessmentLevel = "0";
 let assessmentKind = "oops";
@@ -882,13 +882,44 @@ function rowLevel(row) {
 // "Not run (no instance data)" -> "No instance data"; "" when there is no
 // reason to show.
 function missingReason(status) {
-  const match = /\((no [^)]*)\)/i.exec(status || "");
+  const match = /\(((?:no|awaiting) [^)]*)\)/i.exec(status || "");
   return match ? match[1][0].toUpperCase() + match[1].slice(1) : "";
 }
 
+function ontocheckRow(domain, id) {
+  return ((domain.tables.ontocheck || {}).rows || []).find((item) => item.id === id);
+}
+
 function ontocheckReason(domain, id) {
-  const row = ((domain.tables.ontocheck || {}).rows || []).find((item) => item.id === id);
+  const row = ontocheckRow(domain, id);
   return row && row.status !== "Success" ? missingReason(row.status) : "";
+}
+
+// Replace a domain's Level III rows with the planner's results for it.
+function addLevel3(domain, results) {
+  const table = domain.tables.ontocheck || (domain.tables.ontocheck = { rows: [] });
+  table.rows = table.rows.filter((row) => rowLevel(row) !== "III");
+  for (const measure of level3Measures) {
+    const value = ((results || {})[measure.part] || {})[measure.key];
+    const scored = typeof value === "number";
+    table.rows.push({
+      id: measure.id,
+      name: measure.name,
+      kind: "planner",
+      level: "III",
+      value: scored ? value : null,
+      status: scored ? "Success" : "Not run (awaiting results)",
+      detail: {},
+    });
+  }
+  const byQuery = {};
+  for (const part of ["retrieval", "reasoning"]) {
+    for (const q of ((results || {})[part] || {}).queries || []) {
+      (byQuery[String(q.qid)] ||= {})[part] = q.score;
+    }
+  }
+  domain.level3Queries = byQuery;
+  domain.attackPlan = (results || {}).attack_plan || "";
 }
 
 function ontocheckValue(domain, id) {
@@ -912,7 +943,8 @@ function rankScores(domain) {
     recall: [ontocheckValue(domain, "recall")],
     conceptualFitness: [ontocheckValue(domain, "conceptualFitness")],
     structuralFitness: [ontocheckValue(domain, "structuralFitness")],
-    retrievalFitness: [ontocheckValue(domain, "retrievalFitness")],
+    retrievalScore: [ontocheckValue(domain, "retrievalScore")],
+    reasoningScore: [ontocheckValue(domain, "reasoningScore")],
     benchmarkScore: [ontocheckValue(domain, "benchmarkScore")],
   };
 }
@@ -941,14 +973,13 @@ function rankCell(label, values, format, reason) {
   }
   const second =
     values.length > 1 ? `<span class="assess-value weighted">${escapeHtml(format(weighted))}</span>` : "";
-  const why = status && status !== "Success" ? ` title="${escapeHtml(status)}"` : "";
-  return `<td data-label="${escapeHtml(label)}"${why}><span class="assess-value">${escapeHtml(format(original))}</span>${second}</td>`;
+  return `<td data-label="${escapeHtml(label)}"><span class="assess-value">${escapeHtml(format(original))}</span>${second}</td>`;
 }
 
 function renderAssessmentRank() {
   const scored = (assessment.domains || []).filter((domain) => domain.tables);
   if (!scored.length) {
-    assessmentRank.innerHTML = '<tr><td colspan="10" class="assessment-missing">—</td></tr>';
+    assessmentRank.innerHTML = '<tr><td colspan="11" class="assessment-missing">—</td></tr>';
     return;
   }
   const rows = scored.map((domain) => ({ domain, scores: rankScores(domain) }));
@@ -980,8 +1011,9 @@ function renderAssessmentRank() {
           ${rankCell("I · Recall", scores.recall, score, ontocheckReason(domain, "recall"))}
           ${rankCell("I · Conceptual fitness", scores.conceptualFitness, score, ontocheckReason(domain, "conceptualFitness"))}
           ${rankCell("II · Structural fitness", scores.structuralFitness, score, ontocheckReason(domain, "structuralFitness"))}
-          ${rankCell("III · Evidence recall", scores.retrievalFitness, score, ontocheckReason(domain, "retrievalFitness"))}
-          ${rankCell("IV · Benchmark score", scores.benchmarkScore, score, ontocheckReason(domain, "benchmarkScore"))}
+          ${rankCell("III · Retrieval", scores.retrievalScore, score, ontocheckReason(domain, "retrievalScore"))}
+          ${rankCell("III · Reasoning", scores.reasoningScore, score, ontocheckReason(domain, "reasoningScore"))}
+          ${rankCell("IV · RAG score", scores.benchmarkScore, score, ontocheckReason(domain, "benchmarkScore"))}
         </tr>
       `,
     )
@@ -1076,7 +1108,8 @@ function renderFrameworkTable(domain) {
 
 function sourceTag(domain, row) {
   if (row.kind === "benchmark" || row.id === "counterfactualImportance") return benchmarkTag(domain);
-  if (row.kind === "task" || row.kind === "fitness" || row.kind === "retrieval") return questionsTag(domain);
+  if (row.kind === "task" || row.kind === "fitness") return questionsTag(domain);
+  if (row.kind === "planner" && domain.attackPlan) return `<span class="tag">${escapeHtml(domain.attackPlan)}</span>`;
   return "";
 }
 
@@ -1087,7 +1120,9 @@ function renderLevelTable(domain) {
     '<tr><th scope="col" class="l">Metric</th><th scope="col">Value</th><th scope="col" class="l">Queries</th></tr>';
   const metricRows = (row) => {
     const source = row.status === "Success" ? sourceTag(domain, row) : "";
-    const notes = [ontocheckNotes[row.id], row.status === "Success" ? "" : row.status].filter(Boolean);
+    // A short reason already shows in the value cell.
+    const status = row.status === "Success" || missingReason(row.status) ? "" : row.status;
+    const notes = [ontocheckNotes[row.id], status].filter(Boolean);
     const main = `
       <tr>
         <th scope="row" class="l metric">${escapeHtml(row.name)}${notes.map((note) => `<small>${escapeHtml(note)}</small>`).join("")}</th>
@@ -1166,18 +1201,17 @@ function renderQueryTable(domain) {
         `,
       )
       .join("");
-  } else if (assessmentLevel === "III" && queries.some((q) => q.ER !== undefined)) {
+  } else if (assessmentLevel === "III" && Object.keys(domain.level3Queries || {}).length) {
+    const questions = Object.fromEntries(queries.map((q) => [String(q.qid), q.question]));
     assessmentQueriesHead.innerHTML =
-      '<tr><th scope="col">Query</th><th scope="col">Evidence recall</th><th scope="col">Support-path recall</th><th scope="col">Without the ontology</th></tr>';
-    assessmentQueriesBody.innerHTML = queries
-      .filter((q) => q.ER !== undefined)
+      '<tr><th scope="col" class="l">Query</th><th scope="col">Retrieval</th><th scope="col">Reasoning</th></tr>';
+    assessmentQueriesBody.innerHTML = Object.entries(domain.level3Queries)
       .map(
-        (q) => `
+        ([qid, q]) => `
           <tr>
-            ${queryCell(q.qid, q.question)}
-            ${fixedCell(q.ER, "Evidence recall")}
-            ${fixedCell(q.support_path_recall, "Support-path recall")}
-            ${fixedCell(q.ER_without_ontology, "Without the ontology")}
+            ${queryCell(qid, questions[qid])}
+            ${fixedCell(q.retrieval, "Retrieval")}
+            ${fixedCell(q.reasoning, "Reasoning")}
           </tr>
         `,
       )
@@ -1274,7 +1308,7 @@ function renderFramework() {
     return `
       <div class="coord${done ? "" : " pending"}">
         <span class="tag">${escapeHtml(coordinate.level)}</span>
-        <b>${escapeHtml(coordinate.name)} <span class="sym">F<sub>${escapeHtml(coordinate.symbol.slice(2))}</sub></span></b>
+        <b>${escapeHtml(coordinate.name)}${coordinate.symbol ? ` <span class="sym">F<sub>${escapeHtml(coordinate.symbol.slice(2))}</sub></span>` : ""}</b>
         <p>${escapeHtml(coordinate.about)}</p>
         <span class="state">${escapeHtml(state)}</span>
       </div>
@@ -1290,6 +1324,17 @@ async function loadAssessment() {
     assessment = await response.json();
   } catch {
     assessment = { domains: [] };
+  }
+  let level3 = { domains: [] };
+  try {
+    const response = await fetch("level3-results.json");
+    if (response.ok) level3 = await response.json();
+  } catch {
+    // No planner results yet: Level III shows as awaiting results.
+  }
+  const level3ByName = Object.fromEntries((level3.domains || []).map((item) => [item.name, item]));
+  for (const domain of assessment.domains || []) {
+    if (domain.tables) addLevel3(domain, level3ByName[domain.name]);
   }
   const first = (assessment.domains || []).find((domain) => domain.tables);
   assessmentDomain = first ? first.name : null;

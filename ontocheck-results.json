@@ -1657,15 +1657,6 @@
               "detail": {}
             },
             {
-              "id": "retrievalFitness",
-              "name": "Evidence recall",
-              "kind": "retrieval",
-              "level": "III",
-              "value": null,
-              "status": "Not run (no instance data)",
-              "detail": {}
-            },
-            {
               "id": "counterfactualImportance",
               "name": "Counterfactual concept importance",
               "kind": "fitness",
@@ -1715,7 +1706,7 @@
             },
             {
               "id": "benchmarkScore",
-              "name": "Benchmark score",
+              "name": "RAG score",
               "kind": "benchmark",
               "level": "IV",
               "value": 0.7,
@@ -3765,15 +3756,6 @@
               "detail": {}
             },
             {
-              "id": "retrievalFitness",
-              "name": "Evidence recall",
-              "kind": "retrieval",
-              "level": "III",
-              "value": null,
-              "status": "Not run (no instance data)",
-              "detail": {}
-            },
-            {
               "id": "counterfactualImportance",
               "name": "Counterfactual concept importance",
               "kind": "fitness",
@@ -3823,7 +3805,7 @@
             },
             {
               "id": "benchmarkScore",
-              "name": "Benchmark score",
+              "name": "RAG score",
               "kind": "benchmark",
               "level": "IV",
               "value": 0.55,
@@ -5865,15 +5847,6 @@
               "detail": {}
             },
             {
-              "id": "retrievalFitness",
-              "name": "Evidence recall",
-              "kind": "retrieval",
-              "level": "III",
-              "value": null,
-              "status": "Not run (no instance data)",
-              "detail": {}
-            },
-            {
               "id": "counterfactualImportance",
               "name": "Counterfactual concept importance",
               "kind": "fitness",
@@ -5923,7 +5896,7 @@
             },
             {
               "id": "benchmarkScore",
-              "name": "Benchmark score",
+              "name": "RAG score",
               "kind": "benchmark",
               "level": "IV",
               "value": 0.9375,
@@ -7995,15 +7968,6 @@
               "detail": {}
             },
             {
-              "id": "retrievalFitness",
-              "name": "Evidence recall",
-              "kind": "retrieval",
-              "level": "III",
-              "value": null,
-              "status": "Not run (no instance data)",
-              "detail": {}
-            },
-            {
               "id": "counterfactualImportance",
               "name": "Counterfactual concept importance",
               "kind": "fitness",
@@ -8053,7 +8017,7 @@
             },
             {
               "id": "benchmarkScore",
-              "name": "Benchmark score",
+              "name": "RAG score",
               "kind": "benchmark",
               "level": "IV",
               "value": 1.0,
@@ -10027,15 +9991,6 @@
               "detail": {}
             },
             {
-              "id": "retrievalFitness",
-              "name": "Evidence recall",
-              "kind": "retrieval",
-              "level": "III",
-              "value": null,
-              "status": "Not run (no instance data)",
-              "detail": {}
-            },
-            {
               "id": "counterfactualImportance",
               "name": "Counterfactual concept importance",
               "kind": "fitness",
@@ -10085,7 +10040,7 @@
             },
             {
               "id": "benchmarkScore",
-              "name": "Benchmark score",
+              "name": "RAG score",
               "kind": "benchmark",
               "level": "IV",
               "value": 1.0,
@@ -12132,23 +12087,6 @@
               "detail": {}
             },
             {
-              "id": "retrievalFitness",
-              "name": "Evidence recall",
-              "kind": "retrieval",
-              "level": "III",
-              "value": 0.5895,
-              "status": "Success",
-              "detail": {
-                "evidence_precision": 0.27,
-                "distractor_rate": 0.73,
-                "support_path_recall": 0.6695,
-                "triples": 18.6,
-                "recall_without_ontology": 0.3219,
-                "budget": 20,
-                "queries": 5
-              }
-            },
-            {
               "id": "counterfactualImportance",
               "name": "Counterfactual concept importance",
               "kind": "fitness",
@@ -12191,7 +12129,7 @@
             },
             {
               "id": "benchmarkScore",
-              "name": "Benchmark score",
+              "name": "RAG score",
               "kind": "benchmark",
               "level": "IV",
               "value": 1.0,
@@ -12423,11 +12361,7 @@
           "F_S": 1.0,
           "path_coverage": 1.0,
           "path_stretch": 1.0,
-          "unrealised": [],
-          "ER": 1.0,
-          "EP": 0.4,
-          "support_path_recall": 1.0,
-          "ER_without_ontology": 0.5
+          "unrealised": []
         },
         {
           "qid": "1000015",
@@ -12441,11 +12375,7 @@
           "path_stretch": null,
           "unrealised": [
             "Beamline --subClassOf--> APS"
-          ],
-          "ER": 0.0,
-          "EP": 0.0,
-          "support_path_recall": 0.0,
-          "ER_without_ontology": 0.0
+          ]
         },
         {
           "qid": "1000016",
@@ -12457,11 +12387,7 @@
           "F_S": 1.0,
           "path_coverage": 1.0,
           "path_stretch": 1.0,
-          "unrealised": [],
-          "ER": 0.8333,
-          "EP": 0.5,
-          "support_path_recall": 0.8333,
-          "ER_without_ontology": 0.1667
+          "unrealised": []
         },
         {
           "qid": "1000017",
@@ -12473,11 +12399,7 @@
           "F_S": 0.5,
           "path_coverage": 1.0,
           "path_stretch": 2.0,
-          "unrealised": [],
-          "ER": 0.4,
-          "EP": 0.2,
-          "support_path_recall": 0.8,
-          "ER_without_ontology": 0.8
+          "unrealised": []
         },
         {
           "qid": "1000018",
@@ -12503,11 +12425,7 @@
           "F_S": 0.75,
           "path_coverage": 1.0,
           "path_stretch": 1.5,
-          "unrealised": [],
-          "ER": 0.7143,
-          "EP": 0.25,
-          "support_path_recall": 0.7143,
-          "ER_without_ontology": 0.1429
+          "unrealised": []
         }
       ],
       "benchmark_cases": [

@@ -48,7 +48,7 @@ A leaderboard and workbench for [OntoCheck](https://github.com/cwru-sdle/OntoChe
 |:--|:--|
 | **Leaderboard** | Coverage for MDS-Onto, PMDCo, AM-Ontology, EMMO, and CHAMEO on 50 general questions, with each of seven categories as a shaded column, and a profile that highlights one ontology against the others |
 | **Domains** | Task-based recall and precision for six applied domains, next to local FOOPS and OOPS results for the same files |
-| **Assessment** | Each domain's Level 0 baselines (OOPS, FOOPS, OQuaRE, and term recall) and its four-level fitness profile from the OntoCheck-Bench whitepaper: conceptual (I), structural and logical (II-A, II-B), retrieval (III), and downstream reasoning (IV) |
+| **Assessment** | Each domain's Level 0 baselines (OOPS, FOOPS, OQuaRE, and term recall) and its four-level fitness profile from the OntoCheck-Bench whitepaper: conceptual (I), structural and logical (II-A, II-B), retrieval and reasoning (III), and the RAG score (IV) |
 | **Questions** | All 176 published competency questions with their SPARQL |
 | **Evaluate** | FOOPS, OOPS, OQuaRE, and OntoCheck recall and precision for an example or your own file |
 | **Ask** | A question through a pipeline you choose: knowledge graph, retriever, reasoner, and context |
@@ -148,6 +148,23 @@ The domains, their question files, and benchmark suites are listed in OntoCheck'
 ```bash
 ontocheck-leaderboard --manifest SupplementaryMaterials/leaderboard-domains.json \
     --out ../ontocheck_benchmark_leaderboard/ontocheck-results.json
+```
+
+Level III comes from the planner, in `level3-results.json`. Each domain gives a retrieval and a reasoning score, the counterfactual influence of the best attack plan on each, and optionally per-question scores keyed by the question's `qid`. A domain that is missing shows as awaiting results.
+
+```json
+{
+  "domains": [
+    {
+      "name": "XRD",
+      "attack_plan": "plan-07",
+      "retrieval": {"score": 0.71, "counterfactual_influence": 0.24,
+                    "queries": [{"qid": "1000014", "score": 0.8}]},
+      "reasoning": {"score": 0.65, "counterfactual_influence": 0.31,
+                    "queries": [{"qid": "1000014", "score": 1.0}]}
+    }
+  ]
+}
 ```
 
 </details>
